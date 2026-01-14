@@ -1,0 +1,30 @@
+{
+  "name": "billiard-university-scoring",
+  "version": "1.0.0",
+  "description": "Billiard University Exam Scoring System",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "serve": "vite preview --port 4173"
+  },
+  "dependencies": {
+    "pinia": "^2.1.6",
+    "vue": "^3.3.4",
+    "vue-router": "^4.2.4",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.2.3",
+    "vite": "^7.3.1"
+  },
+  "keywords": [
+    "billiard",
+    "scoring",
+    "vue",
+    "exam"
+  ],
+  "author": "BilliardUniversity.org",
+  "license": "MIT"
+}

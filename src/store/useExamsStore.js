@@ -1,0 +1,514 @@
+import { defineStore } from 'pinia'
+
+export const useExamsStore = defineStore('exams', {
+  state: () => ({
+    student: {
+      name: '',
+      date: new Date().toISOString().split('T')[0],
+      examIScore: null,
+      examIILevel: null
+    },
+    examI: {
+      drills: [
+        { 
+          code: 'F1', 
+          name: 'Cut', 
+          type: 'position', 
+          shots: Array(10).fill(4), // target values 1..7 initialized at 4
+          successes: Array(10).fill(false), // success true/false per shot
+          loses: Array(10).fill(false), // lose true/false per shot
+          locked: Array(10).fill(false), // locked state per shot
+          score: 0, 
+          maxScore: 10, 
+          bonus: 0 
+        },
+        { 
+          code: 'F2', 
+          name: 'Stop', 
+          type: 'position', 
+          shots: Array(10).fill(4),
+          successes: Array(10).fill(false),
+          loses: Array(10).fill(false),
+          locked: Array(10).fill(false),
+          score: 0, 
+          maxScore: 10, 
+          bonus: 0 
+        },
+        { 
+          code: 'F3', 
+          name: 'Follow', 
+          type: 'position', 
+          shots: Array(10).fill(4),
+          successes: Array(10).fill(false),
+          loses: Array(10).fill(false),
+          locked: Array(10).fill(false),
+          score: 0, 
+          maxScore: 10, 
+          bonus: 0 
+        },
+        { 
+          code: 'F4', 
+          name: 'Draw', 
+          type: 'position', 
+          shots: Array(10).fill(4),
+          successes: Array(10).fill(false),
+          loses: Array(10).fill(false),
+          locked: Array(10).fill(false),
+          score: 0, 
+          maxScore: 10, 
+          bonus: 0 
+        },
+        { 
+          code: 'F5', 
+          name: 'Stun', 
+          type: 'position', 
+          shots: Array(10).fill(4),
+          successes: Array(10).fill(false),
+          loses: Array(10).fill(false),
+          locked: Array(10).fill(false),
+          score: 0, 
+          maxScore: 10, 
+          bonus: 0 
+        },
+        { 
+          code: 'F6', 
+          name: 'Potting', 
+          type: 'counting', 
+          score: 0, 
+          maxScore: 10, 
+          instructions: 'Number of balls pocketed (max 10)' 
+        },
+        { 
+          code: 'F7', 
+          name: 'Wagon Wheel', 
+          type: 'counting', 
+          score: 0, 
+          maxScore: 20, 
+          instructions: 'Number of hits (max 20)' 
+        },
+        { 
+          code: 'F8', 
+          name: 'Targets', 
+          type: 'counting', 
+          score: 0, 
+          maxScore: 20, 
+          instructions: 'Number of hits (max 20)' 
+        }
+      ],
+      totalScore: 0,
+      placement: ''
+    },
+    examII: {
+      currentLevel: 'Bachelors',
+      skills: {
+        Bachelors: [
+          { code: 'S1', name: 'Line', type: 'bestOfTwo', attempt1: 0, attempt2: 0, maxScore: 4 },
+          { code: 'S2', name: 'Rail', type: 'bestOfTwo', attempt1: 0, attempt2: 0, maxScore: 7 },
+          { code: 'S3', name: '9-ball', type: 'lowestTwoOfThree', scores: [0,0,0], maxScore: 10 },
+          { code: 'S4', name: '8-ball', type: 'lowestTwoOfThree', scores: [0,0,0], maxScore: 10 },
+          { code: 'S5', name: 'Safe', type: 'sum', scores: Array(6).fill(0), maxScore: 6 },
+          { code: 'S6', name: 'Kick', type: 'sum', scores: Array(3).fill(0), maxScore: 3 },
+          { code: 'S7', name: 'Bank', type: 'sum', scores: Array(3).fill(0), maxScore: 3 },
+          { code: 'S8', name: 'Elevated', type: 'sum', scores: Array(3).fill(0), maxScore: 3 },
+          { code: 'S9', name: 'Jump/Masse', type: 'sum', scores: Array(3).fill(0), maxScore: 3 },
+          { code: 'S10', name: 'Break', type: 'median', breakScores: [Array(5).fill(0), Array(5).fill(0), Array(5).fill(0)], maxScore: 5 }
+        ],
+        Masters: [
+          { code: 'S1', name: 'Line', type: 'bestOfTwo', attempt1: 0, attempt2: 0, maxScore: 7 },
+          { code: 'S2', name: 'Rail', type: 'bestOfTwo', attempt1: 0, attempt2: 0, maxScore: 11 },
+          { code: 'S3', name: '9-ball', type: 'lowestTwoOfThree', scores: [0,0,0], maxScore: 12 },
+          { code: 'S4', name: '8-ball', type: 'lowestTwoOfThree', scores: [0,0,0], maxScore: 12 },
+          { code: 'S5', name: 'Safe', type: 'sum', scores: Array(10).fill(0), maxScore: 10 },
+          { code: 'S6', name: 'Kick', type: 'sum', scores: Array(5).fill(0), maxScore: 5 },
+          { code: 'S7', name: 'Bank', type: 'sum', scores: Array(5).fill(0), maxScore: 5 },
+          { code: 'S8', name: 'Elevated', type: 'sum', scores: Array(5).fill(0), maxScore: 5 },
+          { code: 'S9', name: 'Jump/Masse', type: 'sum', scores: Array(5).fill(0), maxScore: 5 },
+          { code: 'S10', name: 'Break', type: 'median', breakScores: [Array(5).fill(0), Array(5).fill(0), Array(5).fill(0)], maxScore: 5 }
+        ],
+        Doctorate: [
+          { code: 'S1', name: 'Line', type: 'bestOfTwo', attempt1: 0, attempt2: 0, maxScore: 10 },
+          { code: 'S2', name: 'Rail', type: 'bestOfTwo', attempt1: 0, attempt2: 0, maxScore: 15 },
+          { code: 'S3', name: '9-ball', type: 'lowestTwoOfThree', scores: [0,0,0], maxScore: 14 },
+          { code: 'S4', name: '8-ball', type: 'lowestTwoOfThree', scores: [0,0,0], maxScore: 14 },
+          { code: 'S5', name: 'Safe', type: 'sum', scores: Array(14).fill(0), maxScore: 14 },
+          { code: 'S6', name: 'Kick', type: 'sum', scores: Array(7).fill(0), maxScore: 7 },
+          { code: 'S7', name: 'Bank', type: 'sum', scores: Array(7).fill(0), maxScore: 7 },
+          { code: 'S8', name: 'Elevated', type: 'sum', scores: Array(7).fill(0), maxScore: 7 },
+          { code: 'S9', name: 'Jump/Masse', type: 'sum', scores: Array(7).fill(0), maxScore: 7 },
+          { code: 'S10', name: 'Break', type: 'median', breakScores: [Array(5).fill(0), Array(5).fill(0), Array(5).fill(0)], maxScore: 5 }
+        ]
+      },
+      currentScore: 0
+    },
+    history: {
+      examI: [],
+      examII: []
+    }
+  }),
+
+  getters: {
+    getCurrentLevelSkills: (state) => {
+      return state.examII.skills[state.examII.currentLevel] || []
+    },
+    getTotalScore: (state) => {
+      return (state.student.examIScore || 0) + state.examII.currentScore
+    }
+  },
+
+  actions: {
+    updateExamIDrill(index) {
+      const drill = this.examI.drills[index]
+
+      if (drill.type === 'position') {
+        // Determine last successful target value
+        let lastPosition = 0
+        for (let i = 0; i < (drill.successes || []).length; i++) {
+          if (drill.successes[i]) {
+            lastPosition = drill.shots[i] || lastPosition
+          }
+        }
+
+        // Count consecutive successful 7s as bonus (count adjacent pairs, cap at 3)
+        let bonus = 0
+        const len = (drill.successes || []).length
+        for (let i = 0; i < len - 1; i++) {
+          if (drill.successes[i] && drill.successes[i + 1] && drill.shots[i] === 7 && drill.shots[i + 1] === 7) {
+            bonus++
+          }
+        }
+        if (bonus > 3) bonus = 3
+
+        drill.bonus = bonus
+        // score is last successful target + bonus, max 10
+        const score = Math.min(drill.maxScore || 10, lastPosition + bonus)
+        drill.score = score
+      }
+
+      this.calculateExamIScore()
+    },
+
+    incrementDrillScore(index) {
+      const drill = this.examI.drills[index]
+      if (drill.score < drill.maxScore) {
+        drill.score++
+        this.calculateExamIScore()
+      }
+    },
+
+    decrementDrillScore(index) {
+      const drill = this.examI.drills[index]
+      if (drill.score > 0) {
+        drill.score--
+        this.calculateExamIScore()
+      }
+    },
+
+    calculateExamIScore() {
+      let total = 0
+      
+      // F1-F5: Position drills with bonus
+      for (let i = 0; i < 5; i++) {
+        const drill = this.examI.drills[i]
+        let lastPosition = 0
+        let bonus = 0
+
+        // Find last successful target value
+        for (let j = 0; j < (drill.successes || []).length; j++) {
+          if (drill.successes[j]) {
+            lastPosition = drill.shots[j] || lastPosition
+          }
+        }
+
+        // Count consecutive successful 7s for bonus (adjacent pairs), cap at 3
+        for (let j = 0; j < (drill.successes || []).length - 1; j++) {
+          if (drill.successes[j] && drill.successes[j + 1] && drill.shots[j] === 7 && drill.shots[j + 1] === 7) {
+            bonus++
+          }
+        }
+        if (bonus > 3) bonus = 3
+
+        const score = Math.min(10, lastPosition + bonus)
+        drill.score = score
+        total += score
+      }
+      
+      // F6: Potting
+      this.examI.drills[5].score = Math.min(10, this.examI.drills[5].score)
+      total += this.examI.drills[5].score
+      
+      // F7: Wagon wheel
+      this.examI.drills[6].score = Math.min(20, this.examI.drills[6].score)
+      total += this.examI.drills[6].score
+      
+      // F8: Targets
+      this.examI.drills[7].score = Math.min(20, this.examI.drills[7].score)
+      total += this.examI.drills[7].score
+      
+      this.examI.totalScore = total
+      this.examI.placement = this.getExamIILevel(total)
+      this.student.examIScore = total
+      this.student.examIILevel = this.examI.placement
+      
+      this.saveToLocalStorage()
+    },
+
+    getExamIILevel(score) {
+      if (score < 50) return 'Bachelors'
+      if (score < 70) return 'Masters'
+      return 'Doctorate'
+    },
+
+    updateExamIISkill(skillIndex, data) {
+      const skills = this.examII.skills[this.examII.currentLevel]
+      Object.assign(skills[skillIndex], data)
+      this.calculateExamIIScore()
+    },
+
+    calculateExamIIScore() {
+      const skills = this.examII.skills[this.examII.currentLevel]
+      let total = 0
+      
+      skills.forEach(skill => {
+        const score = this.calculateSkillScore(skill)
+        total += score
+      })
+      
+      this.examII.currentScore = total
+      this.saveToLocalStorage()
+    },
+
+    calculateSkillScore(skill) {
+      if (!skill) return 0
+      
+      switch(skill.type) {
+        case 'bestOfTwo':
+          const attempt1 = skill.attempt1 || 0
+          const attempt2 = skill.attempt2 || 0
+          return Math.min(skill.maxScore, Math.max(attempt1, attempt2))
+          
+        case 'lowestTwoOfThree':
+          const scores = [...(skill.scores || [0, 0, 0])].sort((a, b) => a - b)
+          return Math.min(skill.maxScore, scores[0] + scores[1])
+          
+        case 'sum':
+          const sum = (skill.scores || []).reduce((total, score) => total + (score || 0), 0)
+          return Math.min(skill.maxScore, sum)
+          
+        case 'median':
+          const breakSums = (skill.breakScores || [[], [], []]).map(arr => 
+            arr.reduce((total, score) => total + (score || 0), 0)
+          )
+          breakSums.sort((a, b) => a - b)
+          return Math.min(5, breakSums[1] || 0)
+          
+        default:
+          return 0
+      }
+    },
+
+    setExamIILevel(level) {
+      this.examII.currentLevel = level
+      this.calculateExamIIScore()
+    },
+
+    saveExamI() {
+      const entry = {
+        date: this.student.date || new Date().toISOString().split('T')[0],
+        studentName: this.student.name,
+        scores: this.examI.drills.map(d => d.score),
+        total: this.examI.totalScore,
+        level: this.examI.placement
+      }
+      
+      this.history.examI.push(entry)
+      this.saveToLocalStorage()
+      
+      return entry
+    },
+
+    saveExamII() {
+      const skills = this.examII.skills[this.examII.currentLevel]
+      const entry = {
+        date: this.student.date || new Date().toISOString().split('T')[0],
+        studentName: this.student.name,
+        level: this.examII.currentLevel,
+        scores: skills.map(s => this.calculateSkillScore(s)),
+        total: this.examII.currentScore
+      }
+      
+      this.history.examII.push(entry)
+      this.saveToLocalStorage()
+      
+      return entry
+    },
+
+    // Reset a single drill (local reset for a fragment)
+    resetExamIDrill(index) {
+      const drill = this.examI.drills[index]
+      if (!drill) return
+
+      if (drill.type === 'position') {
+        drill.shots = Array(10).fill(4)
+        drill.successes = Array(10).fill(false)
+        drill.loses = Array(10).fill(false)
+        drill.locked = Array(10).fill(false)
+        drill.score = 0
+        drill.bonus = 0
+      } else {
+        drill.score = 0
+      }
+
+      this.calculateExamIScore()
+    },
+
+    saveStudentInfo(studentData) {
+      Object.assign(this.student, studentData)
+      this.saveToLocalStorage()
+    },
+
+    resetExamI() {
+      this.examI.drills.forEach(drill => {
+        if (drill.type === 'position') {
+          drill.shots = Array(10).fill(4)
+          drill.successes = Array(10).fill(false)
+          drill.loses = Array(10).fill(false)
+          drill.locked = Array(10).fill(false)
+        }
+        drill.score = 0
+        drill.bonus = 0
+      })
+      this.calculateExamIScore()
+    },
+
+    resetExamII() {
+      const level = this.examII.currentLevel
+      this.examII.skills[level].forEach(skill => {
+        if (skill.type === 'bestOfTwo') {
+          skill.attempt1 = 0
+          skill.attempt2 = 0
+        } else if (skill.type === 'lowestTwoOfThree' || skill.type === 'sum') {
+          skill.scores = skill.scores.map(() => 0)
+        } else if (skill.type === 'median') {
+          skill.breakScores = [Array(5).fill(0), Array(5).fill(0), Array(5).fill(0)]
+        }
+      })
+      this.calculateExamIIScore()
+    },
+
+    resetAll() {
+      this.resetExamI()
+      this.resetExamII()
+      this.history.examI = []
+      this.history.examII = []
+      this.student = {
+        name: '',
+        date: new Date().toISOString().split('T')[0],
+        examIScore: null,
+        examIILevel: null
+      }
+      localStorage.removeItem('billiardUniversityData')
+    },
+
+    loadSampleExamI() {
+      this.examI.drills[0].shots = [7,7,7,7,6,5,4,4,4,4]
+      this.examI.drills[0].successes = [true,true,true,true,true,true,false,false,false,false]
+      this.examI.drills[0].loses = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[0].locked = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[1].shots = [7,7,6,5,4,4,4,4,4,4]
+      this.examI.drills[1].successes = [true,true,true,true,false,false,false,false,false,false]
+      this.examI.drills[1].loses = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[1].locked = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[2].shots = [7,7,7,6,5,4,4,4,4,4]
+      this.examI.drills[2].successes = [true,true,true,true,true,true,false,false,false,false]
+      this.examI.drills[2].loses = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[2].locked = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[3].shots = [7,6,5,4,4,4,4,4,4,4]
+      this.examI.drills[3].successes = [true,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[3].loses = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[3].locked = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[4].shots = [7,7,6,5,4,4,4,4,4,4]
+      this.examI.drills[4].successes = [true,true,true,true,false,false,false,false,false,false]
+      this.examI.drills[4].loses = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[4].locked = [false,false,false,false,false,false,false,false,false,false]
+      this.examI.drills[5].score = 8
+      this.examI.drills[6].score = 16
+      this.examI.drills[7].score = 14
+      
+      this.calculateExamIScore()
+    },
+
+    loadSampleExamII() {
+      this.setExamIILevel('Masters')
+      const skills = this.examII.skills['Masters']
+      
+      skills[0].attempt1 = 6
+      skills[0].attempt2 = 7
+      skills[1].attempt1 = 9
+      skills[1].attempt2 = 10
+      skills[2].scores = [8, 9, 7]
+      skills[3].scores = [9, 8, 10]
+      skills[4].scores = [1,1,1,1,1,0,0,0,0,0]
+      skills[5].scores = [1,1,1,1,0]
+      skills[6].scores = [1,1,1,0,0]
+      skills[7].scores = [1,1,0,0,0]
+      skills[8].scores = [1,0,0,0,0]
+      skills[9].breakScores = [
+        [1,1,0,1,0],
+        [1,0,1,1,0],
+        [0,1,1,0,1]
+      ]
+      
+      this.calculateExamIIScore()
+    },
+
+    saveToLocalStorage() {
+      const data = {
+        student: this.student,
+        examI: this.examI,
+        examII: this.examII,
+        history: this.history,
+        lastSaved: new Date().toISOString()
+      }
+      localStorage.setItem('billiardUniversityData', JSON.stringify(data))
+    },
+
+    loadFromLocalStorage() {
+      const saved = localStorage.getItem('billiardUniversityData')
+      if (saved) {
+        try {
+          const data = JSON.parse(saved)
+          Object.assign(this.student, data.student || {})
+          Object.assign(this.examI, data.examI || {})
+          Object.assign(this.examII, data.examII || {})
+          Object.assign(this.history, data.history || {})
+          
+          this.calculateExamIScore()
+          this.calculateExamIIScore()
+        } catch(e) {
+          console.error('Error loading saved data:', e)
+        }
+      }
+    },
+
+    exportToExcel() {
+      const data = {
+        student: this.student,
+        examI: this.examI,
+        examII: this.examII,
+        history: this.history,
+        exportDate: new Date().toISOString()
+      }
+      
+      const dataStr = JSON.stringify(data, null, 2)
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
+      
+      const exportFileDefaultName = "billiard-university-\${new Date().toISOString().split('T')[0]}.json"
+      const linkElement = document.createElement('a')
+      linkElement.setAttribute('href', dataUri)
+      linkElement.setAttribute('download', exportFileDefaultName)
+      linkElement.click()
+      
+      alert('Data exported as JSON. For Excel format, install xlsx library.')
+    }
+  }
+})

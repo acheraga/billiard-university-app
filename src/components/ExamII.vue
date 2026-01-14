@@ -1,0 +1,835 @@
+<template>
+  <div class="exam-ii-container">
+    <div class="exam-header">
+      <h2><i class="fas fa-chart-line"></i> Exam II - Skills Assessment</h2>
+      <div class="level-selector">
+        <button
+          v-for="level in levels"
+          :key="level.id"
+          @click="setLevel(level.id)"
+          :class="['level-btn', { active: currentLevel === level.id }]"
+          :title="level.description"
+        >
+          <i :class="level.icon"></i>
+          {{ level.name }}
+          <span class="level-max">(Max: {{ level.maxScore }})</span>
+        </button>
+      </div>
+    </div>
+
+    <div v-if="currentLevel" class="exam-content">
+      <div class="level-info">
+        <div class="level-badge" :class="currentLevelClass">
+          <i :class="currentLevelInfo.icon"></i>
+          <span>{{ currentLevelInfo.name }} Level</span>
+        </div>
+        <div class="level-description">{{ currentLevelInfo.description }}</div>
+      </div>
+
+      <div class="skills-grid">
+        <div v-for="(skill, index) in skills" :key="index" class="skill-card">
+          <div class="skill-header">
+            <h3>{{ skill.code }} - {{ skill.name }}</h3>
+            <div class="skill-score">
+              <span class="current-score">{{ calculateSkillScore(skill) }}</span>
+              <span class="max-score">/{{ skill.maxScore }}</span>
+            </div>
+          </div>
+
+          <div class="skill-content">
+            <!-- Best of Two -->
+            <div v-if="skill.type === 'bestOfTwo'" class="skill-inputs">
+              <div class="input-group">
+                <label>Attempt 1:</label>
+                <input
+                  type="number"
+                  v-model.number="skill.attempt1"
+                  min="0"
+                  :max="skill.maxScore"
+                  @input="updateSkillScore"
+                >
+              </div>
+              <div class="input-group">
+                <label>Attempt 2:</label>
+                <input
+                  type="number"
+                  v-model.number="skill.attempt2"
+                  min="0"
+                  :max="skill.maxScore"
+                  @input="updateSkillScore"
+                >
+              </div>
+              <div class="skill-note">Best of two attempts (2nd optional if perfect)</div>
+            </div>
+
+            <!-- Lowest Two of Three -->
+            <div v-if="skill.type === 'lowestTwoOfThree'" class="skill-inputs">
+              <div v-for="i in 3" :key="i" class="input-group">
+                <label>Attempt {{ i }}:</label>
+                <input
+                  type="number"
+                  v-model.number="skill.scores[i-1]"
+                  min="0"
+                  :max="skill.maxScore"
+                  @input="updateSkillScore"
+                >
+              </div>
+              <div class="skill-note">Sum of lowest two attempts</div>
+            </div>
+
+            <!-- Sum (Checkbox style) -->
+            <div v-if="skill.type === 'sum'" class="skill-inputs checkboxes">
+              <div v-for="i in skill.scores.length" :key="i" class="checkbox-group">
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    v-model="skill.scores[i-1]"
+                    true-value="1"
+                    false-value="0"
+                    @change="updateSkillScore"
+                  >
+                  <span class="checkmark"></span>
+                  <span class="checkbox-text">Attempt {{ i }}</span>
+                </label>
+              </div>
+              <div class="skill-note">Check successful attempts (1 point each)</div>
+            </div>
+
+            <!-- Median (Break shots) -->
+            <div v-if="skill.type === 'median'" class="skill-inputs break-shots">
+              <div v-for="attempt in 3" :key="attempt" class="break-attempt">
+                <h4>Break {{ attempt }}</h4>
+                <div class="break-points">
+                  <div v-for="point in 5" :key="point" class="point-input">
+                    <label>Point {{ String.fromCharCode(96 + point) }}:</label>
+                    <select v-model="skill.breakScores[attempt-1][point-1]" @change="updateSkillScore">
+                      <option value="0">0 (Miss)</option>
+                      <option value="1">1 (Success)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="attempt-score">
+                  Score: {{ calculateBreakScore(skill.breakScores[attempt-1]) }}
+                </div>
+              </div>
+              <div class="skill-note">Median of three break scores</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="exam-summary">
+        <div class="summary-grid">
+          <div class="summary-card">
+            <h4><i class="fas fa-calculator"></i> Exam II Score</h4>
+            <div class="summary-value">{{ currentScore }}/{{ currentLevelInfo.maxScore }}</div>
+            <div class="progress-bar">
+              <div 
+                class="progress-fill" 
+                :style="{ width: (currentScore / currentLevelInfo.maxScore) * 100 + '%' }"
+              ></div>
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <h4><i class="fas fa-trophy"></i> Total Combined Score</h4>
+            <div class="summary-value">{{ totalScore }}</div>
+            <div class="rating-display" :class="ratingClass">
+              {{ buRating }}
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <h4><i class="fas fa-graduation-cap"></i> BU Diploma</h4>
+            <div class="summary-value diploma">{{ buDiploma }}</div>
+            <div class="diploma-note" v-if="buDiploma">
+              Awarded for outstanding performance
+            </div>
+          </div>
+        </div>
+
+        <div class="score-breakdown">
+          <h4><i class="fas fa-chart-bar"></i> Skills Breakdown</h4>
+          <div class="breakdown-items">
+            <div v-for="(skill, index) in skills" :key="index" class="breakdown-item">
+              <span class="skill-label">{{ skill.code }}</span>
+              <div class="skill-bar">
+                <div 
+                  class="skill-fill" 
+                  :style="{ width: (calculateSkillScore(skill) / skill.maxScore) * 100 + '%' }"
+                ></div>
+              </div>
+              <span class="skill-value">{{ calculateSkillScore(skill) }}/{{ skill.maxScore }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="action-buttons">
+        <button @click="saveExamII" class="btn btn-success">
+          <i class="fas fa-save"></i> Save Exam II Score
+        </button>
+        <button @click="resetExamII" class="btn btn-secondary">
+          <i class="fas fa-redo"></i> Reset Exam II
+        </button>
+        <button @click="autoFill" class="btn btn-info">
+          <i class="fas fa-magic"></i> Auto-fill Sample
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script>
+import { useExamsStore } from '../store/useExamsStore'
+import { computed, ref } from 'vue'
+
+export default {
+  name: 'ExamII',
+  setup() {
+    const store = useExamsStore()
+    
+    const levels = [
+      { id: 'Bachelors', name: 'Bachelors', maxScore: 54, icon: 'fas fa-user-graduate', 
+        description: 'Beginner level - Recommended for Exam I scores 0-49' },
+      { id: 'Masters', name: 'Masters', maxScore: 77, icon: 'fas fa-user-tie',
+        description: 'Intermediate level - Recommended for Exam I scores 50-69' },
+      { id: 'Doctorate', name: 'Doctorate', maxScore: 100, icon: 'fas fa-user-md',
+        description: 'Advanced level - Recommended for Exam I scores 70-100' }
+    ]
+
+    const currentLevel = ref(store.examII.currentLevel)
+
+    const currentLevelInfo = computed(() => {
+      return levels.find(level => level.id === currentLevel.value) || levels[0]
+    })
+
+    const currentLevelClass = computed(() => {
+      return `level-${currentLevel.value.toLowerCase()}`
+    })
+
+    const skills = computed(() => {
+      return store.examII.skills[currentLevel.value] || []
+    })
+
+    const currentScore = computed(() => store.examII.currentScore)
+
+    const totalScore = computed(() => {
+      return (store.student.examIScore || 0) + store.examII.currentScore
+    })
+
+    const buRating = computed(() => {
+      if (totalScore.value < 20) return "beg-0"
+      if (totalScore.value < 30) return "beg-1"
+      if (totalScore.value < 40) return "beg-2"
+      if (totalScore.value < 55) return "beg-3"
+      if (totalScore.value < 70) return "int-1"
+      if (totalScore.value < 95) return "int-2"
+      if (totalScore.value < 110) return "int-3"
+      if (totalScore.value < 125) return "adv-1"
+      if (totalScore.value < 140) return "adv-2"
+      if (totalScore.value < 160) return "adv-3"
+      if (totalScore.value < 180) return "semi pro"
+      return "pro"
+    })
+
+    const ratingClass = computed(() => {
+      if (totalScore.value < 55) return "rating-beginner"
+      if (totalScore.value < 95) return "rating-intermediate"
+      if (totalScore.value < 125) return "rating-advanced"
+      return "rating-expert"
+    })
+
+    const buDiploma = computed(() => {
+      if (totalScore.value < 55) return ""
+      if (totalScore.value < 85) return "Bachelors"
+      if (totalScore.value < 100) return "Bachelors w/ Honors"
+      if (totalScore.value < 125) return "Masters"
+      if (totalScore.value < 140) return "Masters w/ Honors"
+      if (totalScore.value < 180) return "Doctorate"
+      return "Doctorate w/ Honors"
+    })
+
+    const setLevel = (level) => {
+      currentLevel.value = level
+      store.setExamIILevel(level)
+    }
+
+    const calculateSkillScore = (skill) => {
+      return store.calculateSkillScore(skill)
+    }
+
+    const calculateBreakScore = (breakScores) => {
+      return breakScores.reduce((sum, score) => sum + parseInt(score || 0), 0)
+    }
+
+    const updateSkillScore = () => {
+      store.calculateExamIIScore()
+    }
+
+    const saveExamII = () => {
+      const entry = store.saveExamII()
+      alert(`Exam II score saved: ${entry.total}/${currentLevelInfo.value.maxScore} (${currentLevel.value} level)`)
+
+    }
+
+    const resetExamII = () => {
+      if (confirm('Reset all Exam II scores for current level?')) {
+        store.resetExamII()
+      }
+    }
+
+    const autoFill = () => {
+      if (confirm('Fill with sample data?')) {
+        store.loadSampleExamII()
+      }
+    }
+
+    return {
+      levels,
+      currentLevel,
+      currentLevelInfo,
+      currentLevelClass,
+      skills,
+      currentScore,
+      totalScore,
+      buRating,
+      ratingClass,
+      buDiploma,
+      setLevel,
+      calculateSkillScore,
+      calculateBreakScore,
+      updateSkillScore,
+      saveExamII,
+      resetExamII,
+      autoFill
+    }
+  }
+}
+</script>
+
+<style scoped>
+.exam-ii-container {
+  padding: 1rem;
+}
+
+.exam-header {
+  margin-bottom: 2rem;
+}
+
+.exam-header h2 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+  font-size: 1.8rem;
+}
+
+.level-selector {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.level-btn {
+  flex: 1;
+  min-width: 200px;
+  padding: 1rem 1.5rem;
+  border: 2px solid #e0e0e0;
+  background: white;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.level-btn:hover {
+  border-color: #3498db;
+  background: #f8f9fa;
+}
+
+.level-btn.active {
+  border-color: #3498db;
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.level-btn.active .level-max {
+  color: #1976d2;
+}
+
+.level-max {
+  font-size: 0.9rem;
+  font-weight: normal;
+  color: #6c757d;
+}
+
+.level-info {
+  background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.level-badge {
+  padding: 0.75rem 1.5rem;
+  border-radius: 50px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.level-bachelors {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.level-masters {
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  color: white;
+}
+
+.level-doctorate {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: white;
+}
+
+.level-description {
+  color: #495057;
+  font-size: 0.95rem;
+  max-width: 600px;
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.skill-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.skill-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.skill-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.skill-header h3 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1.2rem;
+}
+
+.skill-score {
+  text-align: right;
+}
+
+.current-score {
+  font-size: 1.8rem;
+  font-weight: bold;
+  color: #27ae60;
+}
+
+.max-score {
+  font-size: 1rem;
+  color: #6c757d;
+}
+
+.skill-content {
+  padding: 1rem 0;
+}
+
+.skill-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.input-group label {
+  min-width: 80px;
+  font-weight: 600;
+  color: #495057;
+}
+
+.input-group input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.checkbox-group {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  gap: 0.5rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  display: none;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #dee2e6;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark {
+  background: #3498db;
+  border-color: #3498db;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .checkmark::after {
+  content: '✓';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+}
+
+.checkbox-text {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.break-shots {
+  gap: 1.5rem;
+}
+
+.break-attempt {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 1rem;
+}
+
+.break-attempt h4 {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  font-size: 1rem;
+}
+
+.break-points {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.point-input {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.point-input label {
+  font-size: 0.85rem;
+  color: #6c757d;
+}
+
+.point-input select {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.attempt-score {
+  text-align: center;
+  font-weight: bold;
+  color: #27ae60;
+  padding: 0.5rem;
+  background: white;
+  border-radius: 4px;
+}
+
+.skill-note {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-style: italic;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.exam-summary {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.summary-card h4 {
+  margin: 0 0 1rem 0;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.summary-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #2c3e50;
+  margin: 1rem 0;
+}
+
+.diploma {
+  color: #8e44ad;
+  font-size: 1.8rem;
+}
+
+.progress-bar {
+  height: 10px;
+  background: #e9ecef;
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+  transition: width 0.5s ease;
+}
+
+.rating-display {
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}
+
+.rating-beginner {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+
+.rating-intermediate {
+  background: #fff3e0;
+  color: #f57c00;
+}
+
+.rating-advanced {
+  background: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.rating-expert {
+  background: linear-gradient(135deg, #ffd700, #ffa500);
+  color: #333;
+}
+
+.diploma-note {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
+}
+
+.score-breakdown {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.score-breakdown h4 {
+  margin: 0 0 1.5rem 0;
+  color: #495057;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breakdown-items {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.breakdown-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.skill-label {
+  font-weight: bold;
+  color: #2c3e50;
+  min-width: 40px;
+}
+
+.skill-bar {
+  flex: 1;
+  height: 20px;
+  background: #e9ecef;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.skill-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3498db, #2980b9);
+  transition: width 0.5s ease;
+}
+
+.skill-value {
+  font-weight: bold;
+  color: #2c3e50;
+  min-width: 80px;
+  text-align: right;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 1rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #27ae60, #2ecc71);
+  color: white;
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #219653, #27ae60);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+}
+
+.btn-secondary {
+  background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+  color: white;
+}
+
+.btn-secondary:hover {
+  background: linear-gradient(135deg, #7f8c8d, #6c7b7d);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(149, 165, 166, 0.3);
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  color: white;
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #2980b9, #1c6ea4);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+@media (max-width: 768px) {
+  .skills-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .level-btn {
+    min-width: 100%;
+  }
+  
+  .level-info {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .input-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .input-group input {
+    width: 100%;
+  }
+  
+  .break-points {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+</style>
