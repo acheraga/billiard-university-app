@@ -23,6 +23,10 @@
           </div>
           <span class="drill-score">{{ drill.score }}/{{ drill.maxScore }}</span>
         </div>
+        <div v-if="getFigure(drill.code)" class="drill-figure-wrap">
+          <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure" />
+          <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
+        </div>
         
         <div v-if="drill.type === 'position'" class="drill-content">
           <div class="shots-grid" :class="{ horizontal: isHorizontal(drill) }">
@@ -128,11 +132,36 @@
         <i class="fas fa-magic"></i> Auto-fill Sample
       </button>
     </div>
+
+    <div class="figures-section">
+      <h3><i class="fas fa-image"></i> Figures & Explanations</h3>
+      <p class="fig-note">Images intégrées depuis <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Légendes paraphrasées; source attribuée à l'auteur.</p>
+      <div class="figures-grid">
+        <div v-for="(f, i) in figures" :key="i" class="figure-card">
+          <img :src="f.src" :alt="`Figure ${i+1}`" />
+          <div class="figure-caption">
+            <strong>{{ f.caption }}</strong>
+            <div class="figure-attrib">Source: BU_Exam-I_Fundamentals_BW.pdf — David Alciatore (2018)</div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import { useExamsStore } from '../store/useExamsStore'
+const FIGS = [
+  { src: new URL('../assets/exam1_figs/fig-000.jpg', import.meta.url).href, caption: 'Cover / Logo: Billiard University Exam I cover image.' },
+  { src: new URL('../assets/exam1_figs/fig-001.jpg', import.meta.url).href, caption: 'F1 – Cut Shot Drill: Progressive practice drill; advance or retreat cue-ball position based on success.' },
+  { src: new URL('../assets/exam1_figs/fig-002.jpg', import.meta.url).href, caption: 'F2 – Stop Shot Drill: Pocket object ball and stop the cue ball overlapping the ghost-ball outline.' },
+  { src: new URL('../assets/exam1_figs/fig-003.jpg', import.meta.url).href, caption: 'F3 – Follow Shot Drill: Pocket the object ball and have the cue ball finish inside the target window.' },
+  { src: new URL('../assets/exam1_figs/fig-004.jpg', import.meta.url).href, caption: 'F4 – Draw Shot Drill: Pocket the object ball and draw the cue ball into the 2x1 diamond target.' },
+  { src: new URL('../assets/exam1_figs/fig-005.jpg', import.meta.url).href, caption: 'F5 – Stun Shot Drill: Cue ball should head to the target area; some positions require a rail rebound.' },
+  { src: new URL('../assets/exam1_figs/fig-006.jpg', import.meta.url).href, caption: 'F6 – Ball Pocketing Drill: Fixed positions, attempt the set of shots and count balls pocketed.' },
+  { src: new URL('../assets/exam1_figs/fig-007.jpg', import.meta.url).href, caption: 'F7 – Wagon Wheel Drill: Pocket OB and contact the indicated rail target balls.' },
+  { src: new URL('../assets/exam1_figs/fig-008.jpg', import.meta.url).href, caption: 'F8 – Grid Target Drill: Pocket OB and finish with cue ball overlapping grid targets.' }
+]
 
 export default {
   name: 'ExamI',
@@ -143,6 +172,8 @@ export default {
         { name: 'Masters', range: '50-69', desc: 'Intermediate Level', class: 'level-masters' },
         { name: 'Doctorate', range: '70-100', desc: 'Advanced Level', class: 'level-doctorate' }
       ]
+      ,
+      figures: FIGS
     }
   },
   computed: {
@@ -178,6 +209,13 @@ export default {
     })
   },
   methods: {
+    getFigure(code) {
+      if (!code) return null
+      const m = String(code).match(/^F(\d+)/i)
+      if (!m) return null
+      const idx = Number(m[1])
+      return this.figures && this.figures[idx] ? this.figures[idx] : null
+    },
     isHorizontal(drill) {
       try {
         const codeNum = parseInt(drill && drill.code && drill.code.slice(1), 10)
@@ -844,4 +882,34 @@ input[type=number].no-spin {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+
+.figures-section {
+  background: white;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+}
+.figures-section h3 { margin-top: 0; color: #2c3e50; }
+.fig-note { color: #6c757d; margin-bottom: 0.75rem; }
+  .figures-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+  .figure-card { display: flex; flex-direction: column; gap: 0.75rem; align-items: center; padding: 0.75rem; }
+  .figure-card img { max-width: 560px; width: 100%; height: auto; border-radius: 6px; border: 1px solid #ddd; }
+  .figure-caption { text-align: center; color: #333; font-size: 1rem; }
+  .figure-attrib { color: #6c757d; font-size: 0.9rem; margin-top: 0.35rem; }
+  .drill-figure-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; margin: 0.8rem 0; }
+  .drill-figure { max-width: 420px; width: 100%; height: auto; border-radius: 6px; border: 1px solid #e0e0e0; }
+  .drill-figure-caption { font-size: 0.95rem; color: #6c757d; text-align: center; max-width: 420px; }
+
+  @media (max-width: 768px) {
+    .figure-card img { max-width: 100%; }
+    .drill-figure { max-width: 280px; }
+    .drill-figure-caption { max-width: 320px; }
+  }
+
+  @media (min-width: 1200px) {
+    .drill-figure { max-width: 560px; }
+    .figure-card img { max-width: 760px; }
+    .drill-figure-caption { max-width: 560px; font-size: 1rem; }
+  }
 </style>
