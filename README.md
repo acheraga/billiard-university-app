@@ -48,7 +48,7 @@ MIT
 
 - Built with assistance from **DeepSeek AI Assistant**
 - Built with assistance from **Copilot AI Assistant**
-- Based on the original Billiard University Excel scoring system
+- Based on the original Billiard University scoring system
 - Icons by [Font Awesome](https://fontawesome.com)
 - Built with [Vue.js](https://vuejs.org)
 
