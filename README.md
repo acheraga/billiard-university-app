@@ -1,7 +1,7 @@
 # 🎱 Billiard University Scoring System
 ### https://billiarduniversity.org/testing/exams/
 
-
+<img src="src/assets/exam1_figs/fig-000.jpg" alt="Overview" width="300">
 <img src="src/assets/demo/demo1.png" alt="Overview" width="300">
 <img src="src/assets/demo/demo2.png" alt="Overview" width="300">
 
