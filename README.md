@@ -43,3 +43,22 @@ billiard-university-app/
 
 ## License
 MIT
+
+## 🙏 Acknowledgments
+
+- Built with assistance from **DeepSeek AI Assistant**
+- Built with assistance from **Copilot AI Assistant**
+- Based on the original Billiard University Excel scoring system
+- Icons by [Font Awesome](https://fontawesome.com)
+- Built with [Vue.js](https://vuejs.org)
+
+---
+
+### 🤖 AI Assistance
+This project was developed with the assistance of **DeepSeek AI and Copilot Assistant**, which helped with:
+- Vue.js 3 application architecture
+- Scoring logic implementation
+- Component design and structure
+- Deployment configuration for GitHub Pages
+
+*Note: While AI assistance was used in development, all code decisions and implementations were reviewed and adapted for this specific use case.*
