@@ -1,18 +1,24 @@
 # 🎱 Billiard University Scoring System
+### https://billiarduniversity.org/testing/exams/
+
+
+<img src="src/assets/demo/demo1.png" alt="Overview" width="300">
+<img src="src/assets/demo/demo2.png" alt="Overview" width="300">
+
 
 A Vue.js application for scoring and tracking Billiard University exams.
 
 ## Quick Start
 
 1. Install dependencies:
-\`\`\`bash
+```bash
 npm install
-\`\`\`
+```
 
 2. Run development server:
-\`\`\`bash
+```bash
 npm run dev
-\`\`\`
+```
 
 3. Open http://localhost:3000
 
@@ -24,7 +30,7 @@ npm run dev
 - Responsive design
 
 ## Project Structure
-\`\`\`
+```
 billiard-university-app/
 ├── src/
 │   ├── components/     # Vue components
@@ -33,7 +39,7 @@ billiard-university-app/
 │   └── assets/        # Styles
 ├── public/            # Static files
 └── index.html         # Entry point
-\`\`\`
+```
 
 ## License
 MIT
