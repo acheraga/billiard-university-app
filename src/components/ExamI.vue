@@ -863,25 +863,35 @@ input[type=number].no-spin {
   box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
-@media (max-width: 768px) {
-  .exam-header {
-    flex-direction: column;
-    text-align: center;
+  @media (max-width: 768px) {
+    .exam-header {
+      flex-direction: column;
+      text-align: center;
+    }
+    .exam-stats {
+      width: 100%;
+      justify-content: center;
+    }
+    .drills-grid {
+      grid-template-columns: 1fr;
+    }
+    .drill-card {
+      min-width: 0;
+      width: 100%;
+    }
+    .shots-grid {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.5rem;
+    }
+    .shot-cell {
+      min-width: 0;
+    }
+    .drill-figure { max-width: 100%; }
+    .drill-figure-caption { max-width: 100%; }
+    .drills-grid, .shots-grid {
+      overflow-x: auto;
+    }
   }
-  
-  .exam-stats {
-    width: 100%;
-    justify-content: center;
-  }
-  
-  .drills-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .shots-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
 
 .figures-section {
   background: white;
