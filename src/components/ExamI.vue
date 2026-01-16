@@ -61,7 +61,7 @@
                 </div>
             </div>
           </div>
-          <div class="bonus-info" v-if="drill.bonus > 0">
+          <div class="bonus-info">
             <i class="fas fa-star"></i> Bonus: {{ drill.bonus }} consecutive 7s
           </div>
           <div class="calc-note">Le calcul sera effectué après le dernier shot.</div>

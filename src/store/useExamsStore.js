@@ -160,15 +160,34 @@ export const useExamsStore = defineStore('exams', {
       const drill = this.examI.drills[index]
 
       if (drill.type === 'position') {
-        // Determine last successful target value
+        // Determine final position based on last attempted shot (success => target+1, miss => target-1)
         let lastPosition = 0
+        let lastAttemptIndex = -1
         for (let i = 0; i < (drill.successes || []).length; i++) {
-          if (drill.successes[i]) {
-            lastPosition = drill.shots[i] || lastPosition
+          if ((drill.successes[i]) || (drill.loses && drill.loses[i])) {
+            lastAttemptIndex = i
           }
         }
 
-        // Count consecutive successful 7s as bonus (count adjacent pairs, cap at 3)
+        if (lastAttemptIndex >= 0) {
+          const target = drill.shots[lastAttemptIndex] || 0
+          if (drill.successes[lastAttemptIndex]) {
+            // success: advance one, cap at 7
+            lastPosition = Math.min(7, target + 1)
+          } else {
+            // miss: drop one, min 1
+            lastPosition = Math.max(1, target - 1)
+          }
+        } else {
+          // fallback: last successful target value (older behavior)
+          for (let i = 0; i < (drill.successes || []).length; i++) {
+            if (drill.successes[i]) {
+              lastPosition = drill.shots[i] || lastPosition
+            }
+          }
+        }
+
+        // Bonus counts consecutive successful 7s as adjacent pairs (each adjacent pair adds 1)
         let bonus = 0
         const len = (drill.successes || []).length
         for (let i = 0; i < len - 1; i++) {
@@ -176,10 +195,9 @@ export const useExamsStore = defineStore('exams', {
             bonus++
           }
         }
-        if (bonus > 3) bonus = 3
 
         drill.bonus = bonus
-        // score is last successful target + bonus, max 10
+        // score is lastPosition + bonus, max 10
         const score = Math.min(drill.maxScore || 10, lastPosition + bonus)
         drill.score = score
       }
@@ -212,20 +230,37 @@ export const useExamsStore = defineStore('exams', {
         let lastPosition = 0
         let bonus = 0
 
-        // Find last successful target value
+        // Determine final position based on last attempted shot (success => target+1, miss => target-1)
+        let lastAttemptIndex = -1
         for (let j = 0; j < (drill.successes || []).length; j++) {
-          if (drill.successes[j]) {
-            lastPosition = drill.shots[j] || lastPosition
+          if ((drill.successes[j]) || (drill.loses && drill.loses[j])) {
+            lastAttemptIndex = j
           }
         }
 
-        // Count consecutive successful 7s for bonus (adjacent pairs), cap at 3
-        for (let j = 0; j < (drill.successes || []).length - 1; j++) {
+        if (lastAttemptIndex >= 0) {
+          const target = drill.shots[lastAttemptIndex] || 0
+          if (drill.successes[lastAttemptIndex]) {
+            lastPosition = Math.min(7, target + 1)
+          } else {
+            lastPosition = Math.max(1, target - 1)
+          }
+        } else {
+          // fallback to last successful target
+          for (let j = 0; j < (drill.successes || []).length; j++) {
+            if (drill.successes[j]) {
+              lastPosition = drill.shots[j] || lastPosition
+            }
+          }
+        }
+
+        // Bonus counts consecutive successful 7s as adjacent pairs (each adjacent pair adds 1)
+        const len2 = (drill.successes || []).length
+        for (let j = 0; j < len2 - 1; j++) {
           if (drill.successes[j] && drill.successes[j + 1] && drill.shots[j] === 7 && drill.shots[j + 1] === 7) {
             bonus++
           }
         }
-        if (bonus > 3) bonus = 3
 
         const score = Math.min(10, lastPosition + bonus)
         drill.score = score

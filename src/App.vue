@@ -3,7 +3,7 @@
     <header class="app-header">
       <div class="container">
         <h1><i class="fas fa-trophy"></i> Billiard University Scoring System</h1>
-        <p class="subtitle">Official Exam Scoring and Progress Tracking</p>
+        
       </div>
     </header>
 
