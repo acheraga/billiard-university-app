@@ -22,7 +22,7 @@
     "vite": "^5.1.4",
     "vitest": "^1.0.0",
     "@vue/test-utils": "^2.4.0",
-    "@testing-library/vue": "^13.0.0",
+    "@testing-library/vue": "^8.1.0",
     "jsdom": "^21.1.0"
   },
   "keywords": [
