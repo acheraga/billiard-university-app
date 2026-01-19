@@ -162,6 +162,9 @@ export const useExamsStore = defineStore("exams", {
       examI: [],
       examII: [],
     },
+    // Multi-user persistence (stored in localStorage under 'billiardUniversityUsers')
+    users: {}, // { userId: { student, examI, examII, history, lastSaved } }
+    currentUserId: null,
   }),
 
   getters: {
@@ -188,7 +191,7 @@ export const useExamsStore = defineStore("exams", {
         }
 
         if (lastAttemptIndex >= 0) {
-          const target = drill.shots[lastAttemptIndex] || 0;
+          const target = Number(drill.shots[lastAttemptIndex]) || 0;
           if (drill.successes[lastAttemptIndex]) {
             // success: advance one, cap at 7
             lastPosition = Math.min(7, target + 1);
@@ -200,7 +203,7 @@ export const useExamsStore = defineStore("exams", {
           // fallback: last successful target value (older behavior)
           for (let i = 0; i < (drill.successes || []).length; i++) {
             if (drill.successes[i]) {
-              lastPosition = drill.shots[i] || lastPosition;
+              lastPosition = Number(drill.shots[i]) || lastPosition;
             }
           }
         }
@@ -208,7 +211,7 @@ export const useExamsStore = defineStore("exams", {
         // Bonus: count number of successful shots at position 7
         let bonus = 0;
         for (let i = 0; i < (drill.successes || []).length; i++) {
-          if (drill.successes[i] && drill.shots[i] === 7) {
+          if (drill.successes[i] && Number(drill.shots[i]) === 7) {
             bonus++;
           }
         }
@@ -256,7 +259,7 @@ export const useExamsStore = defineStore("exams", {
         }
 
         if (lastAttemptIndex >= 0) {
-          const target = drill.shots[lastAttemptIndex] || 0;
+          const target = Number(drill.shots[lastAttemptIndex]) || 0;
           if (drill.successes[lastAttemptIndex]) {
             lastPosition = Math.min(7, target + 1);
           } else {
@@ -266,7 +269,7 @@ export const useExamsStore = defineStore("exams", {
           // fallback to last successful target
           for (let j = 0; j < (drill.successes || []).length; j++) {
             if (drill.successes[j]) {
-              lastPosition = drill.shots[j] || lastPosition;
+              lastPosition = Number(drill.shots[j]) || lastPosition;
             }
           }
         }
@@ -274,7 +277,7 @@ export const useExamsStore = defineStore("exams", {
         // Bonus: count number of successful shots at position 7
         bonus = 0;
         for (let j = 0; j < (drill.successes || []).length; j++) {
-          if (drill.successes[j] && drill.shots[j] === 7) {
+          if (drill.successes[j] && Number(drill.shots[j]) === 7) {
             bonus++;
           }
         }
@@ -642,10 +645,56 @@ export const useExamsStore = defineStore("exams", {
         history: this.history,
         lastSaved: new Date().toISOString(),
       };
-      localStorage.setItem("billiardUniversityData", JSON.stringify(data));
+
+      // If a current user is selected, persist into the users map
+      if (this.currentUserId) {
+        this.users = this.users || {};
+        this.users[this.currentUserId] = JSON.parse(JSON.stringify(data));
+        localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));
+        localStorage.setItem("billiardUniversityLastActive", this.currentUserId);
+      } else {
+        // legacy single-user storage (fallback)
+        localStorage.setItem("billiardUniversityData", JSON.stringify(data));
+      }
     },
 
     loadFromLocalStorage() {
+      // Multi-user storage first
+      const usersRaw = localStorage.getItem("billiardUniversityUsers");
+      const lastActive = localStorage.getItem("billiardUniversityLastActive");
+      if (usersRaw) {
+        try {
+          const users = JSON.parse(usersRaw) || {};
+          this.users = users;
+
+          if (lastActive && this.users[lastActive]) {
+            this.currentUserId = lastActive;
+            const data = this.users[lastActive];
+            Object.assign(this.student, data.student || {});
+            Object.assign(this.examI, data.examI || {});
+            Object.assign(this.examII, data.examII || {});
+            Object.assign(this.history, data.history || {});
+          } else {
+            const ids = Object.keys(this.users);
+            if (ids.length > 0) {
+              this.currentUserId = ids[0];
+              const data = this.users[this.currentUserId];
+              Object.assign(this.student, data.student || {});
+              Object.assign(this.examI, data.examI || {});
+              Object.assign(this.examII, data.examII || {});
+              Object.assign(this.history, data.history || {});
+            }
+          }
+
+          this.calculateExamIScore();
+          this.calculateExamIIScore();
+        } catch (e) {
+          console.error("Error loading saved users data:", e);
+        }
+        return;
+      }
+
+      // Fallback to legacy single-user storage
       const saved = localStorage.getItem("billiardUniversityData");
       if (saved) {
         try {
@@ -654,13 +703,108 @@ export const useExamsStore = defineStore("exams", {
           Object.assign(this.examI, data.examI || {});
           Object.assign(this.examII, data.examII || {});
           Object.assign(this.history, data.history || {});
-
           this.calculateExamIScore();
           this.calculateExamIIScore();
         } catch (e) {
           console.error("Error loading saved data:", e);
         }
       }
+    },
+
+    // Multi-user management
+    createUser(name) {
+      const id = Date.now().toString();
+      const profile = {
+        student: { ...this.student, name: name || this.student.name || `User ${id}` },
+        examI: JSON.parse(JSON.stringify(this.examI)),
+        examII: JSON.parse(JSON.stringify(this.examII)),
+        history: JSON.parse(JSON.stringify(this.history)),
+        lastSaved: new Date().toISOString(),
+      };
+      this.users = this.users || {};
+      this.users[id] = profile;
+      this.currentUserId = id;
+      localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));
+      localStorage.setItem("billiardUniversityLastActive", this.currentUserId);
+      this.saveToLocalStorage();
+      return id;
+    },
+
+    listUsers() {
+      return Object.keys(this.users || {}).map((id) => ({ id, name: this.users[id].student?.name || `User ${id}` }));
+    },
+
+    switchUser(id) {
+      if (!this.users || !this.users[id]) return false;
+      const data = this.users[id];
+      this.currentUserId = id;
+      Object.assign(this.student, JSON.parse(JSON.stringify(data.student || {})));
+      Object.assign(this.examI, JSON.parse(JSON.stringify(data.examI || {})));
+      Object.assign(this.examII, JSON.parse(JSON.stringify(data.examII || {})));
+      Object.assign(this.history, JSON.parse(JSON.stringify(data.history || {})));
+      localStorage.setItem("billiardUniversityLastActive", this.currentUserId);
+      this.calculateExamIScore();
+      this.calculateExamIIScore();
+      return true;
+    },
+
+    saveCurrentUser() {
+      if (!this.currentUserId) return false;
+      this.users = this.users || {};
+      this.users[this.currentUserId] = {
+        student: JSON.parse(JSON.stringify(this.student)),
+        examI: JSON.parse(JSON.stringify(this.examI)),
+        examII: JSON.parse(JSON.stringify(this.examII)),
+        history: JSON.parse(JSON.stringify(this.history)),
+        lastSaved: new Date().toISOString(),
+      };
+      localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));
+      localStorage.setItem("billiardUniversityLastActive", this.currentUserId);
+      return true;
+    },
+
+    deleteUser(id) {
+      console.log("deleteUser called for id:", id, "current users:", Object.keys(this.users || {}));
+      if (!this.users || !this.users[id]) return false;
+      // create a new users object without the target id to ensure clean removal
+      const newUsers = {};
+      for (const [k, v] of Object.entries(this.users)) {
+        if (String(k) !== String(id)) {
+          newUsers[k] = v;
+        }
+      }
+      this.users = newUsers;
+      console.log("after deletion users:", Object.keys(this.users || {}));
+
+      // update storage; if empty, remove the key
+      if (Object.keys(this.users).length === 0) {
+        localStorage.removeItem("billiardUniversityUsers");
+        localStorage.removeItem("billiardUniversityLastActive");
+      } else {
+        localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));
+      }
+
+      if (this.currentUserId === id) {
+        const ids = Object.keys(this.users);
+        if (ids.length > 0) {
+          // switch to the first remaining user (this will persist the new current user)
+          this.switchUser(ids[0]);
+        } else {
+          // clear currentUserId first to avoid re-persisting the deleted user
+          this.currentUserId = null;
+          this.resetAll();
+        }
+      }
+
+      // Persist the change (if any remaining users, switchUser will have persisted already)
+      if (Object.keys(this.users || {}).length > 0) {
+        localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));
+      } else {
+        localStorage.removeItem("billiardUniversityUsers");
+        localStorage.removeItem("billiardUniversityLastActive");
+      }
+
+      return true;
     },
 
     exportToExcel() {

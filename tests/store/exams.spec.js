@@ -50,6 +50,38 @@ describe("Exam I scoring", () => {
     expect(drill.score).toBe(10);
   });
 
+  it("sets final position to 7 when last shot at 7 is success (numeric)", () => {
+    const store = useExamsStore();
+    const drill = store.examI.drills[1];
+    drill.shots = Array(10).fill(4);
+    drill.successes = Array(10).fill(false);
+    drill.loses = Array(10).fill(false);
+    drill.shots[9] = 7; // numeric 7
+    drill.successes[9] = true;
+
+    store.updateExamIDrill(1);
+
+    // bonus should count the success at 7 -> 1
+    expect(drill.bonus).toBe(1);
+    // lastPosition should be capped at 7, so score = lastPosition + bonus = 7 + 1 = 8
+    expect(drill.score).toBe(8);
+  });
+
+  it("sets final position to 7 when last shot at '7' (string) is success", () => {
+    const store = useExamsStore();
+    const drill = store.examI.drills[2];
+    drill.shots = Array(10).fill(4);
+    drill.successes = Array(10).fill(false);
+    drill.loses = Array(10).fill(false);
+    drill.shots[9] = "7"; // string
+    drill.successes[9] = true;
+
+    store.updateExamIDrill(2);
+
+    expect(drill.bonus).toBe(1);
+    expect(drill.score).toBe(8);
+  });
+
   it("loadSampleExamI fills drills respecting constraints", () => {
     const store = useExamsStore();
     store.loadSampleExamI();
@@ -104,5 +136,53 @@ describe("Exam I scoring", () => {
     });
 
     expect(store.examII.currentScore).toBeGreaterThanOrEqual(0);
+  });
+
+  it("persists multiple users and allows switching", () => {
+    const store = useExamsStore();
+    // start clean
+    store.resetAll();
+
+    // Create Alice
+    store.student.name = "Alice";
+    store.examI.drills[5].score = 4;
+    const aliceId = store.createUser("Alice");
+
+    // Create Bob
+    store.student.name = "Bob";
+    store.examI.drills[5].score = 7;
+    const bobId = store.createUser("Bob");
+
+    // Simulate reload by creating a new store instance
+    setActivePinia(createPinia());
+    const store2 = useExamsStore();
+    store2.loadFromLocalStorage();
+
+    const users = store2.listUsers();
+    expect(users.some((u) => u.name === "Alice")).toBe(true);
+    expect(users.some((u) => u.name === "Bob")).toBe(true);
+
+    // Switch to Alice and check persisted values
+    expect(store2.switchUser(aliceId)).toBe(true);
+    expect(store2.student.name).toBe("Alice");
+    expect(store2.examI.drills[5].score).toBe(4);
+
+    // Switch to Bob and check persisted values
+    expect(store2.switchUser(bobId)).toBe(true);
+    expect(store2.student.name).toBe("Bob");
+    expect(store2.examI.drills[5].score).toBe(7);
+  });
+
+  it("can delete a user", () => {
+    const store = useExamsStore();
+    store.resetAll();
+    const id = store.createUser("TempUser");
+    expect(store.listUsers().some((u) => u.id === id)).toBe(true);
+    expect(store.deleteUser(id)).toBe(true);
+    // immediate in-memory check (debug)
+    console.log('users after delete:', Object.keys(store.users || {}));
+    console.log('users[id]:', store.users[id]);
+    expect(store.users[id]).toBeUndefined();
+    expect(store.listUsers().some((u) => u.id === id)).toBe(false);
   });
 });
