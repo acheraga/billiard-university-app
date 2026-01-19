@@ -16,7 +16,7 @@
 
     <div class="drills-grid">
       <div v-for="(drill, index) in drills" :key="index" class="drill-card">
-              <div class="drill-header">
+        <div class="drill-header">
           <h3>{{ drill.code }} - {{ drill.name }}</h3>
           <div class="drill-center">
             <button class="reset-drill-btn" @click="resetDrill(index)">Reset</button>
@@ -24,67 +24,76 @@
           <span class="drill-score">{{ drill.score }}/{{ drill.maxScore }}</span>
         </div>
         <div v-if="getFigure(drill.code)" class="drill-figure-wrap">
-          <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure" />
+          <img
+            :src="getFigure(drill.code).src"
+            :alt="drill.code + ' figure'"
+            class="drill-figure"
+          />
           <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
         </div>
-        
+
         <div v-if="drill.type === 'position'" class="drill-content">
           <div class="shots-grid" :class="{ horizontal: isHorizontal(drill) }">
             <div v-for="i in 10" :key="i" class="shot-cell">
               <label class="shot-label">Shot {{ i }}</label>
-                <div class="shot-controls">
-                  <div class="target-display">
-                    <span class="shot-input readonly" aria-readonly="true">{{ Number(drill.shots[i-1]) || 4 }}</span>
-                  </div>
-                    <div class="checkbox-column">
-                      <label class="success-label" title="Success">
-                        <input
-                          type="checkbox"
-                          v-model="drill.successes[i-1]"
-                          @change="toggleShotSuccess(index, i-1)"
-                          class="small-checkbox"
-                          :disabled="(drill.locked && drill.locked[i-1]) || (i>1 && !(drill.successes[i-2] || drill.loses[i-2]))"
-                        />
-                        <span class="check-letter">S</span>
-                      </label>
-                      <label class="lose-label" title="Lose">
-                        <input
-                          type="checkbox"
-                          v-model="drill.loses[i-1]"
-                          @change="toggleShotLose(index, i-1)"
-                          class="small-checkbox"
-                          :disabled="(drill.locked && drill.locked[i-1]) || (i>1 && !(drill.successes[i-2] || drill.loses[i-2]))"
-                        />
-                        <span class="check-letter">L</span>
-                      </label>
-                    </div>
+              <div class="shot-controls">
+                <div class="target-display">
+                  <span class="shot-input readonly" aria-readonly="true">{{
+                    Number(drill.shots[i - 1]) || 4
+                  }}</span>
                 </div>
+                <div class="checkbox-column">
+                  <label class="success-label" title="Success">
+                    <input
+                      v-model="drill.successes[i - 1]"
+                      type="checkbox"
+                      class="small-checkbox"
+                      :disabled="
+                        (drill.locked && drill.locked[i - 1]) ||
+                        (i > 1 && !(drill.successes[i - 2] || drill.loses[i - 2]))
+                      "
+                      @change="toggleShotSuccess(index, i - 1)"
+                    />
+                    <span class="check-letter">S</span>
+                  </label>
+
+                  <label class="lose-label" title="Lose">
+                    <input
+                      v-model="drill.loses[i - 1]"
+                      type="checkbox"
+                      class="small-checkbox"
+                      :disabled="
+                        (drill.locked && drill.locked[i - 1]) ||
+                        (i > 1 && !(drill.successes[i - 2] || drill.loses[i - 2]))
+                      "
+                      @change="toggleShotLose(index, i - 1)"
+                    />
+                    <span class="check-letter">L</span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
           <div class="bonus-info">
-            <i class="fas fa-star"></i> Bonus: {{ drill.bonus }} consecutive 7s
+            <i class="fas fa-star"></i> Bonus: {{ drill.bonus }} successes at 7
           </div>
           <div class="calc-note">Le calcul sera effectué après le dernier shot.</div>
         </div>
-        
+
         <div v-else class="drill-content">
           <p class="instructions">{{ drill.instructions }}</p>
           <div class="counter-controls">
-            <button 
-              @click="decrementScore(index)"
-              :disabled="drill.score <= 0"
-              class="counter-btn"
-            >
+            <button :disabled="drill.score <= 0" class="counter-btn" @click="decrementScore(index)">
               <i class="fas fa-minus"></i>
             </button>
             <div class="counter-display">
               <span class="counter-value">{{ drill.score }}</span>
               <span class="counter-max">/{{ drill.maxScore }}</span>
             </div>
-            <button 
-              @click="incrementScore(index)"
+            <button
               :disabled="drill.score >= drill.maxScore"
               class="counter-btn"
+              @click="incrementScore(index)"
             >
               <i class="fas fa-plus"></i>
             </button>
@@ -95,13 +104,13 @@
 
     <div class="exam-summary">
       <h3><i class="fas fa-chart-pie"></i> Exam I Summary</h3>
-      
+
       <div class="score-breakdown">
         <div v-for="(drill, index) in drills" :key="index" class="breakdown-item">
           <span class="breakdown-label">{{ drill.code }}</span>
           <div class="breakdown-bar">
-            <div 
-              class="breakdown-fill" 
+            <div
+              class="breakdown-fill"
               :style="{ width: (drill.score / drill.maxScore) * 100 + '%' }"
               :class="getScoreColor(drill.score, drill.maxScore)"
             ></div>
@@ -109,9 +118,9 @@
           <span class="breakdown-value">{{ drill.score }}/{{ drill.maxScore }}</span>
         </div>
       </div>
-      
+
       <div class="placement-info">
-        <div class="placement-card" v-for="level in placementLevels" :key="level.name">
+        <div v-for="level in placementLevels" :key="level.name" class="placement-card">
           <div class="placement-level" :class="level.class">
             {{ level.name }}
           </div>
@@ -122,26 +131,31 @@
     </div>
 
     <div class="action-buttons">
-      <button @click="saveExamI" class="btn btn-success">
+      <button class="btn btn-success" @click="saveExamI">
         <i class="fas fa-save"></i> Save Exam I Score
       </button>
-      <button @click="resetExamI" class="btn btn-secondary">
+      <button class="btn btn-secondary" @click="resetExamI">
         <i class="fas fa-redo"></i> Reset Exam I
       </button>
-      <button @click="autoFill" class="btn btn-info">
+      <button class="btn btn-info" @click="autoFill">
         <i class="fas fa-magic"></i> Auto-fill Sample
       </button>
     </div>
 
     <div class="figures-section">
       <h3><i class="fas fa-image"></i> Figures & Explanations</h3>
-      <p class="fig-note">Images intégrées depuis <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Légendes paraphrasées; source attribuée à l'auteur.</p>
+      <p class="fig-note">
+        Images intégrées depuis <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Légendes
+        paraphrasées; source attribuée à l'auteur.
+      </p>
       <div class="figures-grid">
         <div v-for="(f, i) in figures" :key="i" class="figure-card">
-          <img :src="f.src" :alt="`Figure ${i+1}`" />
+          <img :src="f.src" :alt="`Figure ${i + 1}`" />
           <div class="figure-caption">
             <strong>{{ f.caption }}</strong>
-            <div class="figure-attrib">Source: BU_Exam-I_Fundamentals_BW.pdf — David Alciatore (2018)</div>
+            <div class="figure-attrib">
+              Source: BU_Exam-I_Fundamentals_BW.pdf — David Alciatore (2018)
+            </div>
           </div>
         </div>
       </div>
@@ -150,242 +164,290 @@
 </template>
 
 <script>
-import { useExamsStore } from '../store/useExamsStore'
+import { useExamsStore } from "../store/useExamsStore";
 const FIGS = [
-  { src: new URL('../assets/exam1_figs/fig-000.jpg', import.meta.url).href, caption: 'Cover / Logo: Billiard University Exam I cover image.' },
-  { src: new URL('../assets/exam1_figs/fig-001.jpg', import.meta.url).href, caption: 'F1 – Cut Shot Drill: Progressive practice drill; advance or retreat cue-ball position based on success.' },
-  { src: new URL('../assets/exam1_figs/fig-002.jpg', import.meta.url).href, caption: 'F2 – Stop Shot Drill: Pocket object ball and stop the cue ball overlapping the ghost-ball outline.' },
-  { src: new URL('../assets/exam1_figs/fig-003.jpg', import.meta.url).href, caption: 'F3 – Follow Shot Drill: Pocket the object ball and have the cue ball finish inside the target window.' },
-  { src: new URL('../assets/exam1_figs/fig-004.jpg', import.meta.url).href, caption: 'F4 – Draw Shot Drill: Pocket the object ball and draw the cue ball into the 2x1 diamond target.' },
-  { src: new URL('../assets/exam1_figs/fig-005.jpg', import.meta.url).href, caption: 'F5 – Stun Shot Drill: Cue ball should head to the target area; some positions require a rail rebound.' },
-  { src: new URL('../assets/exam1_figs/fig-006.jpg', import.meta.url).href, caption: 'F6 – Ball Pocketing Drill: Fixed positions, attempt the set of shots and count balls pocketed.' },
-  { src: new URL('../assets/exam1_figs/fig-007.jpg', import.meta.url).href, caption: 'F7 – Wagon Wheel Drill: Pocket OB and contact the indicated rail target balls.' },
-  { src: new URL('../assets/exam1_figs/fig-008.jpg', import.meta.url).href, caption: 'F8 – Grid Target Drill: Pocket OB and finish with cue ball overlapping grid targets.' }
-]
+  {
+    src: new URL("../assets/exam1_figs/fig-000.jpg", import.meta.url).href,
+    caption: "Cover / Logo: Billiard University Exam I cover image.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-001.jpg", import.meta.url).href,
+    caption:
+      "F1 – Cut Shot Drill: Progressive practice drill; advance or retreat cue-ball position based on success.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-002.jpg", import.meta.url).href,
+    caption:
+      "F2 – Stop Shot Drill: Pocket object ball and stop the cue ball overlapping the ghost-ball outline.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-003.jpg", import.meta.url).href,
+    caption:
+      "F3 – Follow Shot Drill: Pocket the object ball and have the cue ball finish inside the target window.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-004.jpg", import.meta.url).href,
+    caption:
+      "F4 – Draw Shot Drill: Pocket the object ball and draw the cue ball into the 2x1 diamond target.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-005.jpg", import.meta.url).href,
+    caption:
+      "F5 – Stun Shot Drill: Cue ball should head to the target area; some positions require a rail rebound.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-006.jpg", import.meta.url).href,
+    caption:
+      "F6 – Ball Pocketing Drill: Fixed positions, attempt the set of shots and count balls pocketed.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-007.jpg", import.meta.url).href,
+    caption: "F7 – Wagon Wheel Drill: Pocket OB and contact the indicated rail target balls.",
+  },
+  {
+    src: new URL("../assets/exam1_figs/fig-008.jpg", import.meta.url).href,
+    caption: "F8 – Grid Target Drill: Pocket OB and finish with cue ball overlapping grid targets.",
+  },
+];
 
 export default {
-  name: 'ExamI',
+  name: "ExamI",
   data() {
     return {
       placementLevels: [
-        { name: 'Bachelors', range: '0-49', desc: 'Beginner Level', class: 'level-bachelors' },
-        { name: 'Masters', range: '50-69', desc: 'Intermediate Level', class: 'level-masters' },
-        { name: 'Doctorate', range: '70-100', desc: 'Advanced Level', class: 'level-doctorate' }
-      ]
-      ,
-      figures: FIGS
-    }
+        { name: "Bachelors", range: "0-49", desc: "Beginner Level", class: "level-bachelors" },
+        { name: "Masters", range: "50-69", desc: "Intermediate Level", class: "level-masters" },
+        { name: "Doctorate", range: "70-100", desc: "Advanced Level", class: "level-doctorate" },
+      ],
+      figures: FIGS,
+    };
   },
   computed: {
     drills() {
-      const store = useExamsStore()
-      return store.examI.drills
+      const store = useExamsStore();
+      return store.examI.drills;
     },
     totalScore() {
-      const store = useExamsStore()
-      return store.examI.totalScore
+      const store = useExamsStore();
+      return store.examI.totalScore;
     },
     placement() {
-      const store = useExamsStore()
-      return store.examI.placement
+      const store = useExamsStore();
+      return store.examI.placement;
     },
     placementClass() {
       return {
-        'level-bachelors-text': this.placement === 'Bachelors',
-        'level-masters-text': this.placement === 'Masters',
-        'level-doctorate-text': this.placement === 'Doctorate'
-      }
-    }
+        "level-bachelors-text": this.placement === "Bachelors",
+        "level-masters-text": this.placement === "Masters",
+        "level-doctorate-text": this.placement === "Doctorate",
+      };
+    },
   },
   mounted() {
-    const store = useExamsStore()
+    const store = useExamsStore();
     // Ensure position drills have required arrays to avoid missing shot values
-    store.examI.drills.forEach(drill => {
-      if (drill.type === 'position') {
-        if (!Array.isArray(drill.shots) || drill.shots.length < 10) drill.shots = Array(10).fill(4)
-        if (!Array.isArray(drill.successes) || drill.successes.length < 10) drill.successes = Array(10).fill(false)
-        if (!Array.isArray(drill.loses) || drill.loses.length < 10) drill.loses = Array(10).fill(false)
+    store.examI.drills.forEach((drill) => {
+      if (drill.type === "position") {
+        if (!Array.isArray(drill.shots) || drill.shots.length < 10) drill.shots = Array(10).fill(4);
+        if (!Array.isArray(drill.successes) || drill.successes.length < 10)
+          drill.successes = Array(10).fill(false);
+        if (!Array.isArray(drill.loses) || drill.loses.length < 10)
+          drill.loses = Array(10).fill(false);
+        if (!Array.isArray(drill.locked) || drill.locked.length < 10)
+          drill.locked = Array(10).fill(false);
+
+        // Clamp shot values to valid range 1..7 if present
+        drill.shots = (drill.shots || Array(10).fill(4)).slice(0, 10).map((s) => {
+          const n = Number(s) || 4;
+          if (n < 1) return 1;
+          if (n > 7) return 7;
+          return n;
+        });
       }
-    })
+    });
   },
   methods: {
     getFigure(code) {
-      if (!code) return null
-      const m = String(code).match(/^F(\d+)/i)
-      if (!m) return null
-      const idx = Number(m[1])
-      return this.figures && this.figures[idx] ? this.figures[idx] : null
+      if (!code) return null;
+      const m = String(code).match(/^F(\d+)/i);
+      if (!m) return null;
+      const idx = Number(m[1]);
+      return this.figures && this.figures[idx] ? this.figures[idx] : null;
     },
     isHorizontal(drill) {
       try {
-        const codeNum = parseInt(drill && drill.code && drill.code.slice(1), 10)
-        return !isNaN(codeNum) && codeNum >= 1 && codeNum <= 7
+        const codeNum = parseInt(drill && drill.code && drill.code.slice(1), 10);
+        return !isNaN(codeNum) && codeNum >= 1 && codeNum <= 7;
       } catch (e) {
-        return false
+        return false;
       }
     },
     updateDrillScore(index, shotIndex) {
-      const store = useExamsStore()
-      const drill = store.examI.drills[index]
-      if (!drill) return
+      const store = useExamsStore();
+      const drill = store.examI.drills[index];
+      if (!drill) return;
 
       // mark that calculation is pending until last shot
       if (shotIndex !== 9) {
-        drill.needsCalc = true
-        return
+        drill.needsCalc = true;
+        return;
       }
 
       // last shot changed — perform calculation and clear flag
-      if (drill.needsCalc) drill.needsCalc = false
-      store.updateExamIDrill(index)
+      if (drill.needsCalc) drill.needsCalc = false;
+      store.updateExamIDrill(index);
     },
     toggleShotSuccess(drillIndex, shotIndex) {
-      const store = useExamsStore()
-      const drill = store.examI.drills[drillIndex]
-      if (!drill.successes) drill.successes = Array(10).fill(false)
-      const checked = !!drill.successes[shotIndex]
+      const store = useExamsStore();
+      const drill = store.examI.drills[drillIndex];
+      if (!drill.successes) drill.successes = Array(10).fill(false);
+      const checked = !!drill.successes[shotIndex];
 
       // prevent toggling if previous shot not activated (except first shot)
       if (shotIndex > 0 && !(drill.successes[shotIndex - 1] || drill.loses[shotIndex - 1])) {
         // revert change and ignore
-        drill.successes[shotIndex] = false
-        return
+        drill.successes[shotIndex] = false;
+        return;
       }
 
       // uncheck lose if success checked
       if (checked) {
-        if (!drill.loses) drill.loses = Array(10).fill(false)
-        drill.loses[shotIndex] = false
+        if (!drill.loses) drill.loses = Array(10).fill(false);
+        drill.loses[shotIndex] = false;
       }
 
       // if success and next target exists, increment next target (max 7)
       if (checked && shotIndex + 1 < (drill.shots || []).length) {
-        const currentTarget = Number(drill.shots[shotIndex] || 4)
-        drill.shots[shotIndex + 1] = Math.min(7, currentTarget + 1)
+        const currentTarget = Number(drill.shots[shotIndex] || 4);
+        drill.shots[shotIndex + 1] = Math.min(7, currentTarget + 1);
       }
 
       // lock previous shot for drills F1..F7 to avoid accidental changes
       try {
-        const codeNum = parseInt(drill.code && drill.code.slice(1), 10)
+        const codeNum = parseInt(drill.code && drill.code.slice(1), 10);
         if (!isNaN(codeNum) && codeNum <= 7 && shotIndex > 0) {
-          if (!drill.locked) drill.locked = Array(10).fill(false)
-          drill.locked[shotIndex - 1] = true
+          if (!drill.locked) drill.locked = Array(10).fill(false);
+          drill.locked[shotIndex - 1] = true;
         }
-      } catch (e) {}
+      } catch (e) {
+        /* ignore errors when locking previous shot */
+      }
 
       // delay calculation until last shot
       if (shotIndex !== 9) {
-        drill.needsCalc = true
-        return
+        drill.needsCalc = true;
+        return;
       }
 
-      if (drill.needsCalc) drill.needsCalc = false
-      store.updateExamIDrill(drillIndex)
+      if (drill.needsCalc) drill.needsCalc = false;
+      store.updateExamIDrill(drillIndex);
     },
     toggleShotLose(drillIndex, shotIndex) {
-      const store = useExamsStore()
-      const drill = store.examI.drills[drillIndex]
-      if (!drill.loses) drill.loses = Array(10).fill(false)
-      const checked = !!drill.loses[shotIndex]
-      drill.loses[shotIndex] = checked
+      const store = useExamsStore();
+      const drill = store.examI.drills[drillIndex];
+      if (!drill.loses) drill.loses = Array(10).fill(false);
+      const checked = !!drill.loses[shotIndex];
+      drill.loses[shotIndex] = checked;
 
       // prevent toggling if previous shot not activated (except first shot)
       if (shotIndex > 0 && !(drill.successes[shotIndex - 1] || drill.loses[shotIndex - 1])) {
         // revert change and ignore
-        drill.loses[shotIndex] = false
-        return
+        drill.loses[shotIndex] = false;
+        return;
       }
 
       // if lose checked, unset success
       if (checked) {
-        if (!drill.successes) drill.successes = Array(10).fill(false)
-        drill.successes[shotIndex] = false
+        if (!drill.successes) drill.successes = Array(10).fill(false);
+        drill.successes[shotIndex] = false;
         // decrease next shot target by 1 (min 1)
         if (shotIndex + 1 < (drill.shots || []).length) {
-          const currentTarget = Number(drill.shots[shotIndex] || 4)
-          drill.shots[shotIndex + 1] = Math.max(1, currentTarget - 1)
+          const currentTarget = Number(drill.shots[shotIndex] || 4);
+          drill.shots[shotIndex + 1] = Math.max(1, currentTarget - 1);
         }
         // lock previous shot for drills F1..F7 to avoid accidental changes
         try {
-          const codeNum = parseInt(drill.code && drill.code.slice(1), 10)
+          const codeNum = parseInt(drill.code && drill.code.slice(1), 10);
           if (!isNaN(codeNum) && codeNum <= 7 && shotIndex > 0) {
-            if (!drill.locked) drill.locked = Array(10).fill(false)
-            drill.locked[shotIndex - 1] = true
+            if (!drill.locked) drill.locked = Array(10).fill(false);
+            drill.locked[shotIndex - 1] = true;
           }
-        } catch (e) {}
+        } catch (e) {
+          /* ignore errors when locking previous shot */
+        }
       }
 
       if (shotIndex !== 9) {
-        drill.needsCalc = true
-        return
+        drill.needsCalc = true;
+        return;
       }
 
-      if (drill.needsCalc) drill.needsCalc = false
-      store.updateExamIDrill(drillIndex)
+      if (drill.needsCalc) drill.needsCalc = false;
+      store.updateExamIDrill(drillIndex);
     },
     changeShotTarget(drillIndex, shotIndex, delta) {
-      const store = useExamsStore()
-      const drill = store.examI.drills[drillIndex]
-      if (!drill) return
-      if (!Array.isArray(drill.shots)) drill.shots = Array(10).fill(4)
+      const store = useExamsStore();
+      const drill = store.examI.drills[drillIndex];
+      if (!drill) return;
+      if (!Array.isArray(drill.shots)) drill.shots = Array(10).fill(4);
 
-      const cur = Number(drill.shots[shotIndex] || 4)
-      let next = cur + delta
-      if (next < 1) next = 1
-      if (next > 7) next = 7
-      drill.shots[shotIndex] = next
+      const cur = Number(drill.shots[shotIndex] || 4);
+      let next = cur + delta;
+      if (next < 1) next = 1;
+      if (next > 7) next = 7;
+      drill.shots[shotIndex] = next;
 
       // if this is a lose-driven change, ensure neighbors consistent
       // do not allow manual typing; only +/- changes through these buttons
 
       // if not last shot, mark calc pending
       if (shotIndex !== 9) {
-        drill.needsCalc = true
-        return
+        drill.needsCalc = true;
+        return;
       }
 
-      if (drill.needsCalc) drill.needsCalc = false
-      store.updateExamIDrill(drillIndex)
+      if (drill.needsCalc) drill.needsCalc = false;
+      store.updateExamIDrill(drillIndex);
     },
     resetDrill(index) {
-      if (!confirm('Reset this drill locally?')) return
-      const store = useExamsStore()
-      store.resetExamIDrill(index)
+      if (!confirm("Reset this drill locally?")) return;
+      const store = useExamsStore();
+      store.resetExamIDrill(index);
     },
     incrementScore(index) {
-      const store = useExamsStore()
-      store.incrementDrillScore(index)
+      const store = useExamsStore();
+      store.incrementDrillScore(index);
     },
     decrementScore(index) {
-      const store = useExamsStore()
-      store.decrementDrillScore(index)
+      const store = useExamsStore();
+      store.decrementDrillScore(index);
     },
     saveExamI() {
-      const store = useExamsStore()
-      store.saveExamI()
-      alert(`Exam I score saved: ${this.totalScore}/100 (${this.placement} level)`)
+      const store = useExamsStore();
+      store.saveExamI();
+      alert(`Exam I score saved: ${this.totalScore}/100 (${this.placement} level)`);
     },
     resetExamI() {
-      if (confirm('Reset all Exam I scores?')) {
-        const store = useExamsStore()
-        store.resetExamI()
+      if (confirm("Reset all Exam I scores?")) {
+        const store = useExamsStore();
+        store.resetExamI();
       }
     },
     autoFill() {
-      if (confirm('Fill with sample data?')) {
-        const store = useExamsStore()
-        store.loadSampleExamI()
+      if (confirm("Fill with sample data?")) {
+        const store = useExamsStore();
+        store.loadSampleExamI();
       }
     },
     getScoreColor(score, max) {
-      const percentage = (score / max) * 100
-      if (percentage >= 80) return 'score-excellent'
-      if (percentage >= 60) return 'score-good'
-      if (percentage >= 40) return 'score-average'
-      return 'score-poor'
-    }
-  }
-}
+      const percentage = (score / max) * 100;
+      if (percentage >= 80) return "score-excellent";
+      if (percentage >= 60) return "score-good";
+      if (percentage >= 40) return "score-average";
+      return "score-poor";
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -447,13 +509,15 @@ export default {
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .drill-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .drill-header {
@@ -482,7 +546,9 @@ export default {
   cursor: pointer;
 }
 
-.reset-drill-btn:hover { opacity: 0.9 }
+.reset-drill-btn:hover {
+  opacity: 0.9;
+}
 
 .shot-input.readonly {
   display: inline-block;
@@ -500,7 +566,9 @@ export default {
   font-size: 1.2rem;
 }
 
-.drill-center { justify-self: center; }
+.drill-center {
+  justify-self: center;
+}
 .reset-drill-btn {
   background: #f39c12;
   color: white;
@@ -511,7 +579,9 @@ export default {
   cursor: pointer;
 }
 
-.reset-drill-btn:hover { opacity: 0.9 }
+.reset-drill-btn:hover {
+  opacity: 0.9;
+}
 
 .drill-score {
   font-size: 1.1rem;
@@ -598,12 +668,12 @@ export default {
 }
 
 /* hide number input spin buttons */
-input[type=number].no-spin::-webkit-outer-spin-button,
-input[type=number].no-spin::-webkit-inner-spin-button {
+input[type="number"].no-spin::-webkit-outer-spin-button,
+input[type="number"].no-spin::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-input[type=number].no-spin {
+input[type="number"].no-spin {
   -moz-appearance: textfield;
 }
 
@@ -757,10 +827,18 @@ input[type=number].no-spin {
   transition: width 0.5s ease;
 }
 
-.score-excellent { background: linear-gradient(90deg, #27ae60, #2ecc71); }
-.score-good { background: linear-gradient(90deg, #f39c12, #f1c40f); }
-.score-average { background: linear-gradient(90deg, #e67e22, #d35400); }
-.score-poor { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.score-excellent {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+.score-good {
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+}
+.score-average {
+  background: linear-gradient(90deg, #e67e22, #d35400);
+}
+.score-poor {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
 
 .breakdown-value {
   font-weight: bold;
@@ -780,7 +858,7 @@ input[type=number].no-spin {
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .placement-level {
@@ -791,13 +869,28 @@ input[type=number].no-spin {
   border-radius: 5px;
 }
 
-.level-bachelors { background: #3498db; color: white; }
-.level-masters { background: #f39c12; color: white; }
-.level-doctorate { background: #e74c3c; color: white; }
+.level-bachelors {
+  background: #3498db;
+  color: white;
+}
+.level-masters {
+  background: #f39c12;
+  color: white;
+}
+.level-doctorate {
+  background: #e74c3c;
+  color: white;
+}
 
-.level-bachelors-text { color: #3498db; }
-.level-masters-text { color: #f39c12; }
-.level-doctorate-text { color: #e74c3c; }
+.level-bachelors-text {
+  color: #3498db;
+}
+.level-masters-text {
+  color: #f39c12;
+}
+.level-doctorate-text {
+  color: #e74c3c;
+}
 
 .placement-range {
   font-size: 1.2rem;
@@ -863,35 +956,40 @@ input[type=number].no-spin {
   box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
 }
 
-  @media (max-width: 768px) {
-    .exam-header {
-      flex-direction: column;
-      text-align: center;
-    }
-    .exam-stats {
-      width: 100%;
-      justify-content: center;
-    }
-    .drills-grid {
-      grid-template-columns: 1fr;
-    }
-    .drill-card {
-      min-width: 0;
-      width: 100%;
-    }
-    .shots-grid {
-      grid-template-columns: repeat(2, 1fr) !important;
-      gap: 0.5rem;
-    }
-    .shot-cell {
-      min-width: 0;
-    }
-    .drill-figure { max-width: 100%; }
-    .drill-figure-caption { max-width: 100%; }
-    .drills-grid, .shots-grid {
-      overflow-x: auto;
-    }
+@media (max-width: 768px) {
+  .exam-header {
+    flex-direction: column;
+    text-align: center;
   }
+  .exam-stats {
+    width: 100%;
+    justify-content: center;
+  }
+  .drills-grid {
+    grid-template-columns: 1fr;
+  }
+  .drill-card {
+    min-width: 0;
+    width: 100%;
+  }
+  .shots-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.5rem;
+  }
+  .shot-cell {
+    min-width: 0;
+  }
+  .drill-figure {
+    max-width: 100%;
+  }
+  .drill-figure-caption {
+    max-width: 100%;
+  }
+  .drills-grid,
+  .shots-grid {
+    overflow-x: auto;
+  }
+}
 
 .figures-section {
   background: white;
@@ -900,26 +998,86 @@ input[type=number].no-spin {
   padding: 1.25rem;
   margin-top: 1.5rem;
 }
-.figures-section h3 { margin-top: 0; color: #2c3e50; }
-.fig-note { color: #6c757d; margin-bottom: 0.75rem; }
-  .figures-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
-  .figure-card { display: flex; flex-direction: column; gap: 0.75rem; align-items: center; padding: 0.75rem; }
-  .figure-card img { max-width: 560px; width: 100%; height: auto; border-radius: 6px; border: 1px solid #ddd; }
-  .figure-caption { text-align: center; color: #333; font-size: 1rem; }
-  .figure-attrib { color: #6c757d; font-size: 0.9rem; margin-top: 0.35rem; }
-  .drill-figure-wrap { display: flex; flex-direction: column; align-items: center; gap: 0.6rem; margin: 0.8rem 0; }
-  .drill-figure { max-width: 420px; width: 100%; height: auto; border-radius: 6px; border: 1px solid #e0e0e0; }
-  .drill-figure-caption { font-size: 0.95rem; color: #6c757d; text-align: center; max-width: 420px; }
+.figures-section h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
+.fig-note {
+  color: #6c757d;
+  margin-bottom: 0.75rem;
+}
+.figures-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.figure-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem;
+}
+.figure-card img {
+  max-width: 560px;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+}
+.figure-caption {
+  text-align: center;
+  color: #333;
+  font-size: 1rem;
+}
+.figure-attrib {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin-top: 0.35rem;
+}
+.drill-figure-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0.8rem 0;
+}
+.drill-figure {
+  max-width: 420px;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+.drill-figure-caption {
+  font-size: 0.95rem;
+  color: #6c757d;
+  text-align: center;
+  max-width: 420px;
+}
 
-  @media (max-width: 768px) {
-    .figure-card img { max-width: 100%; }
-    .drill-figure { max-width: 280px; }
-    .drill-figure-caption { max-width: 320px; }
+@media (max-width: 768px) {
+  .figure-card img {
+    max-width: 100%;
   }
+  .drill-figure {
+    max-width: 280px;
+  }
+  .drill-figure-caption {
+    max-width: 320px;
+  }
+}
 
-  @media (min-width: 1200px) {
-    .drill-figure { max-width: 560px; }
-    .figure-card img { max-width: 760px; }
-    .drill-figure-caption { max-width: 560px; font-size: 1rem; }
+@media (min-width: 1200px) {
+  .drill-figure {
+    max-width: 560px;
   }
+  .figure-card img {
+    max-width: 760px;
+  }
+  .drill-figure-caption {
+    max-width: 560px;
+    font-size: 1rem;
+  }
+}
 </style>

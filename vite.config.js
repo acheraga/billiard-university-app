@@ -1,10 +1,10 @@
-import { defineConfig } from 'vite'
-import vue from '@vitejs/plugin-vue'
+import { defineConfig } from "vite";
+import vue from "@vitejs/plugin-vue";
 
 export default defineConfig({
-  base: '/billiard-university-app/',
+  base: "/billiard-university-app/",
   plugins: [vue()],
- /** server: {
+  /** server: {
     port: 3000,
     open: true
   },
@@ -12,4 +12,4 @@ export default defineConfig({
     outDir: 'dist',
     sourcemap: true
   }**/
-})
+});
