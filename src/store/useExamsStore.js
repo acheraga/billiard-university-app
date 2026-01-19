@@ -764,6 +764,7 @@ export const useExamsStore = defineStore("exams", {
     },
 
     deleteUser(id) {
+      console.log("deleteUser called for id:", id, "current users:", Object.keys(this.users || {}));
       if (!this.users || !this.users[id]) return false;
       // create a new users object without the target id to ensure clean removal
       const newUsers = {};
@@ -773,6 +774,7 @@ export const useExamsStore = defineStore("exams", {
         }
       }
       this.users = newUsers;
+      console.log("after deletion users:", Object.keys(this.users || {}));
 
       // update storage; if empty, remove the key
       if (Object.keys(this.users).length === 0) {
@@ -785,16 +787,23 @@ export const useExamsStore = defineStore("exams", {
       if (this.currentUserId === id) {
         const ids = Object.keys(this.users);
         if (ids.length > 0) {
+          // switch to the first remaining user (this will persist the new current user)
           this.switchUser(ids[0]);
         } else {
-          // reset to defaults
-          this.resetAll();
+          // clear currentUserId first to avoid re-persisting the deleted user
           this.currentUserId = null;
+          this.resetAll();
         }
       }
 
-      // Persist the change
-      this.saveToLocalStorage();
+      // Persist the change (if any remaining users, switchUser will have persisted already)
+      if (Object.keys(this.users || {}).length > 0) {
+        localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));
+      } else {
+        localStorage.removeItem("billiardUniversityUsers");
+        localStorage.removeItem("billiardUniversityLastActive");
+      }
+
       return true;
     },
 

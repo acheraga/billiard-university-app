@@ -179,7 +179,9 @@ describe("Exam I scoring", () => {
     const id = store.createUser("TempUser");
     expect(store.listUsers().some((u) => u.id === id)).toBe(true);
     expect(store.deleteUser(id)).toBe(true);
-    // immediate in-memory check
+    // immediate in-memory check (debug)
+    console.log('users after delete:', Object.keys(store.users || {}));
+    console.log('users[id]:', store.users[id]);
     expect(store.users[id]).toBeUndefined();
     expect(store.listUsers().some((u) => u.id === id)).toBe(false);
   });

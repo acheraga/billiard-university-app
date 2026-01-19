@@ -326,11 +326,18 @@ export default {
       "S10",
     ]);
 
+    // Max scores per skill/level for Exam II
     const examIIMaxScores = {
       Bachelors: [4, 7, 10, 10, 6, 3, 3, 3, 3, 5],
       Masters: [7, 11, 12, 12, 10, 5, 5, 5, 5, 5],
       Doctorate: [10, 15, 14, 14, 14, 7, 7, 7, 7, 5],
     };
+
+    // Derived max scores for Exam I drills (from store) to avoid undefined access
+    const examIMaxScores = computed(() => {
+      const drills = store.examI && store.examI.drills ? store.examI.drills : [];
+      return drills.map((d) => (d && d.maxScore ? d.maxScore : 0));
+    });
 
     // Statistics
     const totalExams = computed(() => examIHistory.value.length + examIIHistory.value.length);
@@ -489,7 +496,9 @@ export default {
     };
 
     const getScoreClass = (score, max) => {
-      const percentage = (score / max) * 100;
+      // guard against undefined or zero max
+      const m = Number(max) || 1;
+      const percentage = (score / m) * 100;
       if (percentage >= 90) return "score-excellent";
       if (percentage >= 70) return "score-good";
       if (percentage >= 50) return "score-average";
@@ -588,6 +597,7 @@ export default {
       examIIHistory,
       examIDrills,
       examIISkills,
+      examIMaxScores,
       totalExams,
       bestExamI,
       worstExamI,
