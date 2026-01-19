@@ -2,45 +2,40 @@
   <div class="student-info">
     <div class="info-card">
       <h3><i class="fas fa-user-graduate"></i> Student Information</h3>
-      
+
       <div class="form-grid">
         <div class="form-group">
           <label for="studentName"><i class="fas fa-user"></i> Student Name</label>
-          <input 
-            type="text" 
-            id="studentName" 
-            v-model="student.name" 
+          <input
+            id="studentName"
+            v-model="student.name"
+            type="text"
             placeholder="Enter student name"
             @input="saveStudent"
-          >
+          />
         </div>
-        
+
         <div class="form-group">
           <label for="examDate"><i class="fas fa-calendar-alt"></i> Date</label>
-          <input 
-            type="date" 
-            id="examDate" 
-            v-model="student.date"
-            @change="saveStudent"
-          >
+          <input id="examDate" v-model="student.date" type="date" @change="saveStudent" />
         </div>
-        
+
         <div class="form-group">
           <label><i class="fas fa-chart-line"></i> Current Exam I Score</label>
           <div class="score-display">{{ student.examIScore || 0 }}/100</div>
         </div>
-        
+
         <div class="form-group">
           <label><i class="fas fa-level-up-alt"></i> Recommended Exam II Level</label>
-          <div 
+          <div
             class="level-display"
             :class="{
               'level-bachelors': student.examIILevel === 'Bachelors',
               'level-masters': student.examIILevel === 'Masters',
-              'level-doctorate': student.examIILevel === 'Doctorate'
+              'level-doctorate': student.examIILevel === 'Doctorate',
             }"
           >
-            {{ student.examIILevel || 'Complete Exam I' }}
+            {{ student.examIILevel || "Complete Exam I" }}
           </div>
         </div>
       </div>
@@ -49,29 +44,33 @@
 </template>
 
 <script>
-import { useExamsStore } from '../store/useExamsStore'
-import { ref, watch } from 'vue'
+import { useExamsStore } from "../store/useExamsStore";
+import { ref, watch } from "vue";
 
 export default {
-  name: 'StudentInfo',
+  name: "StudentInfo",
   setup() {
-    const store = useExamsStore()
-    const student = ref({ ...store.student })
-    
-    watch(() => store.student, (newVal) => {
-      student.value = { ...newVal }
-    }, { deep: true })
-    
+    const store = useExamsStore();
+    const student = ref({ ...store.student });
+
+    watch(
+      () => store.student,
+      (newVal) => {
+        student.value = { ...newVal };
+      },
+      { deep: true }
+    );
+
     const saveStudent = () => {
-      store.saveStudentInfo(student.value)
-    }
-    
+      store.saveStudentInfo(student.value);
+    };
+
     return {
       student,
-      saveStudent
-    }
-  }
-}
+      saveStudent,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -83,7 +82,7 @@ export default {
   background: white;
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .info-card h3 {

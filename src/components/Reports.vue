@@ -12,11 +12,11 @@
           <h3><i class="fas fa-user-graduate"></i> Current Student Report</h3>
           <span class="report-date">{{ currentDate }}</span>
         </div>
-        
+
         <div class="student-info-grid">
           <div class="info-item">
             <label>Student Name:</label>
-            <div class="info-value">{{ student.name || 'Not set' }}</div>
+            <div class="info-value">{{ student.name || "Not set" }}</div>
           </div>
           <div class="info-item">
             <label>Exam I Score:</label>
@@ -25,7 +25,7 @@
           <div class="info-item">
             <label>Exam II Level:</label>
             <div class="info-value level-value" :class="student.examIILevel?.toLowerCase() || ''">
-              {{ student.examIILevel || 'Not determined' }}
+              {{ student.examIILevel || "Not determined" }}
             </div>
           </div>
           <div class="info-item">
@@ -35,7 +35,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="progress-summary">
           <div class="progress-item">
             <div class="progress-label">Exam I Progress</div>
@@ -44,7 +44,7 @@
             </div>
             <div class="progress-value">{{ student.examIScore || 0 }}%</div>
           </div>
-          
+
           <div class="progress-item">
             <div class="progress-label">Overall Rating</div>
             <div class="progress-bar">
@@ -60,7 +60,7 @@
         <div class="report-header">
           <h3><i class="fas fa-chart-line"></i> Performance Statistics</h3>
         </div>
-        
+
         <div class="stats-grid">
           <div class="stat-item">
             <div class="stat-icon">
@@ -71,7 +71,7 @@
               <div class="stat-value">{{ totalExams }}</div>
             </div>
           </div>
-          
+
           <div class="stat-item">
             <div class="stat-icon">
               <i class="fas fa-trophy"></i>
@@ -81,7 +81,7 @@
               <div class="stat-value">{{ bestExamI }}/100</div>
             </div>
           </div>
-          
+
           <div class="stat-item">
             <div class="stat-icon">
               <i class="fas fa-star"></i>
@@ -91,7 +91,7 @@
               <div class="stat-value">{{ averageExamI }}/100</div>
             </div>
           </div>
-          
+
           <div class="stat-item">
             <div class="stat-icon">
               <i class="fas fa-medal"></i>
@@ -99,20 +99,20 @@
             <div class="stat-content">
               <div class="stat-label">Highest Diploma</div>
               <div class="stat-value diploma-value" :class="highestDiplomaClass">
-                {{ highestDiploma || 'None' }}
+                {{ highestDiploma || "None" }}
               </div>
             </div>
           </div>
         </div>
-        
+
         <div class="performance-chart">
           <h4>Score Distribution</h4>
           <div class="chart-bars">
             <div v-for="range in scoreRanges" :key="range.label" class="chart-bar">
               <div class="bar-label">{{ range.label }}</div>
               <div class="bar-container">
-                <div 
-                  class="bar-fill" 
+                <div
+                  class="bar-fill"
                   :style="{ height: range.percentage + '%' }"
                   :title="`${range.count} exams`"
                 ></div>
@@ -133,7 +133,7 @@
             <option value="Doctorate">Doctorate</option>
           </select>
         </div>
-        
+
         <div class="skills-breakdown">
           <div v-for="(skill, index) in skillsAnalysis" :key="index" class="skill-item">
             <div class="skill-info">
@@ -142,8 +142,8 @@
             </div>
             <div class="skill-progress">
               <div class="progress-bar">
-                <div 
-                  class="progress-fill" 
+                <div
+                  class="progress-fill"
                   :style="{ width: skill.percentage + '%' }"
                   :class="getSkillClass(skill.percentage)"
                 ></div>
@@ -152,7 +152,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="skills-summary">
           <div class="summary-item">
             <label>Strongest Skill:</label>
@@ -174,7 +174,7 @@
         <div class="report-header">
           <h3><i class="fas fa-timeline"></i> Progress Timeline</h3>
         </div>
-        
+
         <div class="timeline">
           <div v-for="(event, index) in timeline" :key="index" class="timeline-event">
             <div class="event-date">{{ event.date }}</div>
@@ -182,10 +182,10 @@
             <div class="event-content">
               <div class="event-title">{{ event.title }}</div>
               <div class="event-details">{{ event.details }}</div>
-              <div class="event-score" v-if="event.score">{{ event.score }}</div>
+              <div v-if="event.score" class="event-score">{{ event.score }}</div>
             </div>
           </div>
-          
+
           <div v-if="timeline.length === 0" class="empty-timeline">
             <i class="fas fa-history"></i>
             <p>No progress history yet</p>
@@ -197,38 +197,32 @@
     <!-- Report Actions -->
     <div class="report-actions">
       <div class="action-buttons">
-        <button @click="generateReport" class="btn btn-primary">
+        <button class="btn btn-primary" @click="generateReport">
           <i class="fas fa-file-pdf"></i> Generate PDF Report
         </button>
-        <button @click="exportData" class="btn btn-success">
+        <button class="btn btn-success" @click="exportData">
           <i class="fas fa-file-excel"></i> Export to Excel
         </button>
-        <button @click="printReport" class="btn btn-info">
+        <button class="btn btn-info" @click="printReport">
           <i class="fas fa-print"></i> Print Report
         </button>
-        <button @click="shareReport" class="btn btn-secondary">
+        <button class="btn btn-secondary" @click="shareReport">
           <i class="fas fa-share"></i> Share Report
         </button>
       </div>
-      
+
       <div class="report-options">
         <div class="option-group">
-          <label>
-            <input type="checkbox" v-model="includeCharts"> Include Charts
-          </label>
-          <label>
-            <input type="checkbox" v-model="includeDetails"> Include Details
-          </label>
-          <label>
-            <input type="checkbox" v-model="includeHistory"> Include History
-          </label>
+          <label> <input v-model="includeCharts" type="checkbox" /> Include Charts </label>
+          <label> <input v-model="includeDetails" type="checkbox" /> Include Details </label>
+          <label> <input v-model="includeHistory" type="checkbox" /> Include History </label>
         </div>
-        
+
         <div class="date-range">
           <label>Date Range:</label>
-          <input type="date" v-model="startDate">
+          <input v-model="startDate" type="date" />
           <span>to</span>
-          <input type="date" v-model="endDate">
+          <input v-model="endDate" type="date" />
         </div>
       </div>
     </div>
@@ -237,7 +231,7 @@
     <div class="quick-stats">
       <h3><i class="fas fa-bolt"></i> Quick Stats</h3>
       <div class="stats-cards">
-        <div class="stat-card" v-for="stat in quickStats" :key="stat.label">
+        <div v-for="stat in quickStats" :key="stat.label" class="stat-card">
           <div class="stat-icon" :style="{ color: stat.color }">
             <i :class="stat.icon"></i>
           </div>
@@ -255,321 +249,321 @@
 </template>
 
 <script>
-import { useExamsStore } from '../store/useExamsStore'
-import { computed, ref } from 'vue'
+import { useExamsStore } from "../store/useExamsStore";
+import { computed, ref } from "vue";
 
 export default {
-  name: 'Reports',
+  name: "ReportsView",
   setup() {
-    const store = useExamsStore()
-    const selectedLevel = ref('Bachelors')
-    const includeCharts = ref(true)
-    const includeDetails = ref(true)
-    const includeHistory = ref(false)
-    const startDate = ref('')
-    const endDate = ref('')
+    const store = useExamsStore();
+    const selectedLevel = ref("Bachelors");
+    const includeCharts = ref(true);
+    const includeDetails = ref(true);
+    const includeHistory = ref(false);
+    const startDate = ref("");
+    const endDate = ref("");
 
     // Current Date
     const currentDate = computed(() => {
-      return new Date().toLocaleDateString('fr-FR', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      })
-    })
+      return new Date().toLocaleDateString("fr-FR", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      });
+    });
 
     // Student Info
-    const student = computed(() => store.student)
+    const student = computed(() => store.student);
 
     // Current Rating
     const currentRating = computed(() => {
-      const totalScore = store.getTotalScore
-      
-      if (totalScore < 20) return "beg-0"
-      if (totalScore < 30) return "beg-1"
-      if (totalScore < 40) return "beg-2"
-      if (totalScore < 55) return "beg-3"
-      if (totalScore < 70) return "int-1"
-      if (totalScore < 95) return "int-2"
-      if (totalScore < 110) return "int-3"
-      if (totalScore < 125) return "adv-1"
-      if (totalScore < 140) return "adv-2"
-      if (totalScore < 160) return "adv-3"
-      if (totalScore < 180) return "semi pro"
-      return "pro"
-    })
+      const totalScore = store.getTotalScore;
+
+      if (totalScore < 20) return "beg-0";
+      if (totalScore < 30) return "beg-1";
+      if (totalScore < 40) return "beg-2";
+      if (totalScore < 55) return "beg-3";
+      if (totalScore < 70) return "int-1";
+      if (totalScore < 95) return "int-2";
+      if (totalScore < 110) return "int-3";
+      if (totalScore < 125) return "adv-1";
+      if (totalScore < 140) return "adv-2";
+      if (totalScore < 160) return "adv-3";
+      if (totalScore < 180) return "semi pro";
+      return "pro";
+    });
 
     const currentRatingClass = computed(() => {
-      const score = store.getTotalScore
-      if (score < 55) return "rating-beginner"
-      if (score < 95) return "rating-intermediate"
-      if (score < 125) return "rating-advanced"
-      return "rating-expert"
-    })
+      const score = store.getTotalScore;
+      if (score < 55) return "rating-beginner";
+      if (score < 95) return "rating-intermediate";
+      if (score < 125) return "rating-advanced";
+      return "rating-expert";
+    });
 
-    const examIProgress = computed(() => student.value.examIScore || 0)
+    const examIProgress = computed(() => student.value.examIScore || 0);
 
     const ratingProgress = computed(() => {
-      const score = store.getTotalScore
-      if (score >= 180) return 100
-      return Math.min(100, (score / 180) * 100)
-    })
+      const score = store.getTotalScore;
+      if (score >= 180) return 100;
+      return Math.min(100, (score / 180) * 100);
+    });
 
     // Statistics
     const totalExams = computed(() => {
-      return store.history.examI.length + store.history.examII.length
-    })
+      return store.history.examI.length + store.history.examII.length;
+    });
 
     const bestExamI = computed(() => {
-      if (store.history.examI.length === 0) return 0
-      return Math.max(...store.history.examI.map(e => e.total))
-    })
+      if (store.history.examI.length === 0) return 0;
+      return Math.max(...store.history.examI.map((e) => e.total));
+    });
 
     const averageExamI = computed(() => {
-      if (store.history.examI.length === 0) return 0
-      const sum = store.history.examI.reduce((acc, e) => acc + e.total, 0)
-      return Math.round(sum / store.history.examI.length)
-    })
+      if (store.history.examI.length === 0) return 0;
+      const sum = store.history.examI.reduce((acc, e) => acc + e.total, 0);
+      return Math.round(sum / store.history.examI.length);
+    });
 
     const highestDiploma = computed(() => {
-      const totalScore = store.getTotalScore
-      
-      if (totalScore < 55) return ""
-      if (totalScore < 85) return "Bachelors"
-      if (totalScore < 100) return "Bachelors w/ Honors"
-      if (totalScore < 125) return "Masters"
-      if (totalScore < 140) return "Masters w/ Honors"
-      if (totalScore < 180) return "Doctorate"
-      return "Doctorate w/ Honors"
-    })
+      const totalScore = store.getTotalScore;
+
+      if (totalScore < 55) return "";
+      if (totalScore < 85) return "Bachelors";
+      if (totalScore < 100) return "Bachelors w/ Honors";
+      if (totalScore < 125) return "Masters";
+      if (totalScore < 140) return "Masters w/ Honors";
+      if (totalScore < 180) return "Doctorate";
+      return "Doctorate w/ Honors";
+    });
 
     const highestDiplomaClass = computed(() => {
-      if (!highestDiploma.value) return ""
-      if (highestDiploma.value.includes('Bachelors')) return "diploma-bachelors"
-      if (highestDiploma.value.includes('Masters')) return "diploma-masters"
-      return "diploma-doctorate"
-    })
+      if (!highestDiploma.value) return "";
+      if (highestDiploma.value.includes("Bachelors")) return "diploma-bachelors";
+      if (highestDiploma.value.includes("Masters")) return "diploma-masters";
+      return "diploma-doctorate";
+    });
 
     // Score Distribution
     const scoreRanges = computed(() => {
       const ranges = [
-        { label: '0-49', min: 0, max: 49, count: 0 },
-        { label: '50-69', min: 50, max: 69, count: 0 },
-        { label: '70-84', min: 70, max: 84, count: 0 },
-        { label: '85-99', min: 85, max: 99, count: 0 },
-        { label: '100', min: 100, max: 100, count: 0 }
-      ]
-      
+        { label: "0-49", min: 0, max: 49, count: 0 },
+        { label: "50-69", min: 50, max: 69, count: 0 },
+        { label: "70-84", min: 70, max: 84, count: 0 },
+        { label: "85-99", min: 85, max: 99, count: 0 },
+        { label: "100", min: 100, max: 100, count: 0 },
+      ];
+
       // Count Exam I scores
-      store.history.examI.forEach(entry => {
-        const score = entry.total
-        const range = ranges.find(r => score >= r.min && score <= r.max)
-        if (range) range.count++
-      })
-      
+      store.history.examI.forEach((entry) => {
+        const score = entry.total;
+        const range = ranges.find((r) => score >= r.min && score <= r.max);
+        if (range) range.count++;
+      });
+
       // Count Exam II scores (normalized to 100)
-      store.history.examII.forEach(entry => {
+      store.history.examII.forEach((entry) => {
         const maxScores = {
-          'Bachelors': 54,
-          'Masters': 77,
-          'Doctorate': 100
-        }
-        const max = maxScores[entry.level] || 100
-        const normalized = Math.round((entry.total / max) * 100)
-        const range = ranges.find(r => normalized >= r.min && normalized <= r.max)
-        if (range) range.count++
-      })
-      
-      const total = ranges.reduce((sum, r) => sum + r.count, 0)
-      
-      return ranges.map(range => ({
+          Bachelors: 54,
+          Masters: 77,
+          Doctorate: 100,
+        };
+        const max = maxScores[entry.level] || 100;
+        const normalized = Math.round((entry.total / max) * 100);
+        const range = ranges.find((r) => normalized >= r.min && normalized <= r.max);
+        if (range) range.count++;
+      });
+
+      const total = ranges.reduce((sum, r) => sum + r.count, 0);
+
+      return ranges.map((range) => ({
         ...range,
-        percentage: total > 0 ? (range.count / total) * 100 : 0
-      }))
-    })
+        percentage: total > 0 ? (range.count / total) * 100 : 0,
+      }));
+    });
 
     // Skills Analysis
     const skillsAnalysis = computed(() => {
-      const level = selectedLevel.value
-      const skills = store.examII.skills[level] || []
-      
+      const level = selectedLevel.value;
+      const skills = store.examII.skills[level] || [];
+
       // Get history for this level
-      const levelHistory = store.history.examII.filter(e => e.level === level)
-      
+      const levelHistory = store.history.examII.filter((e) => e.level === level);
+
       return skills.map((skill, index) => {
         // Calculate average score for this skill
-        let totalScore = 0
-        let count = 0
-        
-        levelHistory.forEach(entry => {
+        let totalScore = 0;
+        let count = 0;
+
+        levelHistory.forEach((entry) => {
           if (entry.scores[index] !== undefined) {
-            totalScore += entry.scores[index]
-            count++
+            totalScore += entry.scores[index];
+            count++;
           }
-        })
-        
-        const averageScore = count > 0 ? Math.round(totalScore / count) : 0
-        const percentage = skill.maxScore > 0 ? (averageScore / skill.maxScore) * 100 : 0
-        
+        });
+
+        const averageScore = count > 0 ? Math.round(totalScore / count) : 0;
+        const percentage = skill.maxScore > 0 ? (averageScore / skill.maxScore) * 100 : 0;
+
         return {
           code: skill.code,
           name: skill.name,
           maxScore: skill.maxScore,
           averageScore,
-          percentage
-        }
-      })
-    })
+          percentage,
+        };
+      });
+    });
 
     const strongestSkill = computed(() => {
-      if (skillsAnalysis.value.length === 0) return "N/A"
-      const strongest = skillsAnalysis.value.reduce((prev, current) => 
+      if (skillsAnalysis.value.length === 0) return "N/A";
+      const strongest = skillsAnalysis.value.reduce((prev, current) =>
         prev.percentage > current.percentage ? prev : current
-      )
-      return strongest.code
-    })
+      );
+      return strongest.code;
+    });
 
     const weakestSkill = computed(() => {
-      if (skillsAnalysis.value.length === 0) return "N/A"
-      const weakest = skillsAnalysis.value.reduce((prev, current) => 
+      if (skillsAnalysis.value.length === 0) return "N/A";
+      const weakest = skillsAnalysis.value.reduce((prev, current) =>
         prev.percentage < current.percentage ? prev : current
-      )
-      return weakest.code
-    })
+      );
+      return weakest.code;
+    });
 
     const skillsAverage = computed(() => {
-      if (skillsAnalysis.value.length === 0) return 0
-      const sum = skillsAnalysis.value.reduce((acc, skill) => acc + skill.averageScore, 0)
-      return Math.round(sum / skillsAnalysis.value.length)
-    })
+      if (skillsAnalysis.value.length === 0) return 0;
+      const sum = skillsAnalysis.value.reduce((acc, skill) => acc + skill.averageScore, 0);
+      return Math.round(sum / skillsAnalysis.value.length);
+    });
 
     const skillsMax = computed(() => {
-      if (skillsAnalysis.value.length === 0) return 0
+      if (skillsAnalysis.value.length === 0) return 0;
       const maxScores = {
-        'Bachelors': 54,
-        'Masters': 77,
-        'Doctorate': 100
-      }
-      return maxScores[selectedLevel.value] || 0
-    })
+        Bachelors: 54,
+        Masters: 77,
+        Doctorate: 100,
+      };
+      return maxScores[selectedLevel.value] || 0;
+    });
 
     // Timeline
     const timeline = computed(() => {
-      const events = []
-      
+      const events = [];
+
       // Add Exam I events
-      store.history.examI.forEach(entry => {
+      store.history.examI.forEach((entry) => {
         events.push({
           date: formatDate(entry.date),
-          type: 'exam1',
-          title: 'Exam I Completed',
+          type: "exam1",
+          title: "Exam I Completed",
           details: `${entry.level} level`,
-          score: `${entry.total}/100`
-        })
-      })
-      
+          score: `${entry.total}/100`,
+        });
+      });
+
       // Add Exam II events
-      store.history.examII.forEach(entry => {
+      store.history.examII.forEach((entry) => {
         events.push({
           date: formatDate(entry.date),
-          type: 'exam2',
+          type: "exam2",
           title: `Exam II - ${entry.level}`,
           details: `${entry.skills.length} skills assessed`,
-          score: `${entry.total} points`
-        })
-      })
-      
+          score: `${entry.total} points`,
+        });
+      });
+
       // Sort by date (newest first)
-      return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
-    })
+      return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+    });
 
     // Quick Stats
     const quickStats = computed(() => {
-      const totalScore = store.getTotalScore
-      const progress = Math.min(100, (totalScore / 180) * 100)
-      
+      const totalScore = store.getTotalScore;
+      const progress = Math.min(100, (totalScore / 180) * 100);
+
       return [
         {
-          label: 'Total Score',
+          label: "Total Score",
           value: totalScore,
-          icon: 'fas fa-chart-line',
-          color: '#3498db',
-          trend: totalScore > 100 ? 'up' : 'stable',
-          trendIcon: totalScore > 100 ? 'fas fa-arrow-up' : 'fas fa-minus',
-          trendValue: totalScore > 100 ? '+12%' : '0%'
+          icon: "fas fa-chart-line",
+          color: "#3498db",
+          trend: totalScore > 100 ? "up" : "stable",
+          trendIcon: totalScore > 100 ? "fas fa-arrow-up" : "fas fa-minus",
+          trendValue: totalScore > 100 ? "+12%" : "0%",
         },
         {
-          label: 'Progress',
+          label: "Progress",
           value: `${Math.round(progress)}%`,
-          icon: 'fas fa-tasks',
-          color: '#2ecc71',
-          trend: 'up',
-          trendIcon: 'fas fa-arrow-up',
-          trendValue: '+5%'
+          icon: "fas fa-tasks",
+          color: "#2ecc71",
+          trend: "up",
+          trendIcon: "fas fa-arrow-up",
+          trendValue: "+5%",
         },
         {
-          label: 'Exams Taken',
+          label: "Exams Taken",
           value: totalExams.value,
-          icon: 'fas fa-clipboard-list',
-          color: '#9b59b6',
-          trend: totalExams.value > 0 ? 'up' : 'stable',
-          trendIcon: totalExams.value > 0 ? 'fas fa-plus' : 'fas fa-minus',
-          trendValue: totalExams.value > 0 ? 'New' : 'None'
+          icon: "fas fa-clipboard-list",
+          color: "#9b59b6",
+          trend: totalExams.value > 0 ? "up" : "stable",
+          trendIcon: totalExams.value > 0 ? "fas fa-plus" : "fas fa-minus",
+          trendValue: totalExams.value > 0 ? "New" : "None",
         },
         {
-          label: 'Success Rate',
+          label: "Success Rate",
           value: `${Math.round((averageExamI.value / 100) * 100)}%`,
-          icon: 'fas fa-percentage',
-          color: '#e74c3c',
-          trend: averageExamI.value > 70 ? 'up' : 'down',
-          trendIcon: averageExamI.value > 70 ? 'fas fa-arrow-up' : 'fas fa-arrow-down',
-          trendValue: averageExamI.value > 70 ? 'High' : 'Low'
-        }
-      ]
-    })
+          icon: "fas fa-percentage",
+          color: "#e74c3c",
+          trend: averageExamI.value > 70 ? "up" : "down",
+          trendIcon: averageExamI.value > 70 ? "fas fa-arrow-up" : "fas fa-arrow-down",
+          trendValue: averageExamI.value > 70 ? "High" : "Low",
+        },
+      ];
+    });
 
     // Helper Functions
     const formatDate = (dateString) => {
-      if (!dateString) return 'Unknown'
-      const date = new Date(dateString)
-      return date.toLocaleDateString('fr-FR', {
-        month: 'short',
-        day: 'numeric'
-      })
-    }
+      if (!dateString) return "Unknown";
+      const date = new Date(dateString);
+      return date.toLocaleDateString("fr-FR", {
+        month: "short",
+        day: "numeric",
+      });
+    };
 
     const getSkillClass = (percentage) => {
-      if (percentage >= 80) return 'skill-excellent'
-      if (percentage >= 60) return 'skill-good'
-      if (percentage >= 40) return 'skill-average'
-      return 'skill-poor'
-    }
+      if (percentage >= 80) return "skill-excellent";
+      if (percentage >= 60) return "skill-good";
+      if (percentage >= 40) return "skill-average";
+      return "skill-poor";
+    };
 
     // Actions
     const generateReport = () => {
-      alert('PDF report generation would be implemented here. This is a demo.')
-    }
+      alert("PDF report generation would be implemented here. This is a demo.");
+    };
 
     const exportData = () => {
-      store.exportToExcel()
-    }
+      store.exportToExcel();
+    };
 
     const printReport = () => {
-      window.print()
-    }
+      window.print();
+    };
 
     const shareReport = () => {
       if (navigator.share) {
         navigator.share({
-          title: 'Billiard University Report',
+          title: "Billiard University Report",
           text: `My Billiard University progress: ${currentRating.value} rating, ${student.value.examIScore || 0}/100 Exam I`,
-          url: window.location.href
-        })
+          url: window.location.href,
+        });
       } else {
-        alert('Share functionality is not available in this browser.')
+        alert("Share functionality is not available in this browser.");
       }
-    }
+    };
 
     return {
       selectedLevel,
@@ -601,10 +595,10 @@ export default {
       generateReport,
       exportData,
       printReport,
-      shareReport
-    }
-  }
-}
+      shareReport,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -639,7 +633,7 @@ export default {
   background: white;
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s;
 }
 
@@ -964,10 +958,18 @@ export default {
   font-size: 0.9rem;
 }
 
-.skill-excellent { background: linear-gradient(90deg, #27ae60, #2ecc71); }
-.skill-good { background: linear-gradient(90deg, #f39c12, #f1c40f); }
-.skill-average { background: linear-gradient(90deg, #3498db, #2980b9); }
-.skill-poor { background: linear-gradient(90deg, #e74c3c, #c0392b); }
+.skill-excellent {
+  background: linear-gradient(90deg, #27ae60, #2ecc71);
+}
+.skill-good {
+  background: linear-gradient(90deg, #f39c12, #f1c40f);
+}
+.skill-average {
+  background: linear-gradient(90deg, #3498db, #2980b9);
+}
+.skill-poor {
+  background: linear-gradient(90deg, #e74c3c, #c0392b);
+}
 
 .skills-summary {
   display: grid;
@@ -1005,7 +1007,7 @@ export default {
 }
 
 .timeline::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 0.5rem;
   top: 0;
@@ -1052,7 +1054,7 @@ export default {
   background: white;
   border-radius: 6px;
   padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .event-title {
@@ -1090,7 +1092,7 @@ export default {
   border-radius: 10px;
   padding: 1.5rem;
   margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .action-buttons {
@@ -1217,7 +1219,7 @@ export default {
   background: white;
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .quick-stats h3 {
@@ -1293,39 +1295,39 @@ export default {
   .reports-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .student-info-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .stats-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .skills-summary {
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
-  
+
   .action-buttons {
     flex-direction: column;
   }
-  
+
   .btn {
     width: 100%;
     justify-content: center;
   }
-  
+
   .report-options {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .date-range {
     width: 100%;
     justify-content: space-between;
   }
-  
+
   .stats-cards {
     grid-template-columns: 1fr;
   }
@@ -1337,7 +1339,7 @@ export default {
   .report-options {
     display: none !important;
   }
-  
+
   .report-card {
     break-inside: avoid;
     box-shadow: none;

@@ -3,7 +3,6 @@
     <header class="app-header">
       <div class="container">
         <h1><i class="fas fa-trophy"></i> Billiard University Scoring System</h1>
-        
       </div>
     </header>
 
@@ -11,10 +10,10 @@
       <div class="container">
         <div class="app-content">
           <StudentInfo />
-          
+
           <div class="tabs">
-            <button 
-              v-for="tab in tabs" 
+            <button
+              v-for="tab in tabs"
               :key="tab.id"
               :class="['tab-button', { active: activeTab === tab.id }]"
               @click="activeTab = tab.id"
@@ -27,15 +26,15 @@
             <div v-show="activeTab === 'exam1'" class="tab-pane active">
               <ExamI />
             </div>
-            
+
             <div v-show="activeTab === 'exam2'" class="tab-pane">
               <ExamII />
             </div>
-            
+
             <div v-show="activeTab === 'history'" class="tab-pane">
               <ScoreHistory />
             </div>
-            
+
             <div v-show="activeTab === 'reports'" class="tab-pane">
               <Reports />
             </div>
@@ -58,49 +57,49 @@
 </template>
 
 <script>
-import StudentInfo from './components/StudentInfo.vue'
-import ExamI from './components/ExamI.vue'
-import ExamII from './components/ExamII.vue'
-import ScoreHistory from './components/ScoreHistory.vue'
-import Reports from './components/Reports.vue'
-import { useExamsStore } from './store/useExamsStore'
+import StudentInfo from "./components/StudentInfo.vue";
+import ExamI from "./components/ExamI.vue";
+import ExamII from "./components/ExamII.vue";
+import ScoreHistory from "./components/ScoreHistory.vue";
+import Reports from "./components/Reports.vue";
+import { useExamsStore } from "./store/useExamsStore";
 
 export default {
-  name: 'App',
+  name: "App",
   components: {
     StudentInfo,
     ExamI,
     ExamII,
     ScoreHistory,
-    Reports
+    Reports,
   },
   data() {
     return {
-      activeTab: 'exam1',
+      activeTab: "exam1",
       tabs: [
-        { id: 'exam1', label: 'Exam I', icon: 'fas fa-list-ol' },
-        { id: 'exam2', label: 'Exam II', icon: 'fas fa-chart-line' },
-        { id: 'history', label: 'History', icon: 'fas fa-history' },
-        { id: 'reports', label: 'Reports', icon: 'fas fa-chart-bar' }
-      ]
-    }
+        { id: "exam1", label: "Exam I", icon: "fas fa-list-ol" },
+        { id: "exam2", label: "Exam II", icon: "fas fa-chart-line" },
+        { id: "history", label: "History", icon: "fas fa-history" },
+        { id: "reports", label: "Reports", icon: "fas fa-chart-bar" },
+      ],
+    };
   },
   methods: {
     exportData() {
-      const store = useExamsStore()
-      store.exportToExcel()
+      const store = useExamsStore();
+      store.exportToExcel();
     },
     printReport() {
-      window.print()
+      window.print();
     },
     resetAll() {
-      if (confirm('Reset all data? This cannot be undone.')) {
-        const store = useExamsStore()
-        store.resetAll()
+      if (confirm("Reset all data? This cannot be undone.")) {
+        const store = useExamsStore();
+        store.resetAll();
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -109,7 +108,7 @@ export default {
   color: white;
   padding: 2rem 0;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .app-header h1 {
@@ -166,14 +165,14 @@ export default {
   background: white;
   color: #2c3e50;
   font-weight: 600;
-  box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tab-content {
   background: white;
   border-radius: 0 0 8px 8px;
   padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .tab-pane {
@@ -205,20 +204,26 @@ export default {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
   .tabs {
     flex-direction: column;
   }
-  
+
   .tab-button {
     justify-content: flex-start;
     padding: 1rem;
   }
-  
+
   .app-header h1 {
     font-size: 1.8rem;
   }

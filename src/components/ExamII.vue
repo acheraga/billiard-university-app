@@ -6,9 +6,9 @@
         <button
           v-for="level in levels"
           :key="level.id"
-          @click="setLevel(level.id)"
           :class="['level-btn', { active: currentLevel === level.id }]"
           :title="level.description"
+          @click="setLevel(level.id)"
         >
           <i :class="level.icon"></i>
           {{ level.name }}
@@ -42,22 +42,22 @@
               <div class="input-group">
                 <label>Attempt 1:</label>
                 <input
-                  type="number"
                   v-model.number="skill.attempt1"
+                  type="number"
                   min="0"
                   :max="skill.maxScore"
                   @input="updateSkillScore"
-                >
+                />
               </div>
               <div class="input-group">
                 <label>Attempt 2:</label>
                 <input
-                  type="number"
                   v-model.number="skill.attempt2"
+                  type="number"
                   min="0"
                   :max="skill.maxScore"
                   @input="updateSkillScore"
-                >
+                />
               </div>
               <div class="skill-note">Best of two attempts (2nd optional if perfect)</div>
             </div>
@@ -67,12 +67,12 @@
               <div v-for="i in 3" :key="i" class="input-group">
                 <label>Attempt {{ i }}:</label>
                 <input
+                  v-model.number="skill.scores[i - 1]"
                   type="number"
-                  v-model.number="skill.scores[i-1]"
                   min="0"
                   :max="skill.maxScore"
                   @input="updateSkillScore"
-                >
+                />
               </div>
               <div class="skill-note">Sum of lowest two attempts</div>
             </div>
@@ -82,12 +82,12 @@
               <div v-for="i in skill.scores.length" :key="i" class="checkbox-group">
                 <label class="checkbox-label">
                   <input
+                    v-model="skill.scores[i - 1]"
                     type="checkbox"
-                    v-model="skill.scores[i-1]"
                     true-value="1"
                     false-value="0"
                     @change="updateSkillScore"
-                  >
+                  />
                   <span class="checkmark"></span>
                   <span class="checkbox-text">Attempt {{ i }}</span>
                 </label>
@@ -102,14 +102,17 @@
                 <div class="break-points">
                   <div v-for="point in 5" :key="point" class="point-input">
                     <label>Point {{ String.fromCharCode(96 + point) }}:</label>
-                    <select v-model="skill.breakScores[attempt-1][point-1]" @change="updateSkillScore">
+                    <select
+                      v-model="skill.breakScores[attempt - 1][point - 1]"
+                      @change="updateSkillScore"
+                    >
                       <option value="0">0 (Miss)</option>
                       <option value="1">1 (Success)</option>
                     </select>
                   </div>
                 </div>
                 <div class="attempt-score">
-                  Score: {{ calculateBreakScore(skill.breakScores[attempt-1]) }}
+                  Score: {{ calculateBreakScore(skill.breakScores[attempt - 1]) }}
                 </div>
               </div>
               <div class="skill-note">Median of three break scores</div>
@@ -124,8 +127,8 @@
             <h4><i class="fas fa-calculator"></i> Exam II Score</h4>
             <div class="summary-value">{{ currentScore }}/{{ currentLevelInfo.maxScore }}</div>
             <div class="progress-bar">
-              <div 
-                class="progress-fill" 
+              <div
+                class="progress-fill"
                 :style="{ width: (currentScore / currentLevelInfo.maxScore) * 100 + '%' }"
               ></div>
             </div>
@@ -142,9 +145,7 @@
           <div class="summary-card">
             <h4><i class="fas fa-graduation-cap"></i> BU Diploma</h4>
             <div class="summary-value diploma">{{ buDiploma }}</div>
-            <div class="diploma-note" v-if="buDiploma">
-              Awarded for outstanding performance
-            </div>
+            <div v-if="buDiploma" class="diploma-note">Awarded for outstanding performance</div>
           </div>
         </div>
 
@@ -154,8 +155,8 @@
             <div v-for="(skill, index) in skills" :key="index" class="breakdown-item">
               <span class="skill-label">{{ skill.code }}</span>
               <div class="skill-bar">
-                <div 
-                  class="skill-fill" 
+                <div
+                  class="skill-fill"
                   :style="{ width: (calculateSkillScore(skill) / skill.maxScore) * 100 + '%' }"
                 ></div>
               </div>
@@ -166,13 +167,13 @@
       </div>
 
       <div class="action-buttons">
-        <button @click="saveExamII" class="btn btn-success">
+        <button class="btn btn-success" @click="saveExamII">
           <i class="fas fa-save"></i> Save Exam II Score
         </button>
-        <button @click="resetExamII" class="btn btn-secondary">
+        <button class="btn btn-secondary" @click="resetExamII">
           <i class="fas fa-redo"></i> Reset Exam II
         </button>
-        <button @click="autoFill" class="btn btn-info">
+        <button class="btn btn-info" @click="autoFill">
           <i class="fas fa-magic"></i> Auto-fill Sample
         </button>
       </div>
@@ -181,109 +182,125 @@
 </template>
 
 <script>
-import { useExamsStore } from '../store/useExamsStore'
-import { computed, ref } from 'vue'
+import { useExamsStore } from "../store/useExamsStore";
+import { computed, ref } from "vue";
 
 export default {
-  name: 'ExamII',
+  name: "ExamII",
   setup() {
-    const store = useExamsStore()
-    
-    const levels = [
-      { id: 'Bachelors', name: 'Bachelors', maxScore: 54, icon: 'fas fa-user-graduate', 
-        description: 'Beginner level - Recommended for Exam I scores 0-49' },
-      { id: 'Masters', name: 'Masters', maxScore: 77, icon: 'fas fa-user-tie',
-        description: 'Intermediate level - Recommended for Exam I scores 50-69' },
-      { id: 'Doctorate', name: 'Doctorate', maxScore: 100, icon: 'fas fa-user-md',
-        description: 'Advanced level - Recommended for Exam I scores 70-100' }
-    ]
+    const store = useExamsStore();
 
-    const currentLevel = ref(store.examII.currentLevel)
+    const levels = [
+      {
+        id: "Bachelors",
+        name: "Bachelors",
+        maxScore: 54,
+        icon: "fas fa-user-graduate",
+        description: "Beginner level - Recommended for Exam I scores 0-49",
+      },
+      {
+        id: "Masters",
+        name: "Masters",
+        maxScore: 77,
+        icon: "fas fa-user-tie",
+        description: "Intermediate level - Recommended for Exam I scores 50-69",
+      },
+      {
+        id: "Doctorate",
+        name: "Doctorate",
+        maxScore: 100,
+        icon: "fas fa-user-md",
+        description: "Advanced level - Recommended for Exam I scores 70-100",
+      },
+    ];
+
+    const currentLevel = ref(store.examII.currentLevel);
 
     const currentLevelInfo = computed(() => {
-      return levels.find(level => level.id === currentLevel.value) || levels[0]
-    })
+      return levels.find((level) => level.id === currentLevel.value) || levels[0];
+    });
 
     const currentLevelClass = computed(() => {
-      return `level-${currentLevel.value.toLowerCase()}`
-    })
+      return `level-${currentLevel.value.toLowerCase()}`;
+    });
 
     const skills = computed(() => {
-      return store.examII.skills[currentLevel.value] || []
-    })
+      return store.examII.skills[currentLevel.value] || [];
+    });
 
-    const currentScore = computed(() => store.examII.currentScore)
+    const currentScore = computed(() => store.examII.currentScore);
 
     const totalScore = computed(() => {
-      return (store.student.examIScore || 0) + store.examII.currentScore
-    })
+      return (store.student.examIScore || 0) + store.examII.currentScore;
+    });
 
     const buRating = computed(() => {
-      if (totalScore.value < 20) return "beg-0"
-      if (totalScore.value < 30) return "beg-1"
-      if (totalScore.value < 40) return "beg-2"
-      if (totalScore.value < 55) return "beg-3"
-      if (totalScore.value < 70) return "int-1"
-      if (totalScore.value < 95) return "int-2"
-      if (totalScore.value < 110) return "int-3"
-      if (totalScore.value < 125) return "adv-1"
-      if (totalScore.value < 140) return "adv-2"
-      if (totalScore.value < 160) return "adv-3"
-      if (totalScore.value < 180) return "semi pro"
-      return "pro"
-    })
+      if (totalScore.value < 20) return "beg-0";
+      if (totalScore.value < 30) return "beg-1";
+      if (totalScore.value < 40) return "beg-2";
+      if (totalScore.value < 55) return "beg-3";
+      if (totalScore.value < 70) return "int-1";
+      if (totalScore.value < 95) return "int-2";
+      if (totalScore.value < 110) return "int-3";
+      if (totalScore.value < 125) return "adv-1";
+      if (totalScore.value < 140) return "adv-2";
+      if (totalScore.value < 160) return "adv-3";
+      if (totalScore.value < 180) return "semi pro";
+      return "pro";
+    });
 
     const ratingClass = computed(() => {
-      if (totalScore.value < 55) return "rating-beginner"
-      if (totalScore.value < 95) return "rating-intermediate"
-      if (totalScore.value < 125) return "rating-advanced"
-      return "rating-expert"
-    })
+      if (totalScore.value < 55) return "rating-beginner";
+      if (totalScore.value < 95) return "rating-intermediate";
+      if (totalScore.value < 125) return "rating-advanced";
+      return "rating-expert";
+    });
 
     const buDiploma = computed(() => {
-      if (totalScore.value < 55) return ""
-      if (totalScore.value < 85) return "Bachelors"
-      if (totalScore.value < 100) return "Bachelors w/ Honors"
-      if (totalScore.value < 125) return "Masters"
-      if (totalScore.value < 140) return "Masters w/ Honors"
-      if (totalScore.value < 180) return "Doctorate"
-      return "Doctorate w/ Honors"
-    })
+      if (totalScore.value < 55) return "";
+      if (totalScore.value < 85) return "Bachelors";
+      if (totalScore.value < 100) return "Bachelors w/ Honors";
+      if (totalScore.value < 125) return "Masters";
+      if (totalScore.value < 140) return "Masters w/ Honors";
+      if (totalScore.value < 180) return "Doctorate";
+      return "Doctorate w/ Honors";
+    });
 
     const setLevel = (level) => {
-      currentLevel.value = level
-      store.setExamIILevel(level)
-    }
+      currentLevel.value = level;
+      store.setExamIILevel(level);
+    };
 
     const calculateSkillScore = (skill) => {
-      return store.calculateSkillScore(skill)
-    }
+      return store.calculateSkillScore(skill);
+    };
 
     const calculateBreakScore = (breakScores) => {
-      return breakScores.reduce((sum, score) => sum + parseInt(score || 0), 0)
-    }
+      return breakScores.reduce((sum, score) => sum + parseInt(score || 0), 0);
+    };
 
     const updateSkillScore = () => {
-      store.calculateExamIIScore()
-    }
+      store.calculateExamIIScore();
+    };
 
     const saveExamII = () => {
-      const entry = store.saveExamII()
-      alert(`Exam II score saved: ${entry.total}/${currentLevelInfo.value.maxScore} (${currentLevel.value} level)`)
-
-    }
+      const entry = store.saveExamII();
+      alert(
+        `Exam II score saved: ${entry.total}/${currentLevelInfo.value.maxScore} (${currentLevel.value} level)`
+      );
+    };
 
     const resetExamII = () => {
-      if (confirm('Reset all Exam II scores for current level?')) {
-        store.resetExamII()
+      if (confirm("Reset all Exam II scores for current level?")) {
+        store.resetExamII();
       }
-    }
+    };
 
     const autoFill = () => {
-      if (confirm('Fill with sample data?')) {
-        store.loadSampleExamII()
+      if (confirm("Fill with sample data?")) {
+        store.loadSampleExamII();
       }
-    }
+    };
 
     return {
       levels,
@@ -302,10 +319,10 @@ export default {
       updateSkillScore,
       saveExamII,
       resetExamII,
-      autoFill
-    }
-  }
-}
+      autoFill,
+    };
+  },
+};
 </script>
 
 <style scoped>
@@ -422,13 +439,15 @@ export default {
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
 }
 
 .skill-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
 }
 
 .skill-header {
@@ -535,7 +554,7 @@ export default {
 }
 
 .checkbox-label input[type="checkbox"]:checked + .checkmark::after {
-  content: '✓';
+  content: "✓";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -627,7 +646,7 @@ export default {
   border-radius: 8px;
   padding: 1.5rem;
   text-align: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
 .summary-card h4 {
@@ -809,25 +828,25 @@ export default {
   .skills-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .level-btn {
     min-width: 100%;
   }
-  
+
   .level-info {
     flex-direction: column;
     text-align: center;
   }
-  
+
   .input-group {
     flex-direction: column;
     align-items: flex-start;
   }
-  
+
   .input-group input {
     width: 100%;
   }
-  
+
   .break-points {
     grid-template-columns: repeat(2, 1fr);
   }
