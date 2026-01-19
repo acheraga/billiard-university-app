@@ -179,6 +179,8 @@ describe("Exam I scoring", () => {
     const id = store.createUser("TempUser");
     expect(store.listUsers().some((u) => u.id === id)).toBe(true);
     expect(store.deleteUser(id)).toBe(true);
+    // immediate in-memory check
+    expect(store.users[id]).toBeUndefined();
     expect(store.listUsers().some((u) => u.id === id)).toBe(false);
   });
 });

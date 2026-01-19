@@ -766,7 +766,13 @@ export const useExamsStore = defineStore("exams", {
     deleteUser(id) {
       if (!this.users || !this.users[id]) return false;
       // create a new users object without the target id to ensure clean removal
-      this.users = Object.fromEntries(Object.entries(this.users).filter(([k]) => k !== id));
+      const newUsers = {};
+      for (const [k, v] of Object.entries(this.users)) {
+        if (String(k) !== String(id)) {
+          newUsers[k] = v;
+        }
+      }
+      this.users = newUsers;
 
       // update storage; if empty, remove the key
       if (Object.keys(this.users).length === 0) {
@@ -786,6 +792,9 @@ export const useExamsStore = defineStore("exams", {
           this.currentUserId = null;
         }
       }
+
+      // Persist the change
+      this.saveToLocalStorage();
       return true;
     },
 
