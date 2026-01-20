@@ -294,16 +294,16 @@ export default {
       figures: FIGS,
       // positions for potting hotspots (left/top percentages)
       pottingCoords: [
-        { left: "50%", top: "15%" },
-        { left: "62%", top: "20%" },
-        { left: "70%", top: "25%" },
-        { left: "78%", top: "40%" },
-        { left: "78%", top: "60%" },
-        { left: "66%", top: "70%" },
-        { left: "55%", top: "78%" },
-        { left: "38%", top: "70%" },
-        { left: "26%", top: "58%" },
-        { left: "32%", top: "35%" },
+        { left: "43%", top: "9%" },
+        { left: "58%", top: "21%" },
+        { left: "86%", top: "70%" },
+        { left: "55%", top: "87%" },
+        { left: "71%", top: "62%" },
+        { left: "44%", top: "87%" },
+        { left: "66%", top: "75%" },
+        { left: "85%", top: "34%" },
+        { left: "54%", top: "9%" },
+        { left: "68%", top: "28%" },
       ],
       hotspotTuner: {
         // enabled when URL contains ?hotspot-edit (keeps dev tool off by default in production)
