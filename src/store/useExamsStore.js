@@ -413,12 +413,58 @@ export const useExamsStore = defineStore("exams", {
         drill.locked = Array(10).fill(false);
         drill.score = 0;
         drill.bonus = 0;
+      } else if (drill.code === "F6") {
+        // Reset potting shots specifically
+        drill.shots = Array(10).fill(false);
+        drill.attempted = Array(10).fill(false);
+        drill.score = 0;
       } else {
         drill.score = 0;
       }
 
       this.calculateExamIScore();
     },
+
+
+
+    // Reset potting shots (F6) and attempted flags
+    resetPottingShots(drillIndex) {
+      const d = this.examI.drills[drillIndex];
+      if (!d || d.code !== "F6") return false;
+      d.shots = Array(10).fill(false);
+      d.attempted = Array(10).fill(false);
+      d.score = 0;
+      this.calculateExamIScore();
+      this.saveToLocalStorage();
+      return true;
+    },
+
+    // Toggle potting shot success for F6 with sequential enforcement
+    togglePottingShot(drillIndex, shotIndex) {
+      const d = this.examI.drills[drillIndex];
+      if (!d || d.code !== "F6") return false;
+      if (!Array.isArray(d.shots)) d.shots = Array(10).fill(false);
+      if (!Array.isArray(d.attempted)) d.attempted = Array(10).fill(false);
+
+      // enforce sequence: previous shot must have been attempted
+      if (shotIndex > 0 && !d.attempted[shotIndex - 1]) return false;
+
+      if (!d.attempted[shotIndex]) {
+        // first time attempt -> mark attempted + success
+        d.attempted[shotIndex] = true;
+        d.shots[shotIndex] = true;
+      } else {
+        // already attempted -> toggle between success and miss
+        d.shots[shotIndex] = !d.shots[shotIndex];
+      }
+
+      // Recalculate potting score
+      d.score = Math.min(d.maxScore || 10, d.shots.reduce((s, v) => s + (v ? 1 : 0), 0));
+      this.calculateExamIScore();
+      this.saveToLocalStorage();
+      return true;
+    },
+
 
     saveStudentInfo(studentData) {
       Object.assign(this.student, studentData);

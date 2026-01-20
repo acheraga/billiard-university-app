@@ -23,13 +23,85 @@
           </div>
           <span class="drill-score">{{ drill.score }}/{{ drill.maxScore }}</span>
         </div>
+        <!-- Figure with special overlay for F6 (Potting) -->
         <div v-if="getFigure(drill.code)" class="drill-figure-wrap">
-          <img
-            :src="getFigure(drill.code).src"
-            :alt="drill.code + ' figure'"
-            class="drill-figure"
-          />
-          <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
+          <template v-if="drill.code === 'F6'">
+            <div class="figure-with-overlay">
+              <div class="figure-image-wrap">
+                <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure" />
+                <div
+                  class="potting-overlay"
+                  role="group"
+                  :aria-label="'F6 potting shots for ' + (student.name || 'student')"
+                >
+                  <button
+                    v-for="(c, i) in pottingCoords"
+                    :key="i"
+                    class="potting-hotspot"
+                    :class="{
+                      success: drill.shots && drill.shots[i],
+                      attemptedMiss: drill.attempted && drill.attempted[i] && !(drill.shots && drill.shots[i]),
+                      editing: hotspotTuner.activeIndex === index
+                    }"
+                    :style="hotspotStyle(index, i, c)"
+                    @click="togglePotting(index, i)"
+                    @keydown.space.prevent="togglePotting(index, i)"
+                    @keydown.enter.prevent="togglePotting(index, i)"
+                    :aria-pressed="drill.shots && drill.shots[i] ? 'true' : 'false'"
+                    :aria-label="'Shot ' + (i + 1)"
+                    tabindex="0"
+                    @mousedown.prevent="hotspotTuner.activeIndex === index ? startDrag($event, index, i) : null"
+                    @touchstart.prevent="hotspotTuner.activeIndex === index ? startDrag($event.touches[0], index, i) : null"
+                  >
+                    <span v-if="!(drill.attempted && drill.attempted[i])" class="hotspot-label">{{ i + 1 }}</span>
+                    <span v-else-if="drill.shots && drill.shots[i]" class="hotspot-symbol success">✓</span>
+                    <span v-else class="hotspot-symbol miss">x</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="potting-controls">
+                <div class="potting-score">F6 Score: {{ drill.score }} / {{ drill.maxScore }}</div>
+                <div class="potting-buttons">
+                  <!-- Reset handled by the drill-level Reset button (header) -->
+                </div>
+
+                <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
+                  <button class="btn btn-secondary" @click="toggleHotspotTuner(index)">
+                    {{ hotspotTuner.activeIndex === index ? 'Close Hotspot Tuner' : 'Edit Hotspots (dev)' }}
+                  </button>
+
+                  <div v-if="hotspotTuner.activeIndex === index" class="hotspot-tuner">
+                    <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords" :key="i">
+                      <div class="tuner-label">Shot {{ i + 1 }}</div>
+                      <div class="tuner-controls">
+                        <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">←</button>
+                        <input v-model="hotspotTuner.tempCoords[i].left" />
+                        <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">→</button>
+
+                        <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">↑</button>
+                        <input v-model="hotspotTuner.tempCoords[i].top" />
+                        <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">↓</button>
+
+                        <span class="drag-hint">(Drag on image to move)</span>
+                      </div>
+                    </div>
+
+                    <div class="tuner-actions">
+                      <button class="btn btn-success" @click="saveHotspotTuner(index)">Save</button>
+                      <button class="btn btn-secondary" @click="cancelHotspotTuner">Cancel</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
+          </template>
+
+          <template v-else>
+            <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure" />
+            <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
+          </template>
         </div>
 
         <div v-if="drill.type === 'position'" class="drill-content">
@@ -83,20 +155,24 @@
         <div v-else class="drill-content">
           <p class="instructions">{{ drill.instructions }}</p>
           <div class="counter-controls">
-            <button :disabled="drill.score <= 0" class="counter-btn" @click="decrementScore(index)">
-              <i class="fas fa-minus"></i>
-            </button>
-            <div class="counter-display">
-              <span class="counter-value">{{ drill.score }}</span>
-              <span class="counter-max">/{{ drill.maxScore }}</span>
-            </div>
-            <button
-              :disabled="drill.score >= drill.maxScore"
-              class="counter-btn"
-              @click="incrementScore(index)"
-            >
-              <i class="fas fa-plus"></i>
-            </button>
+            <template v-if="drill.code !== 'F6'">
+              <button :disabled="drill.score <= 0" class="counter-btn" @click="decrementScore(index)" title="Decrement">
+                <i class="fas fa-minus"></i>
+              </button>
+              <div class="counter-display">
+                <span class="counter-value">{{ drill.score }}</span>
+                <span class="counter-max">/{{ drill.maxScore }}</span>
+              </div>
+              <button :disabled="drill.score >= drill.maxScore" class="counter-btn" @click="incrementScore(index)" title="Increment">
+                <i class="fas fa-plus"></i>
+              </button>
+            </template>
+            <template v-else>
+              <div class="counter-display">
+                <span class="counter-value">{{ drill.score }}</span>
+                <span class="counter-max">/{{ drill.maxScore }}</span>
+              </div>
+            </template>
           </div>
         </div>
       </div>
@@ -220,6 +296,26 @@ export default {
         { name: "Doctorate", range: "70-100", desc: "Advanced Level", class: "level-doctorate" },
       ],
       figures: FIGS,
+      // positions for potting hotspots (left/top percentages)
+      pottingCoords: [
+        { left: "43%", top: "9%" },
+        { left: "58%", top: "21%" },
+        { left: "86%", top: "70%" },
+        { left: "55%", top: "87%" },
+        { left: "71%", top: "62%" },
+        { left: "44%", top: "87%" },
+        { left: "66%", top: "75%" },
+        { left: "85%", top: "34%" },
+        { left: "54%", top: "9%" },
+        { left: "68%", top: "28%" },
+      ],
+      hotspotTuner: {
+        // enabled when URL contains ?hotspot-edit (keeps dev tool off by default in production)
+        available: typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('hotspot-edit'),
+        activeIndex: null,
+        tempCoords: null,
+        dragging: null,
+      }
     };
   },
   computed: {
@@ -234,6 +330,10 @@ export default {
     placement() {
       const store = useExamsStore();
       return store.examI.placement;
+    },
+    student() {
+      const store = useExamsStore();
+      return store.student;
     },
     placementClass() {
       return {
@@ -265,6 +365,13 @@ export default {
         });
       }
     });
+  },
+  beforeUnmount() {
+    // Cleanup any event listeners used by the hotspot tuner
+    window.removeEventListener('mousemove', this.onWindowMove);
+    window.removeEventListener('touchmove', this.onWindowMove);
+    window.removeEventListener('mouseup', this.onWindowUp);
+    window.removeEventListener('touchend', this.onWindowUp);
   },
   methods: {
     getFigure(code) {
@@ -439,6 +546,108 @@ export default {
         store.loadSampleExamI();
       }
     },
+    // F6 (potting) UI interactions
+    togglePotting(drillIndex, shotIndex) {
+      const store = useExamsStore();
+      const ok = store.togglePottingShot(drillIndex, shotIndex);
+      if (!ok) return;
+      // find the drill and ensure local reactivity
+      const drill = store.examI.drills[drillIndex];
+    },
+
+    // Hotspot tuner (dev-only, enabled by URL param `?hotspot-edit`)
+    toggleHotspotTuner(drillIndex) {
+      if (this.hotspotTuner.activeIndex === drillIndex) {
+        this.cancelHotspotTuner();
+        return;
+      }
+      this.hotspotTuner.activeIndex = drillIndex;
+      // deep copy coords for editing
+      this.hotspotTuner.tempCoords = (this.pottingCoords || []).map((c) => ({ left: String(c.left), top: String(c.top) }));
+    },
+    cancelHotspotTuner() {
+      this.hotspotTuner.activeIndex = null;
+      this.hotspotTuner.tempCoords = null;
+      this.hotspotTuner.dragging = null;
+    },
+    saveHotspotTuner(drillIndex) {
+      if (this.hotspotTuner.activeIndex !== drillIndex || !Array.isArray(this.hotspotTuner.tempCoords)) return;
+      // sanitize and commit to pottingCoords
+      this.pottingCoords = this.hotspotTuner.tempCoords.map((c) => {
+        let l = String(c.left).trim();
+        let t = String(c.top).trim();
+        const tryNum = (s) => {
+          const n = Number(String(s).replace('%', ''));
+          if (!isNaN(n)) {
+            const clamped = Math.max(0, Math.min(100, Math.round(n)));
+            return clamped + '%';
+          }
+          return s;
+        };
+        return { left: tryNum(l), top: tryNum(t) };
+      });
+      this.cancelHotspotTuner();
+    },
+    adjustHotspotTemp(i, deltaLeft = 0, deltaTop = 0) {
+      if (!this.hotspotTuner.tempCoords) return;
+      const p = this.hotspotTuner.tempCoords[i];
+      const parsePercent = (s) => {
+        const n = Number(String(s).replace('%', '')) || 0;
+        return n;
+      };
+      const l = Math.max(0, Math.min(100, parsePercent(p.left) + deltaLeft));
+      const t = Math.max(0, Math.min(100, parsePercent(p.top) + deltaTop));
+      p.left = l + '%';
+      p.top = t + '%';
+    },
+    startDrag(evt, drillIndex, i) {
+      const target = evt.target || evt.srcElement;
+      const figureWrap = target.closest('.figure-image-wrap');
+      if (!figureWrap) return;
+      const rect = figureWrap.getBoundingClientRect();
+      // store index and rect
+      this.hotspotTuner.dragging = { drillIndex, i, rect };
+      // attach listeners
+      window.addEventListener('mousemove', this.onWindowMove);
+      window.addEventListener('touchmove', this.onWindowMove, { passive: false });
+      window.addEventListener('mouseup', this.onWindowUp);
+      window.addEventListener('touchend', this.onWindowUp);
+      // initial position
+      this.onWindowMove(evt);
+    },
+    onWindowMove(e) {
+      const d = this.hotspotTuner.dragging;
+      if (!d) return;
+      const clientX = e.touches ? e.touches[0].clientX : (e.clientX || 0);
+      const clientY = e.touches ? e.touches[0].clientY : (e.clientY || 0);
+      const rect = d.rect;
+      let x = ((clientX - rect.left) / rect.width) * 100;
+      let y = ((clientY - rect.top) / rect.height) * 100;
+      x = Math.max(0, Math.min(100, Math.round(x)));
+      y = Math.max(0, Math.min(100, Math.round(y)));
+      if (this.hotspotTuner.tempCoords && this.hotspotTuner.tempCoords[d.i]) {
+        this.hotspotTuner.tempCoords[d.i].left = x + '%';
+        this.hotspotTuner.tempCoords[d.i].top = y + '%';
+      } else if (this.hotspotTuner.tempCoords) {
+        this.hotspotTuner.tempCoords[d.i] = { left: x + '%', top: y + '%' };
+      }
+      if (e.preventDefault) e.preventDefault();
+    },
+    onWindowUp() {
+      window.removeEventListener('mousemove', this.onWindowMove);
+      window.removeEventListener('touchmove', this.onWindowMove);
+      window.removeEventListener('mouseup', this.onWindowUp);
+      window.removeEventListener('touchend', this.onWindowUp);
+      this.hotspotTuner.dragging = null;
+    },
+    hotspotStyle(drillIndex, i, c) {
+      if (this.hotspotTuner.activeIndex === drillIndex && this.hotspotTuner.tempCoords && this.hotspotTuner.tempCoords[i]) {
+        return { left: this.hotspotTuner.tempCoords[i].left, top: this.hotspotTuner.tempCoords[i].top };
+      }
+      return { left: c.left, top: c.top };
+    },
+
+
     getScoreColor(score, max) {
       const percentage = (score / max) * 100;
       if (percentage >= 80) return "score-excellent";
@@ -1054,6 +1263,143 @@ input[type="number"].no-spin {
   color: #6c757d;
   text-align: center;
   max-width: 420px;
+}
+
+/* F6 potting overlay styles */
+.figure-with-overlay {
+  width: 100%;
+}
+.figure-image-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 420px;
+}
+.potting-overlay {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+.potting-hotspot {
+  position: absolute;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  border: 2px solid rgba(0,0,0,0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  transition: transform 0.12s, background-color 0.12s, box-shadow 0.12s;
+}
+.potting-hotspot:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52,152,219,0.18);
+}
+.potting-hotspot .hotspot-label {
+  font-size: 0.75rem;
+  color: #2c3e50;
+  font-weight: 700;
+}
+.potting-hotspot .hotspot-symbol {
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1;
+}
+.potting-hotspot .hotspot-symbol.success {
+  color: white;
+}
+.potting-hotspot .hotspot-symbol.miss {
+  color: #c0392b; /* red for miss */
+}
+.potting-hotspot.success {
+  background: #27ae60;
+  color: white;
+  border-color: #219653;
+}
+.potting-hotspot.attemptedMiss {
+  background: rgba(255,255,255,0.95);
+  color: #c0392b;
+  border-color: #c0392b;
+  box-shadow: inset 0 0 0 2px rgba(192,57,43,0.06);
+}
+.potting-controls {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: flex-start;
+}
+.potting-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.potting-hotspot.editing {
+  box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+  border-color: #2980b9;
+}
+.hotspot-tuner-wrap {
+  margin-top: 0.6rem;
+}
+.hotspot-tuner {
+  margin-top: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 6px;
+  background: #f7f9fb;
+  border: 1px solid #e0e6ea;
+  width: 100%;
+}
+.tuner-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+.tuner-label {
+  width: 70px;
+  font-weight: 700;
+  color: #2c3e50;
+}
+.tuner-controls {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.tuner-controls input {
+  width: 70px;
+  padding: 0.35rem;
+  border: 1px solid #dfe6e9;
+  border-radius: 4px;
+  text-align: center;
+}
+.tuner-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+.drag-hint {
+  margin-left: 0.6rem;
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+.potting-input {
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  border: 1px solid #dfe6e9;
+  min-width: 160px;
+}
+.export-note {
+  margin-top: 0.4rem;
+  font-size: 0.9rem;
+  color: #2c3e50;
 }
 
 @media (max-width: 768px) {
