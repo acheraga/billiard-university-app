@@ -155,20 +155,24 @@
         <div v-else class="drill-content">
           <p class="instructions">{{ drill.instructions }}</p>
           <div class="counter-controls">
-            <button :disabled="drill.score <= 0" class="counter-btn" @click="decrementScore(index)">
-              <i class="fas fa-minus"></i>
-            </button>
-            <div class="counter-display">
-              <span class="counter-value">{{ drill.score }}</span>
-              <span class="counter-max">/{{ drill.maxScore }}</span>
-            </div>
-            <button
-              :disabled="drill.score >= drill.maxScore"
-              class="counter-btn"
-              @click="incrementScore(index)"
-            >
-              <i class="fas fa-plus"></i>
-            </button>
+            <template v-if="drill.code !== 'F6'">
+              <button :disabled="drill.score <= 0" class="counter-btn" @click="decrementScore(index)" title="Decrement">
+                <i class="fas fa-minus"></i>
+              </button>
+              <div class="counter-display">
+                <span class="counter-value">{{ drill.score }}</span>
+                <span class="counter-max">/{{ drill.maxScore }}</span>
+              </div>
+              <button :disabled="drill.score >= drill.maxScore" class="counter-btn" @click="incrementScore(index)" title="Increment">
+                <i class="fas fa-plus"></i>
+              </button>
+            </template>
+            <template v-else>
+              <div class="counter-display">
+                <span class="counter-value">{{ drill.score }}</span>
+                <span class="counter-max">/{{ drill.maxScore }}</span>
+              </div>
+            </template>
           </div>
         </div>
       </div>
