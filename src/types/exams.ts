@@ -19,9 +19,7 @@ export interface CountingDrill {
   score: number;
   maxScore: number;
   instructions: string;
-  // attempts[targetIndex][attemptIndex] = true (success) | false (miss) | null (not attempted yet)
-  attempts?: (boolean | null)[][];
-} 
+}
 
 export type ExamIDrill = PositionDrill | CountingDrill;
 

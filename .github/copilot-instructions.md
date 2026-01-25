@@ -54,9 +54,9 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
 ### Pinia Store
 - Le store principal est `useExamsStore` dans `src/store/useExamsStore.ts`
 - Actions principales:
-- `updateExamIDrill(index)`: Recalculate the score of a drill
-- `calculateExamIScore()`: Recalculate total Exam I score
-- `calculateExamIIScore()`: Recalculate total Exam II score
+  - `updateExamIDrill(index)`: Recalcule le score d'un drill
+  - `calculateExamIScore()`: Recalcule le total Exam I
+  - `calculateExamIIScore()`: Recalcule le total Exam II
   - `saveToLocalStorage()`: Persist les données
   - Multi-user: `createUser()`, `switchUser()`, `deleteUser()`
 
@@ -69,11 +69,11 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
 
 ## Règles Spécifiques
 
-### Drill management
-- F1-F5 are `PositionDrill` with targets from 1 to 7
-- F6-F8 are `CountingDrill` (count successes by attempts). **Note:** F8 (Targets) uses 5 targets × 4 attempts (max 20)
-- F6 (Potting) has special backward-compatible fields `attempted` and `shots`
-- Always call `updateExamIDrill(index)` after making position changes
+### Gestion des Drills
+- Les drills F1-F5 sont des `PositionDrill` avec progression 1-7
+- Les drills F6-F8 sont des `CountingDrill` avec score simple
+- F6 (Potting) a une logique spéciale avec `attempted` et `shots` arrays
+- Toujours appeler `updateExamIDrill(index)` après modification
 
 ### Gestion des Skills
 - Chaque skill a un `type` qui détermine son calcul

@@ -1,6 +1,6 @@
+import { describe, it, expect, beforeEach } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
 import { mount } from "@vue/test-utils";
-import { createPinia, setActivePinia } from "pinia";
-import { beforeEach, describe, expect, it } from "vitest";
 import { nextTick } from "vue";
 import ExamI from "../../src/components/ExamI.vue";
 import { useExamsStore } from "../../src/store/useExamsStore";
@@ -22,8 +22,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const f6Card = wrapper.findAll('.drill-card').at(5);
-    const hotspots = f6Card.findAll(".potting-shot-btn");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
     expect(hotspots.length).toBe(10);
 
     // Click first hotspot
@@ -48,8 +47,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const f6Card = wrapper.findAll('.drill-card').at(5);
-    const hotspots = f6Card.findAll(".potting-shot-btn");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
     await hotspots[0].trigger("keydown", { key: "Enter" });
     await nextTick();
 
@@ -64,8 +62,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const f6Card = wrapper.findAll('.drill-card').at(5);
-    const hotspots = f6Card.findAll(".potting-shot-btn");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
     await hotspots[0].trigger("click");
     await hotspots[1].trigger("click");
     await nextTick();
@@ -164,18 +161,17 @@ describe("ExamI F6 potting overlay", () => {
     expect(saved.examI.drills[0].successes[0]).toBe(true);
   });
 
-  it("removes increment/decrement buttons for counting drills and keeps header score", async () => {
+  it("removes increment/decrement buttons for F6 and keeps score display", async () => {
     const wrapper = mount(ExamI);
     await nextTick();
 
     const drillCard = wrapper.findAll('.drill-card').at(5);
-    // counter buttons should not exist for counting drills
+    // counter buttons should not exist for F6
     const buttons = drillCard.findAll('button.counter-btn');
     expect(buttons.length).toBe(0);
 
-    // score display remains in the card header
-    const headerDisplay = drillCard.find('.drill-score');
-    expect(headerDisplay.exists()).toBe(true);
-    expect(headerDisplay.text()).toContain('/');
+    // score display remains
+    const display = drillCard.find('.counter-display');
+    expect(display.exists()).toBe(true);
   });
 });

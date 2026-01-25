@@ -1,5 +1,6 @@
 import type {
   BestOfTwoSkill,
+  CountingDrill,
   ExamIHistoryEntry,
   ExamIIHistoryEntry,
   ExamIILevel,
@@ -92,10 +93,6 @@ export const useExamsStore = defineStore("exams", {
           score: 0,
           maxScore: 10,
           instructions: "Number of balls pocketed (max 10)",
-          attempts: Array.from({ length: 10 }, () => [null]), // single attempt per target (like previous F6)
-          // backward-compatible fields used by UI/tests
-          shots: Array(10).fill(false),
-          attempted: Array(10).fill(false),
         },
         {
           code: "F7",
@@ -103,8 +100,7 @@ export const useExamsStore = defineStore("exams", {
           type: "counting",
           score: 0,
           maxScore: 20,
-          instructions: "Two attempts per target (10 targets × 2 = max 20)",
-          attempts: Array.from({ length: 10 }, () => Array(2).fill(null)),
+          instructions: "Number of hits (max 20)",
         },
         {
           code: "F8",
@@ -112,8 +108,7 @@ export const useExamsStore = defineStore("exams", {
           type: "counting",
           score: 0,
           maxScore: 20,
-          instructions: "Four attempts per target (5 targets × 4 = max 20)",
-          attempts: Array.from({ length: 5 }, () => Array(4).fill(null)),
+          instructions: "Number of hits (max 20)",
         },
       ],
       totalScore: 0,
@@ -199,8 +194,8 @@ export const useExamsStore = defineStore("exams", {
 
   actions: {
     /**
-     * Recalculate the score of a position drill based on successes and failures
-     * @param index - Index of the drill in examI.drills (0-7)
+     * Recalcule le score d'un drill de position basé sur les succès et échecs
+     * @param index - Index du drill dans examI.drills (0-7)
      */
     updateExamIDrill(index: number) {
       const drill = this.examI.drills[index] as PositionDrill;
@@ -250,7 +245,33 @@ export const useExamsStore = defineStore("exams", {
       this.calculateExamIScore();
     },
 
+    /**
+     * Incrémente le score d'un drill de comptage
+     * @param index - Index du drill (typiquement F6-F8)
+     */
+    incrementDrillScore(index: number) {
+      const drill = this.examI.drills[index] as CountingDrill;
+      if (drill.score < drill.maxScore) {
+        drill.score++;
+        this.calculateExamIScore();
+      }
+    },
 
+    /**
+     * Décrémente le score d'un drill de comptage
+     * @param index - Index du drill (typiquement F6-F8)
+     */
+    decrementDrillScore(index: number) {
+      const drill = this.examI.drills[index] as CountingDrill;
+      if (drill.score > 0) {
+        drill.score--;
+    /**
+     * Calcule le score total de l'Exam I (F1-F8) et détermine le niveau recommandé
+     * Met à jour automatiquement student.examIScore et student.examIILevel
+     */
+        this.calculateExamIScore();
+      }
+    },
 
     calculateExamIScore() {
       let total = 0;
@@ -314,20 +335,29 @@ export const useExamsStore = defineStore("exams", {
       this.examI.placement = this.getExamIILevel(total);
       this.student.examIScore = total;
       this.student.examIILevel = this.examI.placement;
+/**
+     * Détermine le niveau Exam II en fonction du score Exam I
+     * @param score - Score total de l'Exam I (0-100)
+     * @returns Niveau recommandé: Bachelors, Masters, ou Doctorate
+     */
+    
       this.saveToLocalStorage();
     },
 
-    /**
-     * Determine the Exam II level based on the Exam I score
-     * @param score - Total Exam I score (0-100)
-     * @returns Recommended level: Bachelors, Masters, or Doctorate
-     */
     getExamIILevel(score: number): ExamIILevel {
+    /**
+     * Met à jour un skill de l'Exam II avec des nouvelles données
+     * @param skillIndex - Index du skill (0-9)
+     * @param data - Données partielles à fusionner avec le skill
+     */
       if (score < 50) return "Bachelors";
+    /**
+     * Calcule le score total de l'Exam II pour le niveau actuel
+     * Parcourt tous les skills et applique la logique de calcul appropriée
+     */
       if (score < 70) return "Masters";
       return "Doctorate";
     },
-
 
     updateExamIISkill(skillIndex: number, data: Partial<ExamIISkill>) {
       const skills = this.examII.skills[this.examII.currentLevel];
@@ -340,9 +370,9 @@ export const useExamsStore = defineStore("exams", {
       let total = 0;
 
     /**
-     * Calculate the score for an individual skill according to its type
-     * @param skill - The skill to calculate (BestOfTwo, LowestTwoOfThree, Sum, or Median)
-     * @returns Calculated score, clamped to the skill's maxScore
+     * Calcule le score d'un skill individuel selon son type
+     * @param skill - Le skill à calculer (BestOfTwo, LowestTwoOfThree, Sum, ou Median)
+     * @returns Score calculé, plafonné au maxScore du skill
      */
       skills.forEach((skill) => {
         const score = this.calculateSkillScore(skill);
@@ -387,8 +417,8 @@ export const useExamsStore = defineStore("exams", {
 
         default:
     /**
-     * Save current Exam I state to history
-     * @returns The history entry created
+     * Sauvegarde l'état actuel de l'Exam I dans l'historique
+     * @returns L'entrée d'historique créée
      */
           return 0;
       }
@@ -402,8 +432,8 @@ export const useExamsStore = defineStore("exams", {
     saveExamI(): ExamIHistoryEntry {
       const entry: ExamIHistoryEntry = {
     /**
-     * Save the current Exam I state to history
-     * @returns The history entry created
+     * Sauvegarde l'état actuel de l'Exam II dans l'historique
+     * @returns L'entrée d'historique créée
      */
         date: this.student.date || new Date().toISOString().split("T")[0],
         studentName: this.student.name,
@@ -446,17 +476,12 @@ export const useExamsStore = defineStore("exams", {
         drill.locked = Array(10).fill(false);
         drill.score = 0;
         drill.bonus = 0;
-      } else if (drill.type === "counting") {
-        const d: any = drill;
-        const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
-        const targetsCount = d.code === "F8" ? 5 : 10;
-        d.attempts = Array.from({ length: targetsCount }, () => Array(attemptsPerTarget).fill(null));
-        d.score = 0;
-        // keep F6 compat fields reset when using drill-level reset
-        if (d.code === "F6") {
-          d.shots = Array(10).fill(false);
-          d.attempted = Array(10).fill(false);
-        }
+      } else if (drill.code === "F6") {
+        // Reset potting shots specifically (cast to any for potting-specific fields)
+        const pot: any = drill as any;
+        pot.shots = Array(10).fill(false);
+        pot.attempted = Array(10).fill(false);
+        pot.score = 0;
       } else {
         drill.score = 0;
       }
@@ -468,18 +493,11 @@ export const useExamsStore = defineStore("exams", {
 
     // Reset potting shots (F6) and attempted flags
     resetPottingShots(drillIndex: number): boolean {
-      // keep name for backward compat: reset any counting drill's attempts
       const d = this.examI.drills[drillIndex] as any;
-      if (!d || d.type !== "counting") return false;
-      const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
-      const targetsCount = d.code === "F8" ? 5 : 10;
-      d.attempts = Array.from({ length: targetsCount }, () => Array(attemptsPerTarget).fill(null));
+      if (!d || d.code !== "F6") return false;
+      d.shots = Array(10).fill(false);
+      d.attempted = Array(10).fill(false);
       d.score = 0;
-      // keep F6 compatibility
-      if (d.code === "F6") {
-        d.shots = Array(10).fill(false);
-        d.attempted = Array(10).fill(false);
-      }
       this.calculateExamIScore();
       this.saveToLocalStorage();
       return true;
@@ -487,64 +505,29 @@ export const useExamsStore = defineStore("exams", {
 
     // Toggle potting shot success for F6 with sequential enforcement
     togglePottingShot(drillIndex: number, shotIndex: number): boolean {
-      // legacy helper for single-attempt counting drills (F6)
-      return this.toggleCountingAttempt(drillIndex, shotIndex, 0);
-    },
-
-    toggleCountingAttempt(drillIndex: number, targetIndex: number, attemptIndex: number): boolean {
       const d = this.examI.drills[drillIndex] as any;
-      if (!d || d.type !== "counting") return false;
+      if (!d || d.code !== "F6") return false;
+      if (!Array.isArray(d.shots)) d.shots = Array(10).fill(false);
+      if (!Array.isArray(d.attempted)) d.attempted = Array(10).fill(false);
 
-      // initialize attempts matrix if missing
-      if (!Array.isArray(d.attempts)) {
-        const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
-        const targetsCount = d.code === "F8" ? 5 : 10;
-        d.attempts = Array.from({ length: targetsCount }, () => Array(attemptsPerTarget).fill(null));
-      }
+      // enforce sequence: previous shot must have been attempted
+      if (shotIndex > 0 && !d.attempted[shotIndex - 1]) return false;
 
-      const attempts: (boolean | null)[][] = d.attempts;
-      if (!attempts[targetIndex] || attemptIndex < 0 || attemptIndex >= attempts[targetIndex].length) return false;
-
-      // determine previous attempt (flattened sequential enforcement)
-      const prev = (t: number, a: number) => {
-        if (a > 0) return { t, a: a - 1 };
-        if (t > 0) return { t: t - 1, a: attempts[t - 1].length - 1 };
-        return null;
-      };
-
-      const p = prev(targetIndex, attemptIndex);
-      if (p) {
-        if (attempts[p.t][p.a] === null) return false; // previous attempt not done
-      }
-
-      if (attempts[targetIndex][attemptIndex] === null) {
-        // first attempt -> mark attempted + success
-        attempts[targetIndex][attemptIndex] = true;
+      if (!d.attempted[shotIndex]) {
+        // first time attempt -> mark attempted + success
+        d.attempted[shotIndex] = true;
+        d.shots[shotIndex] = true;
       } else {
-        // already attempted -> toggle success/miss
-        attempts[targetIndex][attemptIndex] = !attempts[targetIndex][attemptIndex];
+        // already attempted -> toggle between success and miss
+        d.shots[shotIndex] = !d.shots[shotIndex];
       }
 
-      // recalculate counting score: sum of all successful attempts
-      let count = 0;
-      for (let t = 0; t < attempts.length; t++) {
-        for (let a = 0; a < attempts[t].length; a++) {
-          if (attempts[t][a]) count++;
-        }
-      }
-      d.score = Math.min(d.maxScore || 0, count);
-
-      // Maintain backward-compatible F6 fields if needed
-      if (d.code === "F6") {
-        d.shots = attempts.map((a) => a[0] === true);
-        d.attempted = attempts.map((a) => a[0] !== null);
-      }
-
+      // Recalculate potting score
+      d.score = Math.min(d.maxScore || 10, d.shots.reduce((s, v) => s + (v ? 1 : 0), 0));
       this.calculateExamIScore();
       this.saveToLocalStorage();
       return true;
     },
-
 
 
     saveStudentInfo(studentData: Partial<Student>) {
@@ -693,30 +676,8 @@ export const useExamsStore = defineStore("exams", {
 
       // F6-F8: counting drills — ensure values within max
       this.examI.drills[5].score = 10; // Potting max 10
-      // keep F6 attempts/shots consistent with sample (all successes)
-      const f6: any = this.examI.drills[5];
-      f6.attempts = Array.from({ length: 10 }, () => [true]);
-      f6.shots = Array(10).fill(true);
-      f6.attempted = Array(10).fill(true);
-
       this.examI.drills[6].score = 18; // Wagon wheel max 20
-      // sample pattern: fill some attempts for F7
-      const f7: any = this.examI.drills[6];
-      f7.attempts = Array.from({ length: 10 }, () => Array(2).fill(null));
-      // set a couple of successes
-      f7.attempts[0][0] = true;
-      f7.attempts[0][1] = true;
-      f7.score = f7.attempts.flat().filter(Boolean).length;
-
       this.examI.drills[7].score = 15; // Targets max 20
-      // sample pattern for F8
-      const f8: any = this.examI.drills[7];
-      f8.attempts = Array.from({ length: 5 }, () => Array(4).fill(null));
-      f8.attempts[0][0] = true;
-      f8.attempts[0][1] = true;
-      f8.attempts[0][2] = true;
-      f8.attempts[0][3] = false;
-      f8.score = f8.attempts.flat().filter(Boolean).length;
 
       // Recalculate composite scores/placements
       this.calculateExamIScore();

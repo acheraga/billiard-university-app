@@ -121,7 +121,7 @@ Utiliser une bibliothèque compatible TypeScript. Ajouter la fonction au store e
 ```
 @workspace Ajouter une validation stricte pour tous les inputs de scores. Les règles sont:
 - F1-F5: positions 1-7 uniquement
-- F6-F7: counting drills (10 targets). **F8:** uses 5 targets × 4 attempts (max 20). Ensure scores <= maxScore
+- F6-F8: scores <= maxScore
 - Skills: respecter les limites par type
 
 Créer un composable useValidation.ts avec des fonctions de validation typées.
