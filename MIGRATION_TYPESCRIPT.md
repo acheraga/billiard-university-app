@@ -34,11 +34,13 @@ Le projet a été migré de JavaScript vers TypeScript. Voici ce qui a été acc
 - ✅ Scripts mis à jour pour le build TypeScript
 - ✅ Nouveau script `type-check` pour la vérification des types
 
-### Types créés
+### Types created
 
-Le fichier `src/types/exams.ts` contient toutes les interfaces TypeScript :
-- `PositionDrill` - Drills de position (F1-F5)
-- `CountingDrill` - Drills de comptage (F6-F8)
+The file `src/types/exams.ts` contains all project interfaces:
+- `PositionDrill` - Position drills (F1-F5)
+- `CountingDrill` - Counting drills (F6-F8)
+
+Note: F8 (Targets) uses 5 targets with 4 attempts each (5×4 = max 20), while F6 and F7 use 10 targets.
 - `BestOfTwoSkill` - Compétences avec meilleur de 2 tentatives
 - `LowestTwoOfThreeSkill` - Compétences avec 2 scores les plus bas sur 3
 - `SumSkill` - Compétences avec somme de scores
