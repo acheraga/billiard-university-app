@@ -28,11 +28,11 @@
           <template v-if="drill.code === 'F6'">
             <div class="f6-potting-section">
               <div class="f6-figure-display">
-                <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure f6-figure" />
+                <img :src="getFigure(drill.code)?.src" :alt="drill.code + ' figure'" class="drill-figure f6-figure" />
               </div>
 
               <div class="potting-info-header">
-                <h4>{{ getFigure(drill.code).caption }}</h4>
+                <h4>{{ getFigure(drill.code)?.caption }}</h4>
                 <div class="potting-score-badge">{{ drill.score }} / {{ drill.maxScore }}</div>
               </div>
 
@@ -47,18 +47,18 @@
                     :key="i"
                     class="potting-shot-btn"
                     :class="{
-                      success: drill.shots && drill.shots[i-1],
-                      miss: drill.attempted && drill.attempted[i-1] && !(drill.shots && drill.shots[i-1])
+                      success: pot(drill).shots?.[i-1],
+                      miss: pot(drill).attempted?.[i-1] && !(pot(drill).shots?.[i-1])
                     }"
                     @click="togglePotting(index, i-1)"
                     @keydown.space.prevent="togglePotting(index, i-1)"
                     @keydown.enter.prevent="togglePotting(index, i-1)"
-                    :aria-pressed="drill.shots && drill.shots[i-1] ? 'true' : 'false'"
+                    :aria-pressed="pot(drill).shots?.[i-1] ? 'true' : 'false'"
                     :aria-label="'Shot ' + i"
                     tabindex="0"
                   >
-                    <span v-if="!(drill.attempted && drill.attempted[i-1])" class="shot-number">{{ i }}</span>
-                    <span v-else-if="drill.shots && drill.shots[i-1]" class="shot-icon">✓</span>
+                    <span v-if="!(pot(drill).attempted && pot(drill).attempted[i-1])" class="shot-number">{{ i }}</span>
+                    <span v-else-if="pot(drill).shots && pot(drill).shots[i-1]" class="shot-icon">✓</span>
                     <span v-else class="shot-icon">✗</span>
                   </button>
                 </div>
@@ -74,15 +74,15 @@
                 </button>
 
                 <div v-if="hotspotTuner.activeIndex === index" class="hotspot-tuner">
-                  <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords" :key="i">
+                  <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords || []" :key="i">
                     <div class="tuner-label">Shot {{ i + 1 }}</div>
                     <div class="tuner-controls">
                       <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">←</button>
-                      <input v-model="hotspotTuner.tempCoords[i].left" />
+                      <input v-model="c.left" />
                       <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">→</button>
 
                       <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">↑</button>
-                      <input v-model="hotspotTuner.tempCoords[i].top" />
+                      <input v-model="c.top" />
                       <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">↓</button>
 
                       <span class="drag-hint">(Drag on image to move)</span>
@@ -99,8 +99,8 @@
           </template>
 
           <template v-else>
-            <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure" />
-            <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
+            <img :src="getFigure(drill.code)?.src" :alt="drill.code + ' figure'" class="drill-figure" />
+            <div class="drill-figure-caption">{{ getFigure(drill.code)?.caption }}</div>
           </template>
         </div>
 
@@ -340,7 +340,7 @@ export default {
       ],
       hotspotTuner: {
         // enabled when URL contains ?hotspot-edit (keeps dev tool off by default in production)
-        available: typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('hotspot-edit'),
+        available: !!(typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('hotspot-edit')),
         activeIndex: null,
         tempCoords: null,
         dragging: null,
@@ -418,54 +418,63 @@ export default {
         return false;
       }
     },
+    // helper to cast a drill to any (useful for potting fields and dynamic flags)
+    pot(drill: any): any {
+      return drill as any;
+    },
+
     updateDrillScore(index, shotIndex) {
       const store = useExamsStore();
       const drill = store.examI.drills[index];
       if (!drill) return;
+      const d: any = drill;
 
       // mark that calculation is pending until last shot
       if (shotIndex !== 9) {
-        drill.needsCalc = true;
+        d.needsCalc = true;
         // persist intermediate state so it isn't lost between reloads
         store.saveToLocalStorage();
         return;
       }
 
       // last shot changed — perform calculation and clear flag
-      if (drill.needsCalc) drill.needsCalc = false;
+      if (d.needsCalc) d.needsCalc = false;
       store.updateExamIDrill(index);
     },
     toggleShotSuccess(drillIndex, shotIndex) {
       const store = useExamsStore();
       const drill = store.examI.drills[drillIndex];
-      if (!drill.successes) drill.successes = Array(10).fill(false);
-      const checked = !!drill.successes[shotIndex];
+      if (!drill) return;
+      const d: any = drill;
+
+      if (!d.successes) d.successes = Array(10).fill(false);
+      const checked = !!d.successes[shotIndex];
 
       // prevent toggling if previous shot not activated (except first shot)
-      if (shotIndex > 0 && !(drill.successes[shotIndex - 1] || drill.loses[shotIndex - 1])) {
+      if (shotIndex > 0 && !(d.successes[shotIndex - 1] || d.loses[shotIndex - 1])) {
         // revert change and ignore
-        drill.successes[shotIndex] = false;
+        d.successes[shotIndex] = false;
         return;
       }
 
       // uncheck lose if success checked
       if (checked) {
-        if (!drill.loses) drill.loses = Array(10).fill(false);
-        drill.loses[shotIndex] = false;
+        if (!d.loses) d.loses = Array(10).fill(false);
+        d.loses[shotIndex] = false;
       }
 
       // if success and next target exists, increment next target (max 7)
-      if (checked && shotIndex + 1 < (drill.shots || []).length) {
-        const currentTarget = Number(drill.shots[shotIndex] || 4);
-        drill.shots[shotIndex + 1] = Math.min(7, currentTarget + 1);
+      if (checked && shotIndex + 1 < (d.shots || []).length) {
+        const currentTarget = Number(d.shots[shotIndex] || 4);
+        d.shots[shotIndex + 1] = Math.min(7, currentTarget + 1);
       }
 
       // lock previous shot for drills F1..F7 to avoid accidental changes
       try {
-        const codeNum = parseInt(drill.code && drill.code.slice(1), 10);
+        const codeNum = parseInt(d.code && d.code.slice(1), 10);
         if (!isNaN(codeNum) && codeNum <= 7 && shotIndex > 0) {
-          if (!drill.locked) drill.locked = Array(10).fill(false);
-          drill.locked[shotIndex - 1] = true;
+          if (!d.locked) d.locked = Array(10).fill(false);
+          d.locked[shotIndex - 1] = true;
         }
       } catch (e) {
         /* ignore errors when locking previous shot */
@@ -473,44 +482,48 @@ export default {
 
       // delay calculation until last shot
       if (shotIndex !== 9) {
-        drill.needsCalc = true;
+        d.needsCalc = true;
         // persist intermediate state so it isn't lost between reloads
         store.saveToLocalStorage();
         return;
       }
 
-      if (drill.needsCalc) drill.needsCalc = false;
+      if (d.needsCalc) d.needsCalc = false;
       store.updateExamIDrill(drillIndex);
     },
+
     toggleShotLose(drillIndex, shotIndex) {
       const store = useExamsStore();
       const drill = store.examI.drills[drillIndex];
-      if (!drill.loses) drill.loses = Array(10).fill(false);
-      const checked = !!drill.loses[shotIndex];
-      drill.loses[shotIndex] = checked;
+      if (!drill) return;
+      const d: any = drill;
+
+      if (!d.loses) d.loses = Array(10).fill(false);
+      const checked = !!d.loses[shotIndex];
+      d.loses[shotIndex] = checked;
 
       // prevent toggling if previous shot not activated (except first shot)
-      if (shotIndex > 0 && !(drill.successes[shotIndex - 1] || drill.loses[shotIndex - 1])) {
+      if (shotIndex > 0 && !(d.successes[shotIndex - 1] || d.loses[shotIndex - 1])) {
         // revert change and ignore
-        drill.loses[shotIndex] = false;
+        d.loses[shotIndex] = false;
         return;
       }
 
       // if lose checked, unset success
       if (checked) {
-        if (!drill.successes) drill.successes = Array(10).fill(false);
-        drill.successes[shotIndex] = false;
+        if (!d.successes) d.successes = Array(10).fill(false);
+        d.successes[shotIndex] = false;
         // decrease next shot target by 1 (min 1)
-        if (shotIndex + 1 < (drill.shots || []).length) {
-          const currentTarget = Number(drill.shots[shotIndex] || 4);
-          drill.shots[shotIndex + 1] = Math.max(1, currentTarget - 1);
+        if (shotIndex + 1 < (d.shots || []).length) {
+          const currentTarget = Number(d.shots[shotIndex] || 4);
+          d.shots[shotIndex + 1] = Math.max(1, currentTarget - 1);
         }
         // lock previous shot for drills F1..F7 to avoid accidental changes
         try {
-          const codeNum = parseInt(drill.code && drill.code.slice(1), 10);
+          const codeNum = parseInt(d.code && d.code.slice(1), 10);
           if (!isNaN(codeNum) && codeNum <= 7 && shotIndex > 0) {
-            if (!drill.locked) drill.locked = Array(10).fill(false);
-            drill.locked[shotIndex - 1] = true;
+            if (!d.locked) d.locked = Array(10).fill(false);
+            d.locked[shotIndex - 1] = true;
           }
         } catch (e) {
           /* ignore errors when locking previous shot */
@@ -518,41 +531,44 @@ export default {
       }
 
       if (shotIndex !== 9) {
-        drill.needsCalc = true;
+        d.needsCalc = true;
         // persist intermediate state so it isn't lost between reloads
         store.saveToLocalStorage();
         return;
       }
 
-      if (drill.needsCalc) drill.needsCalc = false;
+      if (d.needsCalc) d.needsCalc = false;
       store.updateExamIDrill(drillIndex);
     },
+
     changeShotTarget(drillIndex, shotIndex, delta) {
       const store = useExamsStore();
       const drill = store.examI.drills[drillIndex];
       if (!drill) return;
-      if (!Array.isArray(drill.shots)) drill.shots = Array(10).fill(4);
+      const d: any = drill;
+      if (!Array.isArray(d.shots)) d.shots = Array(10).fill(4);
 
-      const cur = Number(drill.shots[shotIndex] || 4);
+      const cur = Number(d.shots[shotIndex] || 4);
       let next = cur + delta;
       if (next < 1) next = 1;
       if (next > 7) next = 7;
-      drill.shots[shotIndex] = next;
+      d.shots[shotIndex] = next;
 
       // if this is a lose-driven change, ensure neighbors consistent
       // do not allow manual typing; only +/- changes through these buttons
 
       // if not last shot, mark calc pending
       if (shotIndex !== 9) {
-        drill.needsCalc = true;
+        d.needsCalc = true;
         // persist intermediate target change
         store.saveToLocalStorage();
         return;
       }
 
-      if (drill.needsCalc) drill.needsCalc = false;
+      if (d.needsCalc) d.needsCalc = false;
       store.updateExamIDrill(drillIndex);
     },
+
     resetDrill(index) {
       if (!confirm("Reset this drill locally?")) return;
       const store = useExamsStore();

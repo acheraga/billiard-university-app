@@ -1,18 +1,18 @@
 import type {
-    BestOfTwoSkill,
-    CountingDrill,
-    ExamIHistoryEntry,
-    ExamIIHistoryEntry,
-    ExamIILevel,
-    ExamIISkill,
-    ExamsState,
-    LowestTwoOfThreeSkill,
-    MedianSkill,
-    PositionDrill,
-    Student,
-    SumSkill,
-    UserListItem,
-    UserProfile
+  BestOfTwoSkill,
+  CountingDrill,
+  ExamIHistoryEntry,
+  ExamIIHistoryEntry,
+  ExamIILevel,
+  ExamIISkill,
+  ExamsState,
+  LowestTwoOfThreeSkill,
+  MedianSkill,
+  PositionDrill,
+  Student,
+  SumSkill,
+  UserListItem,
+  UserProfile
 } from "@/types/exams";
 import { defineStore } from "pinia";
 
@@ -278,7 +278,7 @@ export const useExamsStore = defineStore("exams", {
 
       // F1-F5: Position drills with bonus
       for (let i = 0; i < 5; i++) {
-        const drill = this.examI.drills[i];
+        const drill = this.examI.drills[i] as PositionDrill;
         let lastPosition = 0;
         let bonus = 0;
 
@@ -477,10 +477,11 @@ export const useExamsStore = defineStore("exams", {
         drill.score = 0;
         drill.bonus = 0;
       } else if (drill.code === "F6") {
-        // Reset potting shots specifically
-        drill.shots = Array(10).fill(false);
-        drill.attempted = Array(10).fill(false);
-        drill.score = 0;
+        // Reset potting shots specifically (cast to any for potting-specific fields)
+        const pot: any = drill as any;
+        pot.shots = Array(10).fill(false);
+        pot.attempted = Array(10).fill(false);
+        pot.score = 0;
       } else {
         drill.score = 0;
       }
@@ -541,9 +542,9 @@ export const useExamsStore = defineStore("exams", {
           drill.successes = Array(10).fill(false);
           drill.loses = Array(10).fill(false);
           drill.locked = Array(10).fill(false);
+          drill.bonus = 0;
         }
         drill.score = 0;
-        drill.bonus = 0;
       });
       this.calculateExamIScore();
     },
@@ -584,7 +585,7 @@ export const useExamsStore = defineStore("exams", {
 
       // F1-F5: position drills — ensure 10 shots, valid targets 1..7 and accompanying arrays
       for (let i = 0; i < 5; i++) {
-        const d = this.examI.drills[i];
+        const d = this.examI.drills[i] as PositionDrill;
         if (!d) continue;
 
         // provide sensible default sequence if not present
@@ -607,8 +608,8 @@ export const useExamsStore = defineStore("exams", {
       }
 
       // Provide a concrete sample pattern for readability
-      this.examI.drills[0].shots = [7, 7, 7, 7, 6, 6, 5, 4, 3, 2];
-      this.examI.drills[0].successes = [
+      (this.examI.drills[0] as PositionDrill).shots = [7, 7, 7, 7, 6, 6, 5, 4, 3, 2];
+      (this.examI.drills[0] as PositionDrill).successes = [
         true,
         true,
         true,
@@ -620,8 +621,8 @@ export const useExamsStore = defineStore("exams", {
         false,
         false,
       ];
-      this.examI.drills[1].shots = [6, 6, 6, 5, 5, 4, 4, 4, 3, 2];
-      this.examI.drills[1].successes = [
+      (this.examI.drills[1] as PositionDrill).shots = [6, 6, 6, 5, 5, 4, 4, 4, 3, 2];
+      (this.examI.drills[1] as PositionDrill).successes = [
         true,
         true,
         false,
@@ -633,8 +634,8 @@ export const useExamsStore = defineStore("exams", {
         false,
         false,
       ];
-      this.examI.drills[2].shots = [7, 7, 6, 6, 5, 5, 4, 4, 4, 3];
-      this.examI.drills[2].successes = [
+      (this.examI.drills[2] as PositionDrill).shots = [7, 7, 6, 6, 5, 5, 4, 4, 4, 3];
+      (this.examI.drills[2] as PositionDrill).successes = [
         true,
         true,
         true,
@@ -646,8 +647,8 @@ export const useExamsStore = defineStore("exams", {
         false,
         false,
       ];
-      this.examI.drills[3].shots = [5, 5, 4, 4, 4, 3, 3, 3, 2, 1];
-      this.examI.drills[3].successes = [
+      (this.examI.drills[3] as PositionDrill).shots = [5, 5, 4, 4, 4, 3, 3, 3, 2, 1];
+      (this.examI.drills[3] as PositionDrill).successes = [
         true,
         false,
         false,
@@ -659,8 +660,8 @@ export const useExamsStore = defineStore("exams", {
         false,
         false,
       ];
-      this.examI.drills[4].shots = [7, 7, 7, 6, 6, 5, 4, 4, 4, 4];
-      this.examI.drills[4].successes = [
+      (this.examI.drills[4] as PositionDrill).shots = [7, 7, 7, 6, 6, 5, 4, 4, 4, 4];
+      (this.examI.drills[4] as PositionDrill).successes = [
         true,
         true,
         false,
