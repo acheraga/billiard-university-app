@@ -2,17 +2,20 @@
   "name": "billiard-university-scoring",
   "version": "1.0.0",
   "description": "Billiard University Exam Scoring System",
-  "main": "src/main.js",
+  "main": "src/main.ts",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:check": "vue-tsc && vite build",
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "test": "vitest",
-    "lint": "eslint --ext .js,.vue src",
-    "lint:fix": "eslint --ext .js,.vue src --fix",
-    "format": "prettier --write \"**/*.{js,vue,json,md}\""
+    "lint": "eslint --ext .ts,.vue src",
+    "lint:fix": "eslint --ext .ts,.vue src --fix",
+    "format": "prettier --write \"**/*.{ts,vue,json,md}\"",
+    "type-check": "vue-tsc --noEmit"
   },
   "dependencies": {
     "pinia": "^2.1.7",
@@ -21,17 +24,20 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue": "^5.0.4",
-    "vite": "^5.1.4",
-    "vitest": "^1.0.0",
-    "@vue/test-utils": "^2.4.0",
     "@testing-library/vue": "^8.1.0",
-    "jsdom": "^21.1.0",
+    "@types/node": "^25.0.10",
+    "@vitejs/plugin-vue": "^5.0.4",
+    "@vue/test-utils": "^2.4.0",
     "eslint": "^8.50.0",
-    "eslint-plugin-vue": "^9.11.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "prettier": "^3.0.0"
+    "eslint-plugin-vue": "^9.11.0",
+    "jsdom": "^21.1.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^5.1.4",
+    "vitest": "^1.0.0",
+    "vue-tsc": "^3.2.3"
   },
   "keywords": [
     "billiard",

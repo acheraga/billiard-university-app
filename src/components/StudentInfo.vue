@@ -43,33 +43,24 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
 import { useExamsStore } from "../store/useExamsStore";
 import { ref, watch } from "vue";
+import type { Student } from "@/types/exams";
 
-export default {
-  name: "StudentInfo",
-  setup() {
-    const store = useExamsStore();
-    const student = ref({ ...store.student });
+const store = useExamsStore();
+const student = ref<Student>({ ...store.student });
 
-    watch(
-      () => store.student,
-      (newVal) => {
-        student.value = { ...newVal };
-      },
-      { deep: true }
-    );
-
-    const saveStudent = () => {
-      store.saveStudentInfo(student.value);
-    };
-
-    return {
-      student,
-      saveStudent,
-    };
+watch(
+  () => store.student,
+  (newVal) => {
+    student.value = { ...newVal };
   },
+  { deep: true }
+);
+
+const saveStudent = () => {
+  store.saveStudentInfo(student.value);
 };
 </script>
 

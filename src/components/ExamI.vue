@@ -26,76 +26,76 @@
         <!-- Figure with special overlay for F6 (Potting) -->
         <div v-if="getFigure(drill.code)" class="drill-figure-wrap">
           <template v-if="drill.code === 'F6'">
-            <div class="figure-with-overlay">
-              <div class="figure-image-wrap">
-                <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure" />
+            <div class="f6-potting-section">
+              <div class="f6-figure-display">
+                <img :src="getFigure(drill.code).src" :alt="drill.code + ' figure'" class="drill-figure f6-figure" />
+              </div>
+
+              <div class="potting-info-header">
+                <h4>{{ getFigure(drill.code).caption }}</h4>
+                <div class="potting-score-badge">{{ drill.score }} / {{ drill.maxScore }}</div>
+              </div>
+
+              <div class="potting-grid-container">
                 <div
-                  class="potting-overlay"
+                  class="potting-grid"
                   role="group"
-                  :aria-label="'F6 potting shots for ' + (student.name || 'student')"
+                  :aria-label="'F6 potting shots grid for ' + (student.name || 'student')"
                 >
                   <button
-                    v-for="(c, i) in pottingCoords"
+                    v-for="i in 10"
                     :key="i"
-                    class="potting-hotspot"
+                    class="potting-shot-btn"
                     :class="{
-                      success: drill.shots && drill.shots[i],
-                      attemptedMiss: drill.attempted && drill.attempted[i] && !(drill.shots && drill.shots[i]),
-                      editing: hotspotTuner.activeIndex === index
+                      success: drill.shots && drill.shots[i-1],
+                      miss: drill.attempted && drill.attempted[i-1] && !(drill.shots && drill.shots[i-1])
                     }"
-                    :style="hotspotStyle(index, i, c)"
-                    @click="togglePotting(index, i)"
-                    @keydown.space.prevent="togglePotting(index, i)"
-                    @keydown.enter.prevent="togglePotting(index, i)"
-                    :aria-pressed="drill.shots && drill.shots[i] ? 'true' : 'false'"
-                    :aria-label="'Shot ' + (i + 1)"
+                    @click="togglePotting(index, i-1)"
+                    @keydown.space.prevent="togglePotting(index, i-1)"
+                    @keydown.enter.prevent="togglePotting(index, i-1)"
+                    :aria-pressed="drill.shots && drill.shots[i-1] ? 'true' : 'false'"
+                    :aria-label="'Shot ' + i"
                     tabindex="0"
-                    @mousedown.prevent="hotspotTuner.activeIndex === index ? startDrag($event, index, i) : null"
-                    @touchstart.prevent="hotspotTuner.activeIndex === index ? startDrag($event.touches[0], index, i) : null"
                   >
-                    <span v-if="!(drill.attempted && drill.attempted[i])" class="hotspot-label">{{ i + 1 }}</span>
-                    <span v-else-if="drill.shots && drill.shots[i]" class="hotspot-symbol success">✓</span>
-                    <span v-else class="hotspot-symbol miss">x</span>
+                    <span v-if="!(drill.attempted && drill.attempted[i-1])" class="shot-number">{{ i }}</span>
+                    <span v-else-if="drill.shots && drill.shots[i-1]" class="shot-icon">✓</span>
+                    <span v-else class="shot-icon">✗</span>
                   </button>
                 </div>
               </div>
 
-              <div class="potting-controls">
-                <div class="potting-score">F6 Score: {{ drill.score }} / {{ drill.maxScore }}</div>
-                <div class="potting-buttons">
-                  <!-- Reset handled by the drill-level Reset button (header) -->
-                </div>
+              <div class="potting-instructions">
+                <p><small>Cliquez sur chaque tir pour marquer succès/échec. Les tirs doivent être tentés dans l'ordre.</small></p>
+              </div>
 
-                <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
-                  <button class="btn btn-secondary" @click="toggleHotspotTuner(index)">
-                    {{ hotspotTuner.activeIndex === index ? 'Close Hotspot Tuner' : 'Edit Hotspots (dev)' }}
-                  </button>
+              <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
+                <button class="btn btn-secondary" @click="toggleHotspotTuner(index)">
+                  {{ hotspotTuner.activeIndex === index ? 'Close Hotspot Tuner' : 'Edit Hotspots (dev)' }}
+                </button>
 
-                  <div v-if="hotspotTuner.activeIndex === index" class="hotspot-tuner">
-                    <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords" :key="i">
-                      <div class="tuner-label">Shot {{ i + 1 }}</div>
-                      <div class="tuner-controls">
-                        <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">←</button>
-                        <input v-model="hotspotTuner.tempCoords[i].left" />
-                        <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">→</button>
+                <div v-if="hotspotTuner.activeIndex === index" class="hotspot-tuner">
+                  <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords" :key="i">
+                    <div class="tuner-label">Shot {{ i + 1 }}</div>
+                    <div class="tuner-controls">
+                      <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">←</button>
+                      <input v-model="hotspotTuner.tempCoords[i].left" />
+                      <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">→</button>
 
-                        <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">↑</button>
-                        <input v-model="hotspotTuner.tempCoords[i].top" />
-                        <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">↓</button>
+                      <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">↑</button>
+                      <input v-model="hotspotTuner.tempCoords[i].top" />
+                      <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">↓</button>
 
-                        <span class="drag-hint">(Drag on image to move)</span>
-                      </div>
+                      <span class="drag-hint">(Drag on image to move)</span>
                     </div>
+                  </div>
 
-                    <div class="tuner-actions">
-                      <button class="btn btn-success" @click="saveHotspotTuner(index)">Save</button>
-                      <button class="btn btn-secondary" @click="cancelHotspotTuner">Cancel</button>
-                    </div>
+                  <div class="tuner-actions">
+                    <button class="btn btn-success" @click="saveHotspotTuner(index)">Save</button>
+                    <button class="btn btn-secondary" @click="cancelHotspotTuner">Cancel</button>
                   </div>
                 </div>
               </div>
             </div>
-            <div class="drill-figure-caption">{{ getFigure(drill.code).caption }}</div>
           </template>
 
           <template v-else>
@@ -239,9 +239,28 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { useExamsStore } from "../store/useExamsStore";
-const FIGS = [
+import type { PositionDrill } from "@/types/exams";
+
+interface Figure {
+  src: string;
+  caption: string;
+}
+
+interface PlacementLevel {
+  name: string;
+  range: string;
+  desc: string;
+  class: string;
+}
+
+interface PottingCoord {
+  left: string;
+  top: string;
+}
+
+const FIGS: Figure[] = [
   {
     src: new URL("../assets/exam1_figs/fig-000.jpg", import.meta.url).href,
     caption: "Cover / Logo: Billiard University Exam I cover image.",
@@ -288,7 +307,17 @@ const FIGS = [
 
 export default {
   name: "ExamI",
-  data() {
+  data(): {
+    placementLevels: PlacementLevel[];
+    figures: Figure[];
+    pottingCoords: PottingCoord[];
+    hotspotTuner: {
+      available: boolean;
+      activeIndex: number | null;
+      tempCoords: PottingCoord[] | null;
+      dragging: { drillIndex: number; i: number; rect: DOMRect } | null;
+    };
+  } {
     return {
       placementLevels: [
         { name: "Bachelors", range: "0-49", desc: "Beginner Level", class: "level-bachelors" },
@@ -374,14 +403,14 @@ export default {
     window.removeEventListener('touchend', this.onWindowUp);
   },
   methods: {
-    getFigure(code) {
+    getFigure(code: string): Figure | null {
       if (!code) return null;
       const m = String(code).match(/^F(\d+)/i);
       if (!m) return null;
       const idx = Number(m[1]);
       return this.figures && this.figures[idx] ? this.figures[idx] : null;
     },
-    isHorizontal(drill) {
+    isHorizontal(drill: any): boolean {
       try {
         const codeNum = parseInt(drill && drill.code && drill.code.slice(1), 10);
         return !isNaN(codeNum) && codeNum >= 1 && codeNum <= 7;
@@ -397,6 +426,8 @@ export default {
       // mark that calculation is pending until last shot
       if (shotIndex !== 9) {
         drill.needsCalc = true;
+        // persist intermediate state so it isn't lost between reloads
+        store.saveToLocalStorage();
         return;
       }
 
@@ -443,6 +474,8 @@ export default {
       // delay calculation until last shot
       if (shotIndex !== 9) {
         drill.needsCalc = true;
+        // persist intermediate state so it isn't lost between reloads
+        store.saveToLocalStorage();
         return;
       }
 
@@ -486,6 +519,8 @@ export default {
 
       if (shotIndex !== 9) {
         drill.needsCalc = true;
+        // persist intermediate state so it isn't lost between reloads
+        store.saveToLocalStorage();
         return;
       }
 
@@ -510,6 +545,8 @@ export default {
       // if not last shot, mark calc pending
       if (shotIndex !== 9) {
         drill.needsCalc = true;
+        // persist intermediate target change
+        store.saveToLocalStorage();
         return;
       }
 
@@ -1265,7 +1302,139 @@ input[type="number"].no-spin {
   max-width: 420px;
 }
 
-/* F6 potting overlay styles */
+/* F6 Potting Grid Section */
+.f6-potting-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.f6-figure-display {
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+.drill-figure.f6-figure {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.potting-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.potting-info-header h4 {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+.potting-score-badge {
+  background: #3498db;
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.potting-grid-container {
+  width: 100%;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.potting-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.potting-shot-btn {
+  aspect-ratio: 1;
+  border: 2px solid #dfe6e9;
+  border-radius: 8px;
+  background: white;
+  color: #2c3e50;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.potting-shot-btn:hover:not(:disabled) {
+  background: #ecf0f1;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.potting-shot-btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(52,152,219,0.3);
+  border-color: #3498db;
+}
+
+.potting-shot-btn.success {
+  background: #27ae60;
+  color: white;
+  border-color: #219653;
+  font-weight: bold;
+}
+
+.potting-shot-btn.success:hover {
+  background: #229954;
+}
+
+.potting-shot-btn.miss {
+  background: #fff5f5;
+  color: #c0392b;
+  border-color: #e74c3c;
+}
+
+.potting-shot-btn.miss:hover {
+  background: #fadad6;
+}
+
+.shot-number {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.shot-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.potting-instructions {
+  padding: 0.75rem;
+  background: #ecf3ff;
+  border-radius: 6px;
+  border-left: 4px solid #3498db;
+}
+
+.potting-instructions p {
+  margin: 0;
+  color: #2c3e50;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* F6 potting overlay styles (kept for backward compatibility if needed) */
 .figure-with-overlay {
   width: 100%;
 }
@@ -1407,10 +1576,123 @@ input[type="number"].no-spin {
     max-width: 100%;
   }
   .drill-figure {
-    max-width: 280px;
+    max-width: 100%;
   }
   .drill-figure-caption {
-    max-width: 320px;
+    max-width: 100%;
+  }
+
+  /* F6 Potting mobile optimizations */
+  .figure-with-overlay {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .figure-image-wrap {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .potting-controls {
+    width: 100%;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    align-items: stretch;
+  }
+
+  .potting-score {
+    text-align: center;
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  .hotspot-tuner-wrap {
+    width: 100%;
+  }
+
+  .hotspot-tuner {
+    width: 100%;
+    padding: 0.8rem;
+  }
+
+  .tuner-row {
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: stretch;
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid #e0e6ea;
+  }
+
+  .tuner-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+
+  .tuner-label {
+    width: 100%;
+    text-align: center;
+    font-size: 0.95rem;
+  }
+
+  .tuner-controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .tuner-controls input {
+    width: 100%;
+  }
+
+  .tuner-controls button.small {
+    flex: 1;
+  }
+
+  .drag-hint {
+    text-align: center;
+    margin: 0;
+    display: block;
+  }
+
+  .tuner-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .tuner-actions .btn {
+    width: 100%;
+  }
+
+  /* F6 Potting Grid responsive */
+  .potting-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+  }
+
+  .potting-score-badge {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
+  }
+
+  .potting-info-header h4 {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .potting-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+  }
+
+  .potting-grid-container {
+    padding: 0.75rem;
+  }
+
+  .potting-shot-btn {
+    font-size: 0.95rem;
   }
 }
 

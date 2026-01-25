@@ -22,7 +22,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const hotspots = wrapper.findAll(".potting-hotspot");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
     expect(hotspots.length).toBe(10);
 
     // Click first hotspot
@@ -47,7 +47,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const hotspots = wrapper.findAll(".potting-hotspot");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
     await hotspots[0].trigger("keydown", { key: "Enter" });
     await nextTick();
 
@@ -62,7 +62,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const hotspots = wrapper.findAll(".potting-hotspot");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
     await hotspots[0].trigger("click");
     await hotspots[1].trigger("click");
     await nextTick();
@@ -88,7 +88,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    const hotspots = wrapper.findAll(".potting-hotspot");
+    const hotspots = wrapper.findAll(".potting-shot-btn");
 
     // first shot - ok
     await hotspots[0].trigger("click");
@@ -113,7 +113,7 @@ describe("ExamI F6 potting overlay", () => {
     await nextTick();
     expect(store.examI.drills[5].attempted[1]).toBe(true);
     expect(store.examI.drills[5].shots[1]).toBe(false);
-    expect(hotspots[1].classes()).toContain("attemptedMiss");
+    expect(hotspots[1].classes()).toContain("miss");
 
     // score counts only successes
     expect(store.examI.drills[5].score).toBe(1);
@@ -125,7 +125,7 @@ describe("ExamI F6 potting overlay", () => {
     store.resetPottingShots(5);
     await nextTick();
 
-    await wrapper.findAll(".potting-hotspot")[0].trigger("click");
+    await wrapper.findAll(".potting-shot-btn")[0].trigger("click");
     await nextTick();
 
     expect(store.examI.drills[5].shots[0]).toBe(true);
@@ -140,6 +140,25 @@ describe("ExamI F6 potting overlay", () => {
 
     expect(store2.examI.drills[5].shots[0]).toBe(true);
     expect(store2.examI.drills[5].attempted[0]).toBe(true);
+  });
+
+  it("persists intermediate position drill changes to localStorage", async () => {
+    const wrapper = mount(ExamI);
+    const store = useExamsStore();
+    await nextTick();
+
+    // Find the first drill and the first success checkbox, then simulate a user checking it
+    const firstDrill = wrapper.findAll('.drill-card').at(0);
+    const firstSuccess = firstDrill.find('label.success-label input.small-checkbox');
+    // mark as checked (v-model normally updates before @change handler runs)
+    firstSuccess.element.checked = true;
+    await firstSuccess.trigger('change');
+    await nextTick();
+
+    const savedRaw = localStorage.getItem('billiardUniversityData') || '{}';
+    const saved = JSON.parse(savedRaw);
+    expect(saved.examI).toBeTruthy();
+    expect(saved.examI.drills[0].successes[0]).toBe(true);
   });
 
   it("removes increment/decrement buttons for F6 and keeps score display", async () => {

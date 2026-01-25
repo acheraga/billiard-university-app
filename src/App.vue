@@ -56,7 +56,8 @@
   </div>
 </template>
 
-<script>
+<script setup lang="ts">
+import { ref } from "vue";
 import StudentInfo from "./components/StudentInfo.vue";
 import ExamI from "./components/ExamI.vue";
 import ExamII from "./components/ExamII.vue";
@@ -64,41 +65,34 @@ import ScoreHistory from "./components/ScoreHistory.vue";
 import Reports from "./components/Reports.vue";
 import { useExamsStore } from "./store/useExamsStore";
 
-export default {
-  name: "App",
-  components: {
-    StudentInfo,
-    ExamI,
-    ExamII,
-    ScoreHistory,
-    Reports,
-  },
-  data() {
-    return {
-      activeTab: "exam1",
-      tabs: [
-        { id: "exam1", label: "Exam I", icon: "fas fa-list-ol" },
-        { id: "exam2", label: "Exam II", icon: "fas fa-chart-line" },
-        { id: "history", label: "History", icon: "fas fa-history" },
-        { id: "reports", label: "Reports", icon: "fas fa-chart-bar" },
-      ],
-    };
-  },
-  methods: {
-    exportData() {
-      const store = useExamsStore();
-      store.exportToExcel();
-    },
-    printReport() {
-      window.print();
-    },
-    resetAll() {
-      if (confirm("Reset all data? This cannot be undone.")) {
-        const store = useExamsStore();
-        store.resetAll();
-      }
-    },
-  },
+interface Tab {
+  id: string;
+  label: string;
+  icon: string;
+}
+
+const activeTab = ref<string>("exam1");
+const tabs = ref<Tab[]>([
+  { id: "exam1", label: "Exam I", icon: "fas fa-list-ol" },
+  { id: "exam2", label: "Exam II", icon: "fas fa-chart-line" },
+  { id: "history", label: "History", icon: "fas fa-history" },
+  { id: "reports", label: "Reports", icon: "fas fa-chart-bar" },
+]);
+
+const store = useExamsStore();
+
+const exportData = () => {
+  store.exportToExcel();
+};
+
+const printReport = () => {
+  window.print();
+};
+
+const resetAll = () => {
+  if (confirm("Reset all data? This cannot be undone.")) {
+    store.resetAll();
+  }
 };
 </script>
 

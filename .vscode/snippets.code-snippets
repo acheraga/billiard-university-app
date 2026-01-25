@@ -1,0 +1,201 @@
+{
+  // Vue 3 Composition API avec TypeScript
+  "Vue 3 Component Setup": {
+    "prefix": "vue3-ts",
+    "body": [
+      "<template>",
+      "  <div class=\"${1:component-name}\">",
+      "    $0",
+      "  </div>",
+      "</template>",
+      "",
+      "<script setup lang=\"ts\">",
+      "import { ref, computed } from 'vue';",
+      "",
+      "interface Props {",
+      "  ${2:propName}: ${3:string};",
+      "}",
+      "",
+      "const props = defineProps<Props>();",
+      "",
+      "</script>",
+      "",
+      "<style scoped>",
+      ".${1:component-name} {",
+      "  $4",
+      "}",
+      "</style>"
+    ],
+    "description": "Vue 3 component with TypeScript setup"
+  },
+
+  // Pinia Store avec TypeScript
+  "Pinia Store TypeScript": {
+    "prefix": "pinia-store",
+    "body": [
+      "import { defineStore } from 'pinia';",
+      "",
+      "interface ${1:StoreName}State {",
+      "  ${2:property}: ${3:string};",
+      "}",
+      "",
+      "export const use${1:StoreName}Store = defineStore('${4:storeName}', {",
+      "  state: (): ${1:StoreName}State => ({",
+      "    ${2:property}: ${5:''},",
+      "  }),",
+      "",
+      "  getters: {",
+      "    ${6:getterName}: (state) => state.${2:property},",
+      "  },",
+      "",
+      "  actions: {",
+      "    /**",
+      "     * ${7:Action description}",
+      "     * @param ${8:param} - ${9:Parameter description}",
+      "     */",
+      "    ${10:actionName}(${8:param}: ${11:string}) {",
+      "      this.${2:property} = ${8:param};",
+      "    },",
+      "  },",
+      "});"
+    ],
+    "description": "Pinia store with TypeScript"
+  },
+
+  // Composable TypeScript
+  "Vue Composable": {
+    "prefix": "use-composable",
+    "body": [
+      "import { ref, computed, type Ref } from 'vue';",
+      "",
+      "/**",
+      " * ${1:Composable description}",
+      " * @param ${2:param} - ${3:Parameter description}",
+      " * @returns ${4:Return description}",
+      " */",
+      "export function use${5:ComposableName}(${2:param}: ${6:string}) {",
+      "  const ${7:state} = ref<${8:string}>(${9:''});",
+      "",
+      "  const ${10:computed} = computed(() => ${7:state}.value);",
+      "",
+      "  function ${11:action}() {",
+      "    $0",
+      "  }",
+      "",
+      "  return {",
+      "    ${7:state},",
+      "    ${10:computed},",
+      "    ${11:action},",
+      "  };",
+      "}"
+    ],
+    "description": "Vue 3 composable with TypeScript"
+  },
+
+  // Type Guard
+  "TypeScript Type Guard": {
+    "prefix": "type-guard",
+    "body": [
+      "/**",
+      " * Type guard pour vérifier si ${1:value} est de type ${2:TypeName}",
+      " * @param ${1:value} - La valeur à vérifier",
+      " * @returns true si ${1:value} est ${2:TypeName}",
+      " */",
+      "function is${2:TypeName}(${1:value}: ${3:BaseType}): ${1:value} is ${2:TypeName} {",
+      "  return ${4:(${1:value} as ${2:TypeName}).${5:property} !== undefined};",
+      "}"
+    ],
+    "description": "TypeScript type guard function"
+  },
+
+  // Interface TypeScript
+  "TypeScript Interface": {
+    "prefix": "ts-interface",
+    "body": [
+      "/**",
+      " * ${1:Interface description}",
+      " */",
+      "export interface ${2:InterfaceName} {",
+      "  /** ${3:Property description} */",
+      "  ${4:property}: ${5:string};",
+      "  $0",
+      "}"
+    ],
+    "description": "TypeScript interface with JSDoc"
+  },
+
+  // Vitest Test
+  "Vitest Test Suite": {
+    "prefix": "vitest-suite",
+    "body": [
+      "import { describe, it, expect, beforeEach } from 'vitest';",
+      "import { setActivePinia, createPinia } from 'pinia';",
+      "import { ${1:useStore} } from '@/store/${2:storeName}';",
+      "",
+      "describe('${3:Test Suite Name}', () => {",
+      "  beforeEach(() => {",
+      "    setActivePinia(createPinia());",
+      "  });",
+      "",
+      "  it('${4:test description}', () => {",
+      "    const store = ${1:useStore}();",
+      "    $0",
+      "    expect(${5:actual}).toBe(${6:expected});",
+      "  });",
+      "});"
+    ],
+    "description": "Vitest test suite with Pinia setup"
+  },
+
+  // JSDoc Function
+  "JSDoc Function Documentation": {
+    "prefix": "jsdoc-fn",
+    "body": [
+      "/**",
+      " * ${1:Function description}",
+      " * @param {${2:string}} ${3:param} - ${4:Parameter description}",
+      " * @returns {${5:void}} ${6:Return description}",
+      " * @example",
+      " * ```typescript",
+      " * ${7:exampleUsage()}",
+      " * ```",
+      " */"
+    ],
+    "description": "JSDoc function documentation"
+  },
+
+  // Computed Property
+  "Vue Computed Property": {
+    "prefix": "vue-computed",
+    "body": [
+      "const ${1:computedName} = computed<${2:string}>(() => {",
+      "  return $0;",
+      "});"
+    ],
+    "description": "Vue 3 computed property with TypeScript"
+  },
+
+  // Ref with Type
+  "Vue Ref with Type": {
+    "prefix": "vue-ref",
+    "body": [
+      "const ${1:refName} = ref<${2:string}>(${3:''});"
+    ],
+    "description": "Vue 3 ref with explicit type"
+  },
+
+  // Watch Effect
+  "Vue Watch Effect": {
+    "prefix": "vue-watch",
+    "body": [
+      "watch(",
+      "  () => ${1:source},",
+      "  (newValue, oldValue) => {",
+      "    $0",
+      "  },",
+      "  { ${2:deep: true} }",
+      ");"
+    ],
+    "description": "Vue 3 watch with TypeScript"
+  }
+}

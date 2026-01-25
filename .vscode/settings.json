@@ -1,0 +1,90 @@
+{
+  "github.copilot.enable": {
+    "*": true,
+    "markdown": true,
+    "plaintext": false
+  },
+  "github.copilot.advanced": {
+    "debug.overrideEngine": "gpt-4",
+    "authProvider": "github"
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  
+  // TypeScript/Vue specific
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  
+  // Copilot suggestions
+  "editor.inlineSuggest.enabled": true,
+  "editor.quickSuggestions": {
+    "other": true,
+    "comments": true,
+    "strings": true
+  },
+  
+  // Type checking
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  
+  // Vue/Volar
+  "volar.takeOverMode.enabled": true,
+  
+  // Auto import
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
+  
+  // Path suggestions
+  "typescript.preferences.importModuleSpecifierEnding": "auto",
+  "javascript.preferences.importModuleSpecifierEnding": "auto",
+  
+  // Copilot Chat
+  "github.copilot.chat.codeGeneration.instructions": [
+    {
+      "text": "Toujours utiliser TypeScript avec des types stricts"
+    },
+    {
+      "text": "Pour Vue 3, utiliser Composition API avec <script setup lang='ts'>"
+    },
+    {
+      "text": "Typer explicitement les refs et reactive"
+    },
+    {
+      "text": "Utiliser le store Pinia (useExamsStore) pour l'état global"
+    },
+    {
+      "text": "Ajouter des type guards pour les unions de types (PositionDrill vs CountingDrill)"
+    },
+    {
+      "text": "Documenter les fonctions complexes avec JSDoc/TSDoc"
+    }
+  ],
+  
+  // Files
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  
+  // Search
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true,
+    "**/*.log": true,
+    "**/package-lock.json": true
+  }
+}

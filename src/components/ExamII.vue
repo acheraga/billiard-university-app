@@ -181,7 +181,7 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { useExamsStore } from "../store/useExamsStore";
 import { computed, ref } from "vue";
 

@@ -1,7 +1,23 @@
+import type {
+    BestOfTwoSkill,
+    CountingDrill,
+    ExamIHistoryEntry,
+    ExamIIHistoryEntry,
+    ExamIILevel,
+    ExamIISkill,
+    ExamsState,
+    LowestTwoOfThreeSkill,
+    MedianSkill,
+    PositionDrill,
+    Student,
+    SumSkill,
+    UserListItem,
+    UserProfile
+} from "@/types/exams";
 import { defineStore } from "pinia";
 
 export const useExamsStore = defineStore("exams", {
-  state: () => ({
+  state: (): ExamsState => ({
     student: {
       name: "",
       date: new Date().toISOString().split("T")[0],
@@ -168,17 +184,21 @@ export const useExamsStore = defineStore("exams", {
   }),
 
   getters: {
-    getCurrentLevelSkills: (state) => {
+    getCurrentLevelSkills: (state): ExamIISkill[] => {
       return state.examII.skills[state.examII.currentLevel] || [];
     },
-    getTotalScore: (state) => {
+    getTotalScore: (state): number => {
       return (state.student.examIScore || 0) + state.examII.currentScore;
     },
   },
 
   actions: {
-    updateExamIDrill(index) {
-      const drill = this.examI.drills[index];
+    /**
+     * Recalcule le score d'un drill de position basé sur les succès et échecs
+     * @param index - Index du drill dans examI.drills (0-7)
+     */
+    updateExamIDrill(index: number) {
+      const drill = this.examI.drills[index] as PositionDrill;
 
       if (drill.type === "position") {
         // Determine final position based on last attempted shot (success => target+1, miss => target-1)
@@ -225,18 +245,30 @@ export const useExamsStore = defineStore("exams", {
       this.calculateExamIScore();
     },
 
-    incrementDrillScore(index) {
-      const drill = this.examI.drills[index];
+    /**
+     * Incrémente le score d'un drill de comptage
+     * @param index - Index du drill (typiquement F6-F8)
+     */
+    incrementDrillScore(index: number) {
+      const drill = this.examI.drills[index] as CountingDrill;
       if (drill.score < drill.maxScore) {
         drill.score++;
         this.calculateExamIScore();
       }
     },
 
-    decrementDrillScore(index) {
-      const drill = this.examI.drills[index];
+    /**
+     * Décrémente le score d'un drill de comptage
+     * @param index - Index du drill (typiquement F6-F8)
+     */
+    decrementDrillScore(index: number) {
+      const drill = this.examI.drills[index] as CountingDrill;
       if (drill.score > 0) {
         drill.score--;
+    /**
+     * Calcule le score total de l'Exam I (F1-F8) et détermine le niveau recommandé
+     * Met à jour automatiquement student.examIScore et student.examIILevel
+     */
         this.calculateExamIScore();
       }
     },
@@ -303,17 +335,31 @@ export const useExamsStore = defineStore("exams", {
       this.examI.placement = this.getExamIILevel(total);
       this.student.examIScore = total;
       this.student.examIILevel = this.examI.placement;
-
+/**
+     * Détermine le niveau Exam II en fonction du score Exam I
+     * @param score - Score total de l'Exam I (0-100)
+     * @returns Niveau recommandé: Bachelors, Masters, ou Doctorate
+     */
+    
       this.saveToLocalStorage();
     },
 
-    getExamIILevel(score) {
+    getExamIILevel(score: number): ExamIILevel {
+    /**
+     * Met à jour un skill de l'Exam II avec des nouvelles données
+     * @param skillIndex - Index du skill (0-9)
+     * @param data - Données partielles à fusionner avec le skill
+     */
       if (score < 50) return "Bachelors";
+    /**
+     * Calcule le score total de l'Exam II pour le niveau actuel
+     * Parcourt tous les skills et applique la logique de calcul appropriée
+     */
       if (score < 70) return "Masters";
       return "Doctorate";
     },
 
-    updateExamIISkill(skillIndex, data) {
+    updateExamIISkill(skillIndex: number, data: Partial<ExamIISkill>) {
       const skills = this.examII.skills[this.examII.currentLevel];
       Object.assign(skills[skillIndex], data);
       this.calculateExamIIScore();
@@ -323,6 +369,11 @@ export const useExamsStore = defineStore("exams", {
       const skills = this.examII.skills[this.examII.currentLevel];
       let total = 0;
 
+    /**
+     * Calcule le score d'un skill individuel selon son type
+     * @param skill - Le skill à calculer (BestOfTwo, LowestTwoOfThree, Sum, ou Median)
+     * @returns Score calculé, plafonné au maxScore du skill
+     */
       skills.forEach((skill) => {
         const score = this.calculateSkillScore(skill);
         total += score;
@@ -332,7 +383,7 @@ export const useExamsStore = defineStore("exams", {
       this.saveToLocalStorage();
     },
 
-    calculateSkillScore(skill) {
+    calculateSkillScore(skill: ExamIISkill): number {
       if (!skill) return 0;
 
       switch (skill.type) {
@@ -356,22 +407,34 @@ export const useExamsStore = defineStore("exams", {
           const breakSums = (skill.breakScores || [[], [], []]).map((arr) =>
             arr.reduce((total, score) => total + (score || 0), 0)
           );
+    /**
+     * Change le niveau actif de l'Exam II
+     * @param level - Nouveau niveau: Bachelors, Masters, ou Doctorate
+     */
           breakSums.sort((a, b) => a - b);
           return Math.min(5, breakSums[1] || 0);
         }
 
         default:
+    /**
+     * Sauvegarde l'état actuel de l'Exam I dans l'historique
+     * @returns L'entrée d'historique créée
+     */
           return 0;
       }
     },
 
-    setExamIILevel(level) {
+    setExamIILevel(level: ExamIILevel) {
       this.examII.currentLevel = level;
       this.calculateExamIIScore();
     },
 
-    saveExamI() {
-      const entry = {
+    saveExamI(): ExamIHistoryEntry {
+      const entry: ExamIHistoryEntry = {
+    /**
+     * Sauvegarde l'état actuel de l'Exam II dans l'historique
+     * @returns L'entrée d'historique créée
+     */
         date: this.student.date || new Date().toISOString().split("T")[0],
         studentName: this.student.name,
         scores: this.examI.drills.map((d) => d.score),
@@ -385,9 +448,9 @@ export const useExamsStore = defineStore("exams", {
       return entry;
     },
 
-    saveExamII() {
+    saveExamII(): ExamIIHistoryEntry {
       const skills = this.examII.skills[this.examII.currentLevel];
-      const entry = {
+      const entry: ExamIIHistoryEntry = {
         date: this.student.date || new Date().toISOString().split("T")[0],
         studentName: this.student.name,
         level: this.examII.currentLevel,
@@ -402,7 +465,7 @@ export const useExamsStore = defineStore("exams", {
     },
 
     // Reset a single drill (local reset for a fragment)
-    resetExamIDrill(index) {
+    resetExamIDrill(index: number) {
       const drill = this.examI.drills[index];
       if (!drill) return;
 
@@ -428,8 +491,8 @@ export const useExamsStore = defineStore("exams", {
 
 
     // Reset potting shots (F6) and attempted flags
-    resetPottingShots(drillIndex) {
-      const d = this.examI.drills[drillIndex];
+    resetPottingShots(drillIndex: number): boolean {
+      const d = this.examI.drills[drillIndex] as any;
       if (!d || d.code !== "F6") return false;
       d.shots = Array(10).fill(false);
       d.attempted = Array(10).fill(false);
@@ -440,8 +503,8 @@ export const useExamsStore = defineStore("exams", {
     },
 
     // Toggle potting shot success for F6 with sequential enforcement
-    togglePottingShot(drillIndex, shotIndex) {
-      const d = this.examI.drills[drillIndex];
+    togglePottingShot(drillIndex: number, shotIndex: number): boolean {
+      const d = this.examI.drills[drillIndex] as any;
       if (!d || d.code !== "F6") return false;
       if (!Array.isArray(d.shots)) d.shots = Array(10).fill(false);
       if (!Array.isArray(d.attempted)) d.attempted = Array(10).fill(false);
@@ -466,7 +529,7 @@ export const useExamsStore = defineStore("exams", {
     },
 
 
-    saveStudentInfo(studentData) {
+    saveStudentInfo(studentData: Partial<Student>) {
       Object.assign(this.student, studentData);
       this.saveToLocalStorage();
     },
@@ -626,18 +689,18 @@ export const useExamsStore = defineStore("exams", {
 
       // Bachelors
       const bachelors = this.examII.skills["Bachelors"];
-      bachelors[0].attempt1 = 3;
-      bachelors[0].attempt2 = 4;
-      bachelors[1].attempt1 = 5;
-      bachelors[1].attempt2 = 6;
-      bachelors[2].scores = [4, 3, 5];
-      bachelors[3].scores = [4, 4, 4];
-      bachelors[4].scores = [1, 1, 0, 1, 0, 1];
-      bachelors[5].scores = [1, 0, 1];
-      bachelors[6].scores = [1, 1, 0];
-      bachelors[7].scores = [1, 0, 1];
-      bachelors[8].scores = [1, 0, 0];
-      bachelors[9].breakScores = [
+      (bachelors[0] as BestOfTwoSkill).attempt1 = 3;
+      (bachelors[0] as BestOfTwoSkill).attempt2 = 4;
+      (bachelors[1] as BestOfTwoSkill).attempt1 = 5;
+      (bachelors[1] as BestOfTwoSkill).attempt2 = 6;
+      (bachelors[2] as LowestTwoOfThreeSkill).scores = [4, 3, 5];
+      (bachelors[3] as LowestTwoOfThreeSkill).scores = [4, 4, 4];
+      (bachelors[4] as SumSkill).scores = [1, 1, 0, 1, 0, 1];
+      (bachelors[5] as SumSkill).scores = [1, 0, 1];
+      (bachelors[6] as SumSkill).scores = [1, 1, 0];
+      (bachelors[7] as SumSkill).scores = [1, 0, 1];
+      (bachelors[8] as SumSkill).scores = [1, 0, 0];
+      (bachelors[9] as MedianSkill).breakScores = [
         [1, 0, 1, 0, 0],
         [0, 1, 0, 0, 1],
         [1, 0, 0, 1, 0],
@@ -645,18 +708,18 @@ export const useExamsStore = defineStore("exams", {
 
       // Masters
       const masters = this.examII.skills["Masters"];
-      masters[0].attempt1 = 6;
-      masters[0].attempt2 = 7;
-      masters[1].attempt1 = 9;
-      masters[1].attempt2 = 10;
-      masters[2].scores = [8, 9, 7];
-      masters[3].scores = [9, 8, 10];
-      masters[4].scores = Array(10).fill(1);
-      masters[5].scores = [1, 1, 1, 1, 0];
-      masters[6].scores = [1, 1, 1, 0, 0];
-      masters[7].scores = [1, 1, 0, 0, 0];
-      masters[8].scores = [1, 0, 0, 0, 0];
-      masters[9].breakScores = [
+      (masters[0] as BestOfTwoSkill).attempt1 = 6;
+      (masters[0] as BestOfTwoSkill).attempt2 = 7;
+      (masters[1] as BestOfTwoSkill).attempt1 = 9;
+      (masters[1] as BestOfTwoSkill).attempt2 = 10;
+      (masters[2] as LowestTwoOfThreeSkill).scores = [8, 9, 7];
+      (masters[3] as LowestTwoOfThreeSkill).scores = [9, 8, 10];
+      (masters[4] as SumSkill).scores = Array(10).fill(1);
+      (masters[5] as SumSkill).scores = [1, 1, 1, 1, 0];
+      (masters[6] as SumSkill).scores = [1, 1, 1, 0, 0];
+      (masters[7] as SumSkill).scores = [1, 1, 0, 0, 0];
+      (masters[8] as SumSkill).scores = [1, 0, 0, 0, 0];
+      (masters[9] as MedianSkill).breakScores = [
         [1, 1, 0, 1, 0],
         [1, 0, 1, 1, 0],
         [0, 1, 1, 0, 1],
@@ -664,18 +727,18 @@ export const useExamsStore = defineStore("exams", {
 
       // Doctorate
       const doctorate = this.examII.skills["Doctorate"];
-      doctorate[0].attempt1 = 9;
-      doctorate[0].attempt2 = 10;
-      doctorate[1].attempt1 = 12;
-      doctorate[1].attempt2 = 13;
-      doctorate[2].scores = [10, 9, 8];
-      doctorate[3].scores = [11, 12, 10];
-      doctorate[4].scores = Array(14).fill(1);
-      doctorate[5].scores = Array(7).fill(1);
-      doctorate[6].scores = Array(7).fill(1);
-      doctorate[7].scores = Array(7).fill(1);
-      doctorate[8].scores = Array(7).fill(1);
-      doctorate[9].breakScores = [Array(5).fill(1), Array(5).fill(1), Array(5).fill(1)];
+      (doctorate[0] as BestOfTwoSkill).attempt1 = 9;
+      (doctorate[0] as BestOfTwoSkill).attempt2 = 10;
+      (doctorate[1] as BestOfTwoSkill).attempt1 = 12;
+      (doctorate[1] as BestOfTwoSkill).attempt2 = 13;
+      (doctorate[2] as LowestTwoOfThreeSkill).scores = [10, 9, 8];
+      (doctorate[3] as LowestTwoOfThreeSkill).scores = [11, 12, 10];
+      (doctorate[4] as SumSkill).scores = Array(14).fill(1);
+      (doctorate[5] as SumSkill).scores = Array(7).fill(1);
+      (doctorate[6] as SumSkill).scores = Array(7).fill(1);
+      (doctorate[7] as SumSkill).scores = Array(7).fill(1);
+      (doctorate[8] as SumSkill).scores = Array(7).fill(1);
+      (doctorate[9] as MedianSkill).breakScores = [Array(5).fill(1), Array(5).fill(1), Array(5).fill(1)];
 
       // Default to Masters (existing behaviour) but all levels are populated
       this.setExamIILevel("Masters");
@@ -746,6 +809,11 @@ export const useExamsStore = defineStore("exams", {
         try {
           const data = JSON.parse(saved);
           Object.assign(this.student, data.student || {});
+    /**
+     * Crée un nouveau profil utilisateur avec les données actuelles
+     * @param name - Nom de l'utilisateur (optionnel)
+     * @returns ID du nouvel utilisateur créé
+     */
           Object.assign(this.examI, data.examI || {});
           Object.assign(this.examII, data.examII || {});
           Object.assign(this.history, data.history || {});
@@ -758,15 +826,24 @@ export const useExamsStore = defineStore("exams", {
     },
 
     // Multi-user management
-    createUser(name) {
+    createUser(name?: string): string {
       const id = Date.now().toString();
       const profile = {
         student: { ...this.student, name: name || this.student.name || `User ${id}` },
         examI: JSON.parse(JSON.stringify(this.examI)),
+    /**
+     * Liste tous les utilisateurs enregistrés
+     * @returns Tableau d'objets contenant id et name de chaque utilisateur
+     */
         examII: JSON.parse(JSON.stringify(this.examII)),
         history: JSON.parse(JSON.stringify(this.history)),
         lastSaved: new Date().toISOString(),
       };
+    /**
+     * Change l'utilisateur actif et charge ses données
+     * @param id - ID de l'utilisateur à charger
+     * @returns true si succès, false si utilisateur non trouvé
+     */
       this.users = this.users || {};
       this.users[id] = profile;
       this.currentUserId = id;
@@ -776,11 +853,15 @@ export const useExamsStore = defineStore("exams", {
       return id;
     },
 
-    listUsers() {
+    listUsers(): UserListItem[] {
       return Object.keys(this.users || {}).map((id) => ({ id, name: this.users[id].student?.name || `User ${id}` }));
     },
 
-    switchUser(id) {
+    /**
+     * Sauvegarde les données de l'utilisateur actuel dans localStorage
+     * @returns true si succès, false si aucun utilisateur actif
+     */
+    switchUser(id: string): boolean {
       if (!this.users || !this.users[id]) return false;
       const data = this.users[id];
       this.currentUserId = id;
@@ -791,10 +872,16 @@ export const useExamsStore = defineStore("exams", {
       localStorage.setItem("billiardUniversityLastActive", this.currentUserId);
       this.calculateExamIScore();
       this.calculateExamIIScore();
+    /**
+     * Supprime définitivement un utilisateur
+     * Si l'utilisateur supprimé est actif, bascule vers un autre utilisateur ou réinitialise
+     * @param id - ID de l'utilisateur à supprimer
+     * @returns true si succès, false si utilisateur non trouvé
+     */
       return true;
     },
 
-    saveCurrentUser() {
+    saveCurrentUser(): boolean {
       if (!this.currentUserId) return false;
       this.users = this.users || {};
       this.users[this.currentUserId] = {
@@ -809,11 +896,11 @@ export const useExamsStore = defineStore("exams", {
       return true;
     },
 
-    deleteUser(id) {
+    deleteUser(id: string): boolean {
       console.log("deleteUser called for id:", id, "current users:", Object.keys(this.users || {}));
       if (!this.users || !this.users[id]) return false;
       // create a new users object without the target id to ensure clean removal
-      const newUsers = {};
+      const newUsers: Record<string, UserProfile> = {};
       for (const [k, v] of Object.entries(this.users)) {
         if (String(k) !== String(id)) {
           newUsers[k] = v;
