@@ -25,7 +25,7 @@
         </div>
         <!-- Figure with special overlay for F6 (Potting) -->
         <div v-if="getFigure(drill.code)" class="drill-figure-wrap">
-          <template v-if="drill.code === 'F6'">
+          <template v-if="drill.type === 'counting'">
             <div class="f6-potting-section">
               <div class="f6-figure-display">
                 <img :src="getFigure(drill.code)?.src" :alt="drill.code + ' figure'" class="drill-figure f6-figure" />
@@ -40,32 +40,34 @@
                 <div
                   class="potting-grid"
                   role="group"
-                  :aria-label="'F6 potting shots grid for ' + (student.name || 'student')"
+                  :aria-label="drill.code + ' attempts grid for ' + (student.name || 'student')"
                 >
-                  <button
-                    v-for="i in 10"
-                    :key="i"
-                    class="potting-shot-btn"
-                    :class="{
-                      success: pot(drill).shots?.[i-1],
-                      miss: pot(drill).attempted?.[i-1] && !(pot(drill).shots?.[i-1])
-                    }"
-                    @click="togglePotting(index, i-1)"
-                    @keydown.space.prevent="togglePotting(index, i-1)"
-                    @keydown.enter.prevent="togglePotting(index, i-1)"
-                    :aria-pressed="pot(drill).shots?.[i-1] ? 'true' : 'false'"
-                    :aria-label="'Shot ' + i"
-                    tabindex="0"
-                  >
-                    <span v-if="!(pot(drill).attempted && pot(drill).attempted[i-1])" class="shot-number">{{ i }}</span>
-                    <span v-else-if="pot(drill).shots && pot(drill).shots[i-1]" class="shot-icon">✓</span>
-                    <span v-else class="shot-icon">✗</span>
-                  </button>
+                  <div class="target" v-for="t in (drill.attempts ? drill.attempts.length : (drill.code === 'F8' ? 5 : 10))" :key="t">
+                    <div class="attempts" v-for="a in (drill.attempts && drill.attempts[t-1] ? drill.attempts[t-1].length : (drill.code === 'F7' ? 2 : drill.code === 'F8' ? 4 : 1))" :key="a">
+                      <button
+                        class="potting-shot-btn"
+                        :class="{
+                          success: drill.attempts && (drill.attempts[t-1]?.[a-1] === true),
+                          miss: drill.attempts && (drill.attempts[t-1]?.[a-1] === false)
+                        }"
+                        @click="toggleCounting(index, t-1, a-1)"
+                        @keydown.space.prevent="toggleCounting(index, t-1, a-1)"
+                        @keydown.enter.prevent="toggleCounting(index, t-1, a-1)"
+                        :aria-pressed="drill.attempts && drill.attempts[t-1]?.[a-1] === true ? 'true' : 'false'"
+                        :aria-label="'Target ' + t + ' attempt ' + a"
+                        tabindex="0"
+                      >
+                        <span v-if="drill.attempts && drill.attempts[t-1] && drill.attempts[t-1][a-1] === null" class="shot-number">{{ t }}</span>
+                        <span v-else-if="drill.attempts && drill.attempts[t-1] && drill.attempts[t-1][a-1] === true" class="shot-icon">✓</span>
+                        <span v-else class="shot-icon">✗</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               <div class="potting-instructions">
-                <p><small>Cliquez sur chaque tir pour marquer succès/échec. Les tirs doivent être tentés dans l'ordre.</small></p>
+                <p><small>Click each attempt to mark success/failure. Attempts are sequential.</small></p>
               </div>
 
               <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
@@ -149,31 +151,11 @@
           <div class="bonus-info">
             <i class="fas fa-star"></i> Bonus: {{ drill.bonus }} successes at 7
           </div>
-          <div class="calc-note">Le calcul sera effectué après le dernier shot.</div>
+          <div class="calc-note">Score will be calculated after the last shot.</div>
         </div>
 
         <div v-else class="drill-content">
           <p class="instructions">{{ drill.instructions }}</p>
-          <div class="counter-controls">
-            <template v-if="drill.code !== 'F6'">
-              <button :disabled="drill.score <= 0" class="counter-btn" @click="decrementScore(index)" title="Decrement">
-                <i class="fas fa-minus"></i>
-              </button>
-              <div class="counter-display">
-                <span class="counter-value">{{ drill.score }}</span>
-                <span class="counter-max">/{{ drill.maxScore }}</span>
-              </div>
-              <button :disabled="drill.score >= drill.maxScore" class="counter-btn" @click="incrementScore(index)" title="Increment">
-                <i class="fas fa-plus"></i>
-              </button>
-            </template>
-            <template v-else>
-              <div class="counter-display">
-                <span class="counter-value">{{ drill.score }}</span>
-                <span class="counter-max">/{{ drill.maxScore }}</span>
-              </div>
-            </template>
-          </div>
         </div>
       </div>
     </div>
@@ -221,8 +203,7 @@
     <div class="figures-section">
       <h3><i class="fas fa-image"></i> Figures & Explanations</h3>
       <p class="fig-note">
-        Images intégrées depuis <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Légendes
-        paraphrasées; source attribuée à l'auteur.
+        Images embedded from <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Captions paraphrased; source attributed to the author.
       </p>
       <div class="figures-grid">
         <div v-for="(f, i) in figures" :key="i" class="figure-card">
@@ -574,14 +555,7 @@ export default {
       const store = useExamsStore();
       store.resetExamIDrill(index);
     },
-    incrementScore(index) {
-      const store = useExamsStore();
-      store.incrementDrillScore(index);
-    },
-    decrementScore(index) {
-      const store = useExamsStore();
-      store.decrementDrillScore(index);
-    },
+
     saveExamI() {
       const store = useExamsStore();
       store.saveExamI();
@@ -599,14 +573,20 @@ export default {
         store.loadSampleExamI();
       }
     },
-    // F6 (potting) UI interactions
-    togglePotting(drillIndex, shotIndex) {
+    // Counting drills UI interactions (F6/F7/F8)
+    toggleCounting(drillIndex, targetIndex, attemptIndex) {
       const store = useExamsStore();
-      const ok = store.togglePottingShot(drillIndex, shotIndex);
+      const ok = store.toggleCountingAttempt(drillIndex, targetIndex, attemptIndex);
       if (!ok) return;
-      // find the drill and ensure local reactivity
+      // ensure reactivity by reading the drill
       const drill = store.examI.drills[drillIndex];
     },
+
+    // Backwards compatible wrapper for single-attempt counting drills (F6)
+    togglePotting(drillIndex, shotIndex) {
+      return this.toggleCounting(drillIndex, shotIndex, 0);
+    },
+
 
     // Hotspot tuner (dev-only, enabled by URL param `?hotspot-edit`)
     toggleHotspotTuner(drillIndex) {

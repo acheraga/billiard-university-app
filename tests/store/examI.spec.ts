@@ -48,4 +48,46 @@ describe('Exam I store behaviours', () => {
     // bonus = number of successes at 7 = 4 -> score = min(maxScore(10), 7+4) = 10
     expect(d.score).toBe(10);
   });
+
+  it('F7 counting attempts sequential and score', () => {
+    const store = useExamsStore();
+    const idx = 6; // F7
+    const d: any = store.examI.drills[idx];
+    d.code = 'F7';
+    d.maxScore = 20;
+
+    // cannot do second attempt of first target before first attempt
+    expect(store.toggleCountingAttempt(idx, 0, 1)).toBe(false);
+
+    // do first attempt of target 0
+    expect(store.toggleCountingAttempt(idx, 0, 0)).toBe(true);
+    expect(d.attempts[0][0]).toBe(true);
+    expect(d.score).toBe(1);
+
+    // now second attempt of target 0 allowed
+    expect(store.toggleCountingAttempt(idx, 0, 1)).toBe(true);
+    expect(d.attempts[0][1]).toBe(true);
+    expect(d.score).toBe(2);
+
+    // first attempt of target 1 now allowed because previous attempt done
+    expect(store.toggleCountingAttempt(idx, 1, 0)).toBe(true);
+  });
+
+  it('F8 counting attempts with 4 attempts per target and scoring', () => {
+    const store = useExamsStore();
+    const idx = 7; // F8
+    const d: any = store.examI.drills[idx];
+    d.code = 'F8';
+    d.maxScore = 20;
+
+    // sequential attempts on target 0
+    expect(store.toggleCountingAttempt(idx, 0, 0)).toBe(true);
+    expect(store.toggleCountingAttempt(idx, 0, 1)).toBe(true);
+    expect(store.toggleCountingAttempt(idx, 0, 2)).toBe(true);
+    expect(store.toggleCountingAttempt(idx, 0, 3)).toBe(true);
+    expect(d.score).toBe(4);
+
+    // next target first attempt allowed
+    expect(store.toggleCountingAttempt(idx, 1, 0)).toBe(true);
+  });
 });
