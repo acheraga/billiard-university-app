@@ -28,7 +28,11 @@
           <template v-if="drill.type === 'counting'">
             <div class="f6-potting-section">
               <div class="f6-figure-display">
-                <img :src="getFigure(drill.code)?.src" :alt="drill.code + ' figure'" class="drill-figure f6-figure" />
+                <img
+                  :src="getFigure(drill.code)?.src"
+                  :alt="drill.code + ' figure'"
+                  class="drill-figure f6-figure"
+                />
               </div>
 
               <div class="potting-info-header">
@@ -42,23 +46,61 @@
                   role="group"
                   :aria-label="drill.code + ' attempts grid for ' + (student.name || 'student')"
                 >
-                  <div class="target" v-for="t in (drill.attempts ? drill.attempts.length : (drill.code === 'F8' ? 5 : 10))" :key="t">
-                    <div class="attempts" v-for="a in (drill.attempts && drill.attempts[t-1] ? drill.attempts[t-1].length : (drill.code === 'F7' ? 2 : drill.code === 'F8' ? 4 : 1))" :key="a">
+                  <div
+                    class="target"
+                    v-for="t in drill.attempts
+                      ? drill.attempts.length
+                      : drill.code === 'F8'
+                        ? 5
+                        : 10"
+                    :key="t"
+                  >
+                    <div
+                      class="attempts"
+                      v-for="a in drill.attempts && drill.attempts[t - 1]
+                        ? drill.attempts[t - 1].length
+                        : drill.code === 'F7'
+                          ? 2
+                          : drill.code === 'F8'
+                            ? 4
+                            : 1"
+                      :key="a"
+                    >
                       <button
                         class="potting-shot-btn"
                         :class="{
-                          success: drill.attempts && (drill.attempts[t-1]?.[a-1] === true),
-                          miss: drill.attempts && (drill.attempts[t-1]?.[a-1] === false)
+                          success: drill.attempts && drill.attempts[t - 1]?.[a - 1] === true,
+                          miss: drill.attempts && drill.attempts[t - 1]?.[a - 1] === false,
                         }"
-                        @click="toggleCounting(index, t-1, a-1)"
-                        @keydown.space.prevent="toggleCounting(index, t-1, a-1)"
-                        @keydown.enter.prevent="toggleCounting(index, t-1, a-1)"
-                        :aria-pressed="drill.attempts && drill.attempts[t-1]?.[a-1] === true ? 'true' : 'false'"
+                        @click="toggleCounting(index, t - 1, a - 1)"
+                        @keydown.space.prevent="toggleCounting(index, t - 1, a - 1)"
+                        @keydown.enter.prevent="toggleCounting(index, t - 1, a - 1)"
+                        :aria-pressed="
+                          drill.attempts && drill.attempts[t - 1]?.[a - 1] === true
+                            ? 'true'
+                            : 'false'
+                        "
                         :aria-label="'Target ' + t + ' attempt ' + a"
                         tabindex="0"
                       >
-                        <span v-if="drill.attempts && drill.attempts[t-1] && drill.attempts[t-1][a-1] === null" class="shot-number">{{ t }}</span>
-                        <span v-else-if="drill.attempts && drill.attempts[t-1] && drill.attempts[t-1][a-1] === true" class="shot-icon">✓</span>
+                        <span
+                          v-if="
+                            drill.attempts &&
+                            drill.attempts[t - 1] &&
+                            drill.attempts[t - 1][a - 1] === null
+                          "
+                          class="shot-number"
+                          >{{ t }}</span
+                        >
+                        <span
+                          v-else-if="
+                            drill.attempts &&
+                            drill.attempts[t - 1] &&
+                            drill.attempts[t - 1][a - 1] === true
+                          "
+                          class="shot-icon"
+                          >✓</span
+                        >
                         <span v-else class="shot-icon">✗</span>
                       </button>
                     </div>
@@ -67,25 +109,41 @@
               </div>
 
               <div class="potting-instructions">
-                <p><small>Click each attempt to mark success/failure. Attempts are sequential.</small></p>
+                <p>
+                  <small
+                    >Click each attempt to mark success/failure. Attempts are sequential.</small
+                  >
+                </p>
               </div>
 
               <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
                 <button class="btn btn-secondary" @click="toggleHotspotTuner(index)">
-                  {{ hotspotTuner.activeIndex === index ? 'Close Hotspot Tuner' : 'Edit Hotspots (dev)' }}
+                  {{
+                    hotspotTuner.activeIndex === index
+                      ? "Close Hotspot Tuner"
+                      : "Edit Hotspots (dev)"
+                  }}
                 </button>
 
                 <div v-if="hotspotTuner.activeIndex === index" class="hotspot-tuner">
                   <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords || []" :key="i">
                     <div class="tuner-label">Shot {{ i + 1 }}</div>
                     <div class="tuner-controls">
-                      <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">←</button>
+                      <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">
+                        ←
+                      </button>
                       <input v-model="c.left" />
-                      <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">→</button>
+                      <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">
+                        →
+                      </button>
 
-                      <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">↑</button>
+                      <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">
+                        ↑
+                      </button>
                       <input v-model="c.top" />
-                      <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">↓</button>
+                      <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">
+                        ↓
+                      </button>
 
                       <span class="drag-hint">(Drag on image to move)</span>
                     </div>
@@ -101,7 +159,11 @@
           </template>
 
           <template v-else>
-            <img :src="getFigure(drill.code)?.src" :alt="drill.code + ' figure'" class="drill-figure" />
+            <img
+              :src="getFigure(drill.code)?.src"
+              :alt="drill.code + ' figure'"
+              class="drill-figure"
+            />
             <div class="drill-figure-caption">{{ getFigure(drill.code)?.caption }}</div>
           </template>
         </div>
@@ -203,7 +265,8 @@
     <div class="figures-section">
       <h3><i class="fas fa-image"></i> Figures & Explanations</h3>
       <p class="fig-note">
-        Images embedded from <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Captions paraphrased; source attributed to the author.
+        Images embedded from <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Captions paraphrased;
+        source attributed to the author.
       </p>
       <div class="figures-grid">
         <div v-for="(f, i) in figures" :key="i" class="figure-card">
@@ -321,11 +384,16 @@ export default {
       ],
       hotspotTuner: {
         // enabled when URL contains ?hotspot-edit (keeps dev tool off by default in production)
-        available: !!(typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('hotspot-edit')),
+        available: !!(
+          typeof window !== "undefined" &&
+          window.location &&
+          window.location.search &&
+          window.location.search.includes("hotspot-edit")
+        ),
         activeIndex: null,
         tempCoords: null,
         dragging: null,
-      }
+      },
     };
   },
   computed: {
@@ -378,10 +446,10 @@ export default {
   },
   beforeUnmount() {
     // Cleanup any event listeners used by the hotspot tuner
-    window.removeEventListener('mousemove', this.onWindowMove);
-    window.removeEventListener('touchmove', this.onWindowMove);
-    window.removeEventListener('mouseup', this.onWindowUp);
-    window.removeEventListener('touchend', this.onWindowUp);
+    window.removeEventListener("mousemove", this.onWindowMove);
+    window.removeEventListener("touchmove", this.onWindowMove);
+    window.removeEventListener("mouseup", this.onWindowUp);
+    window.removeEventListener("touchend", this.onWindowUp);
   },
   methods: {
     getFigure(code: string): Figure | null {
@@ -587,7 +655,6 @@ export default {
       return this.toggleCounting(drillIndex, shotIndex, 0);
     },
 
-
     // Hotspot tuner (dev-only, enabled by URL param `?hotspot-edit`)
     toggleHotspotTuner(drillIndex) {
       if (this.hotspotTuner.activeIndex === drillIndex) {
@@ -596,7 +663,10 @@ export default {
       }
       this.hotspotTuner.activeIndex = drillIndex;
       // deep copy coords for editing
-      this.hotspotTuner.tempCoords = (this.pottingCoords || []).map((c) => ({ left: String(c.left), top: String(c.top) }));
+      this.hotspotTuner.tempCoords = (this.pottingCoords || []).map((c) => ({
+        left: String(c.left),
+        top: String(c.top),
+      }));
     },
     cancelHotspotTuner() {
       this.hotspotTuner.activeIndex = null;
@@ -604,16 +674,20 @@ export default {
       this.hotspotTuner.dragging = null;
     },
     saveHotspotTuner(drillIndex) {
-      if (this.hotspotTuner.activeIndex !== drillIndex || !Array.isArray(this.hotspotTuner.tempCoords)) return;
+      if (
+        this.hotspotTuner.activeIndex !== drillIndex ||
+        !Array.isArray(this.hotspotTuner.tempCoords)
+      )
+        return;
       // sanitize and commit to pottingCoords
       this.pottingCoords = this.hotspotTuner.tempCoords.map((c) => {
         let l = String(c.left).trim();
         let t = String(c.top).trim();
         const tryNum = (s) => {
-          const n = Number(String(s).replace('%', ''));
+          const n = Number(String(s).replace("%", ""));
           if (!isNaN(n)) {
             const clamped = Math.max(0, Math.min(100, Math.round(n)));
-            return clamped + '%';
+            return clamped + "%";
           }
           return s;
         };
@@ -625,61 +699,67 @@ export default {
       if (!this.hotspotTuner.tempCoords) return;
       const p = this.hotspotTuner.tempCoords[i];
       const parsePercent = (s) => {
-        const n = Number(String(s).replace('%', '')) || 0;
+        const n = Number(String(s).replace("%", "")) || 0;
         return n;
       };
       const l = Math.max(0, Math.min(100, parsePercent(p.left) + deltaLeft));
       const t = Math.max(0, Math.min(100, parsePercent(p.top) + deltaTop));
-      p.left = l + '%';
-      p.top = t + '%';
+      p.left = l + "%";
+      p.top = t + "%";
     },
     startDrag(evt, drillIndex, i) {
       const target = evt.target || evt.srcElement;
-      const figureWrap = target.closest('.figure-image-wrap');
+      const figureWrap = target.closest(".figure-image-wrap");
       if (!figureWrap) return;
       const rect = figureWrap.getBoundingClientRect();
       // store index and rect
       this.hotspotTuner.dragging = { drillIndex, i, rect };
       // attach listeners
-      window.addEventListener('mousemove', this.onWindowMove);
-      window.addEventListener('touchmove', this.onWindowMove, { passive: false });
-      window.addEventListener('mouseup', this.onWindowUp);
-      window.addEventListener('touchend', this.onWindowUp);
+      window.addEventListener("mousemove", this.onWindowMove);
+      window.addEventListener("touchmove", this.onWindowMove, { passive: false });
+      window.addEventListener("mouseup", this.onWindowUp);
+      window.addEventListener("touchend", this.onWindowUp);
       // initial position
       this.onWindowMove(evt);
     },
     onWindowMove(e) {
       const d = this.hotspotTuner.dragging;
       if (!d) return;
-      const clientX = e.touches ? e.touches[0].clientX : (e.clientX || 0);
-      const clientY = e.touches ? e.touches[0].clientY : (e.clientY || 0);
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX || 0;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY || 0;
       const rect = d.rect;
       let x = ((clientX - rect.left) / rect.width) * 100;
       let y = ((clientY - rect.top) / rect.height) * 100;
       x = Math.max(0, Math.min(100, Math.round(x)));
       y = Math.max(0, Math.min(100, Math.round(y)));
       if (this.hotspotTuner.tempCoords && this.hotspotTuner.tempCoords[d.i]) {
-        this.hotspotTuner.tempCoords[d.i].left = x + '%';
-        this.hotspotTuner.tempCoords[d.i].top = y + '%';
+        this.hotspotTuner.tempCoords[d.i].left = x + "%";
+        this.hotspotTuner.tempCoords[d.i].top = y + "%";
       } else if (this.hotspotTuner.tempCoords) {
-        this.hotspotTuner.tempCoords[d.i] = { left: x + '%', top: y + '%' };
+        this.hotspotTuner.tempCoords[d.i] = { left: x + "%", top: y + "%" };
       }
       if (e.preventDefault) e.preventDefault();
     },
     onWindowUp() {
-      window.removeEventListener('mousemove', this.onWindowMove);
-      window.removeEventListener('touchmove', this.onWindowMove);
-      window.removeEventListener('mouseup', this.onWindowUp);
-      window.removeEventListener('touchend', this.onWindowUp);
+      window.removeEventListener("mousemove", this.onWindowMove);
+      window.removeEventListener("touchmove", this.onWindowMove);
+      window.removeEventListener("mouseup", this.onWindowUp);
+      window.removeEventListener("touchend", this.onWindowUp);
       this.hotspotTuner.dragging = null;
     },
     hotspotStyle(drillIndex, i, c) {
-      if (this.hotspotTuner.activeIndex === drillIndex && this.hotspotTuner.tempCoords && this.hotspotTuner.tempCoords[i]) {
-        return { left: this.hotspotTuner.tempCoords[i].left, top: this.hotspotTuner.tempCoords[i].top };
+      if (
+        this.hotspotTuner.activeIndex === drillIndex &&
+        this.hotspotTuner.tempCoords &&
+        this.hotspotTuner.tempCoords[i]
+      ) {
+        return {
+          left: this.hotspotTuner.tempCoords[i].left,
+          top: this.hotspotTuner.tempCoords[i].top,
+        };
       }
       return { left: c.left, top: c.top };
     },
-
 
     getScoreColor(score, max) {
       const percentage = (score / max) * 100;
@@ -694,7 +774,9 @@ export default {
 
 <style scoped>
 .exam-i-container {
-  padding: 1rem;
+  /* minimized container padding to reduce outer margins around F1..F8 */
+  padding: 0.25rem;
+  box-sizing: border-box;
 }
 
 .exam-header {
@@ -741,20 +823,32 @@ export default {
 
 .drills-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  /* panels maximized: larger minimum width makes each drill card wider */
+  grid-template-columns: repeat(auto-fit, minmax(680px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+/* For narrow viewports, force a single column so each panel uses full width */
+@media (max-width: 1000px) {
+  .drills-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+  .drill-card {
+    padding: 1rem;
+  }
 }
 
 .drill-card {
   background: white;
   border: 1px solid #e0e0e0;
-  border-radius: 10px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
+  padding: 0.6rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    transform 0.12s,
+    box-shadow 0.12s;
 }
 
 .drill-card:hover {
@@ -1203,20 +1297,27 @@ input[type="number"].no-spin {
     flex-direction: column;
     text-align: center;
   }
+  /* reduce outer padding to give more horizontal space */
+  .exam-i-container {
+    padding: 0.5rem;
+  }
   .exam-stats {
     width: 100%;
     justify-content: center;
   }
   .drills-grid {
     grid-template-columns: 1fr;
+    gap: 0.6rem;
   }
   .drill-card {
     min-width: 0;
     width: 100%;
+    padding: 0.6rem;
+    border-radius: 8px;
   }
   .shots-grid {
     grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
   .shot-cell {
     min-width: 0;
@@ -1317,7 +1418,7 @@ input[type="number"].no-spin {
   height: auto;
   border-radius: 8px;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .potting-info-header {
@@ -1370,18 +1471,18 @@ input[type="number"].no-spin {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .potting-shot-btn:hover:not(:disabled) {
   background: #ecf0f1;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .potting-shot-btn:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(52,152,219,0.3);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
   border-color: #3498db;
 }
 
@@ -1453,19 +1554,22 @@ input[type="number"].no-spin {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.9);
-  border: 2px solid rgba(0,0,0,0.12);
+  background: rgba(255, 255, 255, 0.9);
+  border: 2px solid rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   pointer-events: auto;
   transform: translate(-50%, -50%);
-  transition: transform 0.12s, background-color 0.12s, box-shadow 0.12s;
+  transition:
+    transform 0.12s,
+    background-color 0.12s,
+    box-shadow 0.12s;
 }
 .potting-hotspot:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(52,152,219,0.18);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.18);
 }
 .potting-hotspot .hotspot-label {
   font-size: 0.75rem;
@@ -1489,10 +1593,10 @@ input[type="number"].no-spin {
   border-color: #219653;
 }
 .potting-hotspot.attemptedMiss {
-  background: rgba(255,255,255,0.95);
+  background: rgba(255, 255, 255, 0.95);
   color: #c0392b;
   border-color: #c0392b;
-  box-shadow: inset 0 0 0 2px rgba(192,57,43,0.06);
+  box-shadow: inset 0 0 0 2px rgba(192, 57, 43, 0.06);
 }
 .potting-controls {
   margin-top: 0.5rem;
@@ -1507,7 +1611,7 @@ input[type="number"].no-spin {
   align-items: center;
 }
 .potting-hotspot.editing {
-  box-shadow: 0 0 0 3px rgba(52,152,219,0.15);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
   border-color: #2980b9;
 }
 .hotspot-tuner-wrap {
@@ -1663,8 +1767,17 @@ input[type="number"].no-spin {
 
   /* F6 Potting Grid responsive */
   .potting-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.6rem;
+    /* show 5 buttons per row on smaller screens and reduce spacing */
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.4rem;
+  }
+
+  /* make panels wider on mobile and reduce card padding for more usable width */
+  .drills-grid {
+    gap: 1rem;
+  }
+  .drill-card {
+    padding: 1rem;
   }
 
   .potting-score-badge {
@@ -1677,30 +1790,99 @@ input[type="number"].no-spin {
   }
 }
 
-@media (max-width: 480px) {
+/* Fine-tuned mobile breakpoint for medium small screens */
+@media (max-width: 640px) {
   .potting-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.5rem;
-  }
-
-  .potting-grid-container {
-    padding: 0.75rem;
+    /* ensure 5 buttons per row with slightly tighter spacing */
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.32rem;
   }
 
   .potting-shot-btn {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
+    padding: 0.36rem 0.4rem;
+    border-radius: 6px;
+  }
+
+  .potting-grid-container {
+    padding: 0.55rem;
+  }
+
+  /* further reduce card padding to maximize width on small devices */
+  .drill-card {
+    padding: 0.5rem;
+  }
+
+  /* tighten overall container a bit */
+  .exam-i-container {
+    padding: 0.35rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .potting-grid {
+    /* tighter layout to fit more buttons per row on very small screens */
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.28rem;
+  }
+
+  .potting-grid-container {
+    padding: 0.45rem;
+  }
+
+  .potting-shot-btn {
+    font-size: 0.82rem;
+    padding: 0.28rem;
+  }
+
+  /* minimal card padding to get edge-to-edge feel */
+  .drill-card {
+    padding: 0.4rem;
+  }
+
+  .exam-i-container {
+    padding: 0.25rem;
+  }
+}
+
+/* Mobile landscape: keep 5 items per row for F1..F8 when device rotated */
+@media (orientation: landscape) and (max-width: 900px) {
+  .shots-grid,
+  .potting-grid {
+    grid-template-columns: repeat(5, 1fr) !important;
+    gap: 0.32rem;
+  }
+
+  .shot-cell,
+  .target {
+    min-width: 0;
+  }
+
+  .potting-grid-container {
+    padding: 0.4rem;
+  }
+
+  .potting-shot-btn {
+    font-size: 0.9rem;
+    padding: 0.34rem;
   }
 }
 
 @media (min-width: 1200px) {
-  .drill-figure {
-    max-width: 560px;
+  /* larger panels on wide screens to make F1..F9 more prominent */
+  .drills-grid {
+    grid-template-columns: repeat(auto-fit, minmax(900px, 1fr));
+    gap: 0.8rem;
   }
-  .figure-card img {
+
+  .drill-figure {
     max-width: 760px;
   }
+  .figure-card img {
+    max-width: 880px;
+  }
   .drill-figure-caption {
-    max-width: 560px;
+    max-width: 760px;
     font-size: 1rem;
   }
 }
