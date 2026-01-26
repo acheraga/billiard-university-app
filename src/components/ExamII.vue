@@ -60,6 +60,10 @@
             </div>
           </div>
 
+          <div class="skill-figure">
+            <img :src="getSkillFigure(skill.code)" :alt="`Figure ${skill.code}`" />
+          </div>
+
           <div class="skill-content">
             <!-- Best of Two -->
             <div v-if="skill.type === 'bestOfTwo'" class="skill-inputs">
@@ -248,6 +252,24 @@ export default {
       return `level-${currentLevel.value.toLowerCase()}`;
     });
 
+    // Skill figure assets (S1..S10)
+    const skillFigures: Record<string, string> = {
+      S1: new URL('../assets/exam2_figs/s1.svg', import.meta.url).href,
+      S2: new URL('../assets/exam2_figs/s2.svg', import.meta.url).href,
+      S3: new URL('../assets/exam2_figs/s3.svg', import.meta.url).href,
+      S4: new URL('../assets/exam2_figs/s4.svg', import.meta.url).href,
+      S5: new URL('../assets/exam2_figs/s5.svg', import.meta.url).href,
+      S6: new URL('../assets/exam2_figs/s6.svg', import.meta.url).href,
+      S7: new URL('../assets/exam2_figs/s7.svg', import.meta.url).href,
+      S8: new URL('../assets/exam2_figs/s8.svg', import.meta.url).href,
+      S9: new URL('../assets/exam2_figs/s9.svg', import.meta.url).href,
+      S10: new URL('../assets/exam2_figs/s10.svg', import.meta.url).href,
+    };
+
+    function getSkillFigure(code: string) {
+      return skillFigures[code] || '';
+    }
+
     const skills = computed(() => {
       return store.examII.skills[currentLevel.value] || [];
     });
@@ -338,6 +360,7 @@ export default {
       ratingClass,
       buDiploma,
       setLevel,
+      getSkillFigure,
       calculateSkillScore,
       calculateBreakScore,
       updateSkillScore,
@@ -407,6 +430,21 @@ export default {
   font-size: 0.9rem;
   font-weight: normal;
   color: #6c757d;
+}
+
+.skill-figure {
+  margin: 1rem 0;
+  display: flex;
+  justify-content: center;
+}
+
+.skill-figure img {
+  max-width: 420px;
+  width: 100%;
+  height: auto;
+  border: 1px solid #e8eaef;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(20, 30, 42, 0.04);
 }
 
 .level-info {
