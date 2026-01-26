@@ -252,22 +252,10 @@ export default {
       return `level-${currentLevel.value.toLowerCase()}`;
     });
 
-    // Skill figure assets (S1..S10)
-    const skillFigures: Record<string, string> = {
-      S1: new URL('../assets/exam2_figs/s1.svg', import.meta.url).href,
-      S2: new URL('../assets/exam2_figs/s2.svg', import.meta.url).href,
-      S3: new URL('../assets/exam2_figs/s3.svg', import.meta.url).href,
-      S4: new URL('../assets/exam2_figs/s4.svg', import.meta.url).href,
-      S5: new URL('../assets/exam2_figs/s5.svg', import.meta.url).href,
-      S6: new URL('../assets/exam2_figs/s6.svg', import.meta.url).href,
-      S7: new URL('../assets/exam2_figs/s7.svg', import.meta.url).href,
-      S8: new URL('../assets/exam2_figs/s8.svg', import.meta.url).href,
-      S9: new URL('../assets/exam2_figs/s9.svg', import.meta.url).href,
-      S10: new URL('../assets/exam2_figs/s10.svg', import.meta.url).href,
-    };
-
+    // Use public/exam2_images/<Level>/S{n}.png extracted from the official PDFs
     function getSkillFigure(code: string) {
-      return skillFigures[code] || '';
+      // skill code like 'S1' maps to /exam2_images/<Level>/S1.png
+      return `/exam2_images/${currentLevel.value}/${code}.png`;
     }
 
     const skills = computed(() => {
