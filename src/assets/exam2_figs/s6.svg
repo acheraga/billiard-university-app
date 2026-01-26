@@ -1,6 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">
-  <rect width="100%" height="100%" fill="#f4fbff"/>
-  <rect x="8" y="8" width="384" height="224" fill="#fff" stroke="#cfe8f8" rx="6"/>
-  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#2c3e50" font-size="36">S6</text>
-  <text x="50%" y="68%" dominant-baseline="middle" text-anchor="middle" fill="#6c757d" font-size="14">Kick</text>
+  <rect width="100%" height="100%" fill="#0b6623" />
+  <rect x="24" y="20" width="352" height="200" rx="10" fill="#0f7a2a" stroke="#053d12" stroke-width="4" />
+  <!-- kick off cushion -->
+  <circle cx="80" cy="120" r="10" fill="#ffffff" />
+  <circle cx="320" cy="100" r="12" fill="#ffd166" />
+  <path d="M80 120 Q200 40 320 100" stroke="#fff" stroke-width="2" fill="none" stroke-dasharray="6 4" />
+  <circle cx="200" cy="40" r="4" fill="#fff" />
+  <text x="32" y="36" fill="#ffffff" font-size="14" font-family="Arial">S6 — Kick (cushion path)</text>
 </svg>
