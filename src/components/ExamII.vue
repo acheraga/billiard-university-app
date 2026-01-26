@@ -24,6 +24,28 @@
           <span>{{ currentLevelInfo.name }} Level</span>
         </div>
         <div class="level-description">{{ currentLevelInfo.description }}</div>
+
+        <!-- Exam sheet card (PDF) -->
+        <div class="exam-sheet">
+          <h4>Exam Sheet</h4>
+          <p class="exam-sheet-note">Download, open or preview the official Exam II skill sheet for this level.</p>
+          <div class="exam-sheet-actions">
+            <a :href="pdfUrl" target="_blank" rel="noopener" class="btn btn-info" v-if="pdfUrl">
+              <i class="fas fa-external-link-alt"></i> Ouvrir
+            </a>
+            <a :href="pdfUrl" :download="pdfFilename" class="btn btn-secondary" v-if="pdfUrl">
+              <i class="fas fa-download"></i> Télécharger
+            </a>
+            <button class="btn btn-success" @click="togglePdfPreview" v-if="pdfUrl">
+              <i class="fas" :class="showPdfPreview ? 'fa-eye-slash' : 'fa-eye'"></i>
+              {{ showPdfPreview ? 'Masquer' : 'Prévisualiser' }}
+            </button>
+          </div>
+
+          <div v-if="showPdfPreview" class="pdf-preview">
+            <iframe :src="pdfUrl" frameborder="0" width="100%" height="480" />
+          </div>
+        </div>
       </div>
 
       <div class="skills-grid">
@@ -224,6 +246,14 @@ export default {
       return `level-${currentLevel.value.toLowerCase()}`;
     });
 
+    // PDF helper for Exam II sheets (public folder)
+    const pdfFilename = computed(() => `BU_Exam-II_Skills-${currentLevel.value}_BW.pdf`);
+    const pdfUrl = computed(() => `/${pdfFilename.value}`);
+    const showPdfPreview = ref(false);
+    function togglePdfPreview() {
+      showPdfPreview.value = !showPdfPreview.value;
+    }
+
     const skills = computed(() => {
       return store.examII.skills[currentLevel.value] || [];
     });
@@ -313,6 +343,11 @@ export default {
       buRating,
       ratingClass,
       buDiploma,
+      // PDF helpers
+      pdfFilename,
+      pdfUrl,
+      showPdfPreview,
+      togglePdfPreview,
       setLevel,
       calculateSkillScore,
       calculateBreakScore,
