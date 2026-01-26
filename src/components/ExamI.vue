@@ -28,11 +28,42 @@
           <template v-if="drill.type === 'counting'">
             <div class="f6-potting-section">
               <div class="f6-figure-display">
-                <img
-                  :src="getFigure(drill.code)?.src"
-                  :alt="drill.code + ' figure'"
-                  class="drill-figure f6-figure"
-                />
+                <div class="figure-image-wrap">
+                  <img
+                    :src="getFigure(drill.code)?.src"
+                    :alt="drill.code + ' figure'"
+                    class="drill-figure f6-figure"
+                  />
+
+                  <!-- Overlayed potting hotspots (per-attempt). Shown for counting drills or F6-F8 explicitly -->
+                  <div
+                    class="potting-overlay"
+                    v-if="drill.type === 'counting' || ['F6','F7','F8'].includes(drill.code) || showAllHotspots"
+                  >
+                    <template v-for="(c, t) in (drill.code === 'F8' ? pottingCoords.slice(0,5) : pottingCoords.slice(0,10))" :key="'t'+t">
+                      <button
+                        v-for="aIdx in (drill.code === 'F7' ? 2 : drill.code === 'F8' ? 4 : 1)"
+                        :key="t + '-' + (aIdx - 1)"
+                        class="potting-hotspot"
+                        :class="{
+                          success: isAttemptSuccess(drill, t, aIdx - 1),
+                          attemptedMiss: isAttemptAttemptedMiss(drill, t, aIdx - 1)
+                        }"
+                        :style="hotspotStyle(index, t, c, aIdx - 1)"
+                        @click="overlayToggle(index, t, aIdx - 1)"
+                        :aria-pressed="isAttemptSuccess(drill, t, aIdx - 1) ? 'true' : 'false'"
+                        :aria-label="drill.code + ' target ' + (t + 1) + ' attempt ' + aIdx"
+                        tabindex="0"
+                      >
+                        <span class="hotspot-symbol">
+                          <span v-if="isAttemptSuccess(drill, t, aIdx - 1)">✓</span>
+                          <span v-else-if="isAttemptAttemptedMiss(drill, t, aIdx - 1)">✗</span>
+                          <span v-else class="hotspot-label">{{ t + 1 }}</span>
+                        </span>
+                      </button>
+                    </template>
+                  </div>
+                </div>
               </div>
 
               <div class="potting-info-header">
@@ -382,6 +413,43 @@ export default {
         { left: "54%", top: "9%" },
         { left: "68%", top: "28%" },
       ],
+      // per-attempt coords (dev / optional). If set, used to position overlay buttons precisely.
+      perAttemptCoords: {},
+      // embed default per-attempt coords when localStorage is empty. Set to false to disable.
+      embedDefaultPerAttemptCoords: true,
+      defaultPerAttemptCoords: {
+        F6: [
+          [{ "left": "43%", "top": "9%" }],
+          [{ "left": "58%", "top": "21%" }],
+          [{ "left": "86%", "top": "70%" }],
+          [{ "left": "55%", "top": "87%" }],
+          [{ "left": "71%", "top": "62%" }],
+          [{ "left": "44%", "top": "87%" }],
+          [{ "left": "66%", "top": "75%" }],
+          [{ "left": "85%", "top": "34%" }],
+          [{ "left": "54%", "top": "9%" }],
+          [{ "left": "68%", "top": "28%" }]
+        ],
+        F7: [
+          [{ "left": "56%", "top": "2%" }, { "left": "48%", "top": "2%" }],
+          [{ "left": "68%", "top": "2%" }, { "left": "60%", "top": "2%" }],
+          [{ "left": "75%", "top": "2%" }, { "left": "79%", "top": "2%" }],
+          [{ "left": "88%", "top": "2%" }, { "left": "80%", "top": "2%" }],
+          [{ "left": "89%", "top": "20%" }, { "left": "93%", "top": "20%" }],
+          [{ "left": "89%", "top": "40%" }, { "left": "93%", "top": "40%" }],
+          [{ "left": "89%", "top": "60%" }, { "left": "93%", "top": "60%" }],
+          [{ "left": "89%", "top": "80%" }, { "left": "93%", "top": "80%" }],
+          [{ "left": "89%", "top": "92%" }, { "left": "93%", "top": "92%" }],
+          [{ "left": "77%", "top": "92%" }, { "left": "72%", "top": "92%" }]
+        ],
+        F8: [
+          [{ "left": "39%", "top": "12%" }, { "left": "43%", "top": "10%" }, { "left": "47%", "top": "14%" }, { "left": "51%", "top": "16%" }],
+          [{ "left": "54%", "top": "24%" }, { "left": "58%", "top": "22%" }, { "left": "62%", "top": "26%" }, { "left": "66%", "top": "28%" }],
+          [{ "left": "76%", "top": "72%" }, { "left": "80%", "top": "70%" }, { "left": "84%", "top": "74%" }, { "left": "88%", "top": "76%" }],
+          [{ "left": "48%", "top": "90%" }, { "left": "52%", "top": "88%" }, { "left": "56%", "top": "92%" }, { "left": "60%", "top": "94%" }],
+          [{ "left": "62%", "top": "32%" }, { "left": "66%", "top": "30%" }, { "left": "70%", "top": "34%" }, { "left": "74%", "top": "36%" }]
+        ]
+      },
       hotspotTuner: {
         // enabled when URL contains ?hotspot-edit (keeps dev tool off by default in production)
         available: !!(
@@ -394,6 +462,7 @@ export default {
         tempCoords: null,
         dragging: null,
       },
+      showAllHotspots: false,
     };
   },
   computed: {
@@ -443,6 +512,35 @@ export default {
         });
       }
     });
+
+    // load per-attempt coords from localStorage if present (dev-friendly)
+    try {
+      const raw = localStorage.getItem("billiardPerAttemptCoords");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") this.perAttemptCoords = parsed;
+      } else if (this.embedDefaultPerAttemptCoords) {
+        this.perAttemptCoords = this.defaultPerAttemptCoords;
+        localStorage.setItem("billiardPerAttemptCoords", JSON.stringify(this.perAttemptCoords));
+      }
+    } catch (e) {
+      /* ignore parse errors */
+    }
+
+    // expose dev helper to allow pasting coordinates in console
+    if (typeof window !== "undefined") {
+      window.applyPerAttemptCoords = this.applyPerAttemptCoords.bind(this);
+      window.clearPerAttemptCoords = (code) => {
+        if (code) delete this.perAttemptCoords[code];
+        else this.perAttemptCoords = {};
+        localStorage.setItem("billiardPerAttemptCoords", JSON.stringify(this.perAttemptCoords));
+      };
+      window.toggleShowHotspots = (v = null) => {
+        if (v === null) this.showAllHotspots = !this.showAllHotspots;
+        else this.showAllHotspots = !!v;
+        return this.showAllHotspots;
+      };
+    }
   },
   beforeUnmount() {
     // Cleanup any event listeners used by the hotspot tuner
@@ -747,7 +845,23 @@ export default {
       window.removeEventListener("touchend", this.onWindowUp);
       this.hotspotTuner.dragging = null;
     },
-    hotspotStyle(drillIndex, i, c) {
+    hotspotStyle(drillIndex, i, c, attemptIndex = 0) {
+      // prefer exact per-attempt coords if provided (dev-supplied)
+      try {
+        const store = useExamsStore();
+        const d = store.examI.drills[drillIndex];
+        const code = d && d.code;
+        if (code && this.perAttemptCoords && this.perAttemptCoords[code]) {
+          const per = this.perAttemptCoords[code];
+          if (Array.isArray(per) && per[i] && per[i][attemptIndex]) {
+            return { left: per[i][attemptIndex].left, top: per[i][attemptIndex].top };
+          }
+        }
+      } catch (e) {
+        // ignore and fall back
+      }
+
+      // tuner override if editing
       if (
         this.hotspotTuner.activeIndex === drillIndex &&
         this.hotspotTuner.tempCoords &&
@@ -758,8 +872,81 @@ export default {
           top: this.hotspotTuner.tempCoords[i].top,
         };
       }
-      return { left: c.left, top: c.top };
+
+      // fallback: automatic offset around base coord
+      const parse = (s) => Number(String(s).replace('%', '')) || 0;
+      let left = parse(c.left);
+      let top = parse(c.top);
+      const store2 = useExamsStore();
+      const d2 = store2.examI.drills[drillIndex];
+      const attemptsPerTarget = d2 ? (d2.code === 'F7' ? 2 : d2.code === 'F8' ? 4 : 1) : 1;
+      const step = 3; // percent step between attempt buttons
+      const center = (attemptsPerTarget - 1) / 2;
+      const offset = (attemptIndex - center) * step;
+      left = Math.max(0, Math.min(100, left + offset));
+
+      if (attemptsPerTarget > 2) {
+        const row = Math.floor(attemptIndex / 2);
+        const vOffset = row === 0 ? -3 : 3;
+        top = Math.max(0, Math.min(100, top + vOffset));
+      }
+
+      return { left: left + '%', top: top + '%' };
     },
+
+    /* Apply per-attempt coordinates provided by dev (drillCode, nested arrays)
+       Example format for F7 (10 targets x 2 attempts):
+       [ [ {left:'43%',top:'9%'}, {left:'47%',top:'9%'} ], ... ]
+    */
+    applyPerAttemptCoords(drillCode, coords) {
+      if (!drillCode || !coords) return false;
+      try {
+        let data = coords;
+        if (typeof coords === 'string') data = JSON.parse(coords);
+        if (!Array.isArray(data)) throw new Error('Expected array of targets');
+        for (let t = 0; t < data.length; t++) {
+          if (!Array.isArray(data[t])) throw new Error('Each target must be an array of attempts');
+          for (let a = 0; a < data[t].length; a++) {
+            const p = data[t][a];
+            if (!p || typeof p.left === 'undefined' || typeof p.top === 'undefined')
+              throw new Error('Each attempt coord must have left and top');
+          }
+        }
+        this.perAttemptCoords = this.perAttemptCoords || {};
+        this.perAttemptCoords[drillCode] = data;
+        localStorage.setItem('billiardPerAttemptCoords', JSON.stringify(this.perAttemptCoords));
+        return true;
+      } catch (e) {
+        console.warn('Invalid per-attempt coords:', e && e.message ? e.message : e);
+        return false;
+      }
+    },
+
+    overlayToggle(drillIndex, targetIndex, attemptIndex) {
+      // forward to existing toggleCounting handler
+      return this.toggleCounting(drillIndex, targetIndex, attemptIndex);
+    },
+
+    isAttemptSuccess(drill, targetIndex, attemptIndex) {
+      try {
+        if (!drill || !drill.attempts) return false;
+        const arr = drill.attempts[targetIndex];
+        return Array.isArray(arr) && arr[attemptIndex] === true;
+      } catch (e) {
+        return false;
+      }
+    },
+
+    isAttemptAttemptedMiss(drill, targetIndex, attemptIndex) {
+      try {
+        if (!drill || !drill.attempts) return false;
+        const arr = drill.attempts[targetIndex];
+        return Array.isArray(arr) && arr[attemptIndex] === false;
+      } catch (e) {
+        return false;
+      }
+    },
+
 
     getScoreColor(score, max) {
       const percentage = (score / max) * 100;
