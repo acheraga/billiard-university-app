@@ -880,14 +880,26 @@ export default {
       const store2 = useExamsStore();
       const d2 = store2.examI.drills[drillIndex];
       const attemptsPerTarget = d2 ? (d2.code === 'F7' ? 2 : d2.code === 'F8' ? 4 : 1) : 1;
-      const step = 5; // percent step between attempt buttons (increased to avoid overlap)
-      const center = (attemptsPerTarget - 1) / 2;
-      const offset = (attemptIndex - center) * step;
-      left = Math.max(0, Math.min(100, left + offset));
+      const step = 6; // percent step between attempt buttons (increased to avoid overlap)
+
+      // special-case for two attempts: first attempt centered, second pushed to the right
+      if (attemptsPerTarget === 2) {
+        if (attemptIndex === 0) {
+          // keep first attempt on base coord (centered)
+          left = Math.max(0, Math.min(100, left));
+        } else {
+          // push second attempt to the right by step
+          left = Math.max(0, Math.min(100, left + step));
+        }
+      } else {
+        const center = (attemptsPerTarget - 1) / 2;
+        const offset = (attemptIndex - center) * step;
+        left = Math.max(0, Math.min(100, left + offset));
+      }
 
       if (attemptsPerTarget > 2) {
         const row = Math.floor(attemptIndex / 2);
-        const vOffset = row === 0 ? -4 : 4; // slightly larger vertical offset
+        const vOffset = row === 0 ? -5 : 5; // slightly larger vertical offset
         top = Math.max(0, Math.min(100, top + vOffset));
       }
 
@@ -1652,14 +1664,15 @@ input[type="number"].no-spin {
   }
   .potting-shot-btn {
     font-size: 0.95rem;
-    padding: 0.4rem;
+    padding: 0.35rem;
   }
   .potting-hotspot {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
   }
-  .potting-hotspot .hotspot-label { font-size: 0.55rem; }
-  .potting-hotspot .hotspot-symbol { font-size: 0.7rem; }
+  .potting-hotspot .hotspot-label { font-size: 0.45rem; }
+  .potting-hotspot .hotspot-symbol { font-size: 0.6rem; }
+}
 .potting-shot-btn {
   aspect-ratio: 1;
   border: 2px solid #dfe6e9;
@@ -1754,10 +1767,10 @@ input[type="number"].no-spin {
 }
 .potting-hotspot {
   position: absolute;
-  width: 34px;
-  height: 34px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.98);
   border: 2px solid rgba(0, 0, 0, 0.12);
   display: flex;
   align-items: center;
@@ -1772,7 +1785,7 @@ input[type="number"].no-spin {
 }
 .potting-hotspot:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.18);
+  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.16);
 }
 .potting-hotspot .hotspot-label {
   font-size: 0.75rem;
