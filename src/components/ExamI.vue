@@ -880,14 +880,14 @@ export default {
       const store2 = useExamsStore();
       const d2 = store2.examI.drills[drillIndex];
       const attemptsPerTarget = d2 ? (d2.code === 'F7' ? 2 : d2.code === 'F8' ? 4 : 1) : 1;
-      const step = 3; // percent step between attempt buttons
+      const step = 5; // percent step between attempt buttons (increased to avoid overlap)
       const center = (attemptsPerTarget - 1) / 2;
       const offset = (attemptIndex - center) * step;
       left = Math.max(0, Math.min(100, left + offset));
 
       if (attemptsPerTarget > 2) {
         const row = Math.floor(attemptIndex / 2);
-        const vOffset = row === 0 ? -3 : 3;
+        const vOffset = row === 0 ? -4 : 4; // slightly larger vertical offset
         top = Math.max(0, Math.min(100, top + vOffset));
       }
 
@@ -1645,6 +1645,21 @@ input[type="number"].no-spin {
   width: 100%;
 }
 
+/* smaller buttons and tighter spacing for narrow viewports */
+@media (max-width: 480px) {
+  .potting-grid {
+    gap: 0.4rem;
+  }
+  .potting-shot-btn {
+    font-size: 0.95rem;
+    padding: 0.4rem;
+  }
+  .potting-hotspot {
+    width: 24px;
+    height: 24px;
+  }
+  .potting-hotspot .hotspot-label { font-size: 0.55rem; }
+  .potting-hotspot .hotspot-symbol { font-size: 0.7rem; }
 .potting-shot-btn {
   aspect-ratio: 1;
   border: 2px solid #dfe6e9;
@@ -1652,13 +1667,14 @@ input[type="number"].no-spin {
   background: white;
   color: #2c3e50;
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.18s;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  padding: 0.35rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .potting-shot-btn:hover:not(:disabled) {
