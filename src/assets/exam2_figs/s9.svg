@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="240" viewBox="0 0 400 240">
-  <rect width="100%" height="100%" fill="#0b6623" />
-  <rect x="24" y="20" width="352" height="200" rx="10" fill="#0f7a2a" stroke="#053d12" stroke-width="4" />
-  <!-- masse curve path -->
-  <circle cx="90" cy="160" r="10" fill="#ffffff" />
-  <circle cx="300" cy="80" r="12" fill="#cfa0ff" />
-  <path d="M90 160 C160 100 220 140 300 80" stroke="#fff" stroke-width="2" fill="none" stroke-dasharray="6 4" />
-  <text x="32" y="36" fill="#ffffff" font-size="14" font-family="Arial">S9 — Jump / Masse curvature</text>
-</svg>
