@@ -184,6 +184,11 @@ export const useExamsStore = defineStore("exams", {
       examII: [],
       snapshots: [],
     },
+    ui: {
+      examI: { currentDrillIndex: 0, showHotspots: false },
+      examII: { currentSkillIndex: 0, showPdfPreview: false },
+      history: { activeTab: "exam1", isAutosaveActive: false },
+    },
     // Multi-user persistence (stored in localStorage under 'billiardUniversityUsers')
     users: {}, // { userId: { student, examI, examII, history, lastSaved } }
     currentUserId: null,
@@ -799,6 +804,7 @@ export const useExamsStore = defineStore("exams", {
         examI: this.examI,
         examII: this.examII,
         history: this.history,
+        ui: this.ui,
         lastSaved: new Date().toISOString(),
       };
 
@@ -870,11 +876,15 @@ export const useExamsStore = defineStore("exams", {
           Object.assign(this.examI, data.examI || {});
           Object.assign(this.examII, data.examII || {});
           Object.assign(this.history, data.history || {});
+          // merge or create ui state safely
+          this.ui = Object.assign(this.ui || {}, data.ui || {});
           this.calculateExamIScore();
           this.calculateExamIIScore();
-          // enable autosave by default for legacy loads as well
+          // enable autosave by default for legacy loads as well or according to saved UI
           try {
-            this.startRealtimeAutosave();
+            if (this.ui && this.ui.history && this.ui.history.isAutosaveActive) {
+              this.startRealtimeAutosave();
+            }
           } catch (e) {
             /* ignore */
           }
@@ -896,6 +906,7 @@ export const useExamsStore = defineStore("exams", {
          */
         examII: JSON.parse(JSON.stringify(this.examII)),
         history: JSON.parse(JSON.stringify(this.history)),
+        ui: JSON.parse(JSON.stringify(this.ui || {})),
         lastSaved: new Date().toISOString(),
       };
       /**
@@ -951,6 +962,7 @@ export const useExamsStore = defineStore("exams", {
         examI: JSON.parse(JSON.stringify(this.examI)),
         examII: JSON.parse(JSON.stringify(this.examII)),
         history: JSON.parse(JSON.stringify(this.history)),
+        ui: JSON.parse(JSON.stringify(this.ui || {})),
         lastSaved: new Date().toISOString(),
       };
       localStorage.setItem("billiardUniversityUsers", JSON.stringify(this.users));

@@ -294,10 +294,18 @@
                 <td>{{ formatDate(snap.date) }}</td>
                 <td>{{ snap.label }}</td>
                 <td class="action-cell">
-                  <button class="action-btn view-btn" title="Restore" @click="restoreSnapshot(snap.id)">
+                  <button
+                    class="action-btn view-btn"
+                    title="Restore"
+                    @click="restoreSnapshot(snap.id)"
+                  >
                     <i class="fas fa-undo"></i>
                   </button>
-                  <button class="action-btn delete-btn" title="Delete" @click="deleteSnapshot(snap.id)">
+                  <button
+                    class="action-btn delete-btn"
+                    title="Delete"
+                    @click="deleteSnapshot(snap.id)"
+                  >
                     <i class="fas fa-trash"></i>
                   </button>
                 </td>
@@ -312,6 +320,7 @@
           </div>
         </div>
       </div>
+    </div>
 
     <div class="history-actions">
       <button class="btn btn-primary" @click="exportHistory">
@@ -328,7 +337,7 @@
       </button>
       <button class="btn btn-warning" @click="toggleAutosave">
         <i class="fas" :class="isAutosaveActive ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
-        {{ isAutosaveActive ? 'Disable Autosave' : 'Enable Autosave' }}
+        {{ isAutosaveActive ? "Disable Autosave" : "Enable Autosave" }}
       </button>
     </div>
   </div>
@@ -336,13 +345,15 @@
 
 <script lang="ts">
 import { useExamsStore } from "../store/useExamsStore";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 export default {
   name: "ScoreHistory",
   setup() {
     const store = useExamsStore();
-    const activeTab = ref("exam1");
+    const activeTab = ref<string>(
+      (store.ui && store.ui.history && store.ui.history.activeTab) || "exam1"
+    );
 
     const tabs = [
       { id: "exam1", label: "Exam I", icon: "fas fa-list-ol" },
@@ -383,7 +394,29 @@ export default {
 
     // Snapshots (autosave/manual save) list
     const snapshots = computed(() => store.history.snapshots || []);
-    const isAutosaveActive = ref(false);
+    const isAutosaveActive = ref(
+      !!(store.ui && store.ui.history && store.ui.history.isAutosaveActive)
+    );
+
+    // Keep activeTab persisted
+    watch(activeTab, (v) => {
+      store.ui = store.ui || {};
+      store.ui.history = store.ui.history || {};
+      // cast to any to avoid narrow literal type issues when assigning from general strings
+      store.ui.history.activeTab = String(v) as any;
+      store.saveToLocalStorage();
+    });
+
+    // Keep autosave flag persisted
+    watch(isAutosaveActive, (v) => {
+      store.ui = store.ui || {};
+      store.ui.history = store.ui.history || {};
+      store.ui.history.isAutosaveActive = !!v;
+      store.saveToLocalStorage();
+    });
+
+    // If autosave is active in saved config, ensure it runs
+    if (isAutosaveActive.value) store.startRealtimeAutosave();
 
     // Statistics
     const totalExams = computed(() => examIHistory.value.length + examIIHistory.value.length);
