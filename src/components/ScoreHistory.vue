@@ -418,10 +418,12 @@ export default {
     const maxExamII = computed(() => {
       if (examIIHistory.value.length === 0) return 0;
       const lastEntry = examIIHistory.value[examIIHistory.value.length - 1];
-      return examIIMaxScores[lastEntry.level]?.reduce((a, b) => a + b, 0) || 0;
+      const arr = examIIMaxScores[lastEntry.level];
+      const sum = Array.isArray(arr) ? arr.reduce((a, b) => a + b, 0) : 0;
+      return sum || 0;
     });
 
-    const levelBreakdown = computed((): Array<{ name: string; count: number; color: string }> => {
+    const levelBreakdown = computed(() => {
       const levels: Record<string, number> = {};
       examIIHistory.value.forEach((entry) => {
         levels[entry.level] = (levels[entry.level] || 0) + 1;
