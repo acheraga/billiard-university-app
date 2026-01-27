@@ -16,9 +16,9 @@
 
     <div class="drills-grid">
       <div class="carousel-controls">
-        <button class="btn btn-secondary prev-btn" @click="prevDrill">← Précédent</button>
+        <button class="btn btn-secondary prev-btn" @click="prevDrill">← Previous</button>
         <div class="drill-position">Drill {{ currentDrillIndex + 1 }} / {{ drills.length }}</div>
-        <button class="btn btn-secondary next-btn" @click="nextDrill">Suivant →</button>
+        <button class="btn btn-secondary next-btn" @click="nextDrill">Next →</button>
       </div>
 
       <div v-if="drills.length" :key="currentDrillIndex" class="drill-card">

@@ -33,14 +33,14 @@
           </p>
           <div class="exam-sheet-actions">
             <a :href="pdfUrl" target="_blank" rel="noopener" class="btn btn-info" v-if="pdfUrl">
-              <i class="fas fa-external-link-alt"></i> Ouvrir
+              <i class="fas fa-external-link-alt"></i> Open
             </a>
             <a :href="pdfUrl" :download="pdfFilename" class="btn btn-secondary" v-if="pdfUrl">
-              <i class="fas fa-download"></i> Télécharger
+              <i class="fas fa-download"></i> Download
             </a>
             <button class="btn btn-success" @click="togglePdfPreview" v-if="pdfUrl">
               <i class="fas" :class="showPdfPreview ? 'fa-eye-slash' : 'fa-eye'"></i>
-              {{ showPdfPreview ? "Masquer" : "Prévisualiser" }}
+              {{ showPdfPreview ? "Hide Preview" : "Preview" }}
             </button>
           </div>
 
@@ -52,9 +52,9 @@
 
       <div class="skills-carousel">
         <div class="carousel-controls">
-          <button class="btn btn-secondary prev-btn" @click="prevSkill">← Précédent</button>
+          <button class="btn btn-secondary prev-btn" @click="prevSkill">← Previous</button>
           <div class="skill-position">Skill {{ currentSkillIndex + 1 }} / {{ skills.length }}</div>
-          <button class="btn btn-secondary next-btn" @click="nextSkill">Suivant →</button>
+          <button class="btn btn-secondary next-btn" @click="nextSkill">Next →</button>
         </div>
 
         <div class="skill-card">
