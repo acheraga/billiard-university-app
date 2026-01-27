@@ -109,9 +109,27 @@ export interface ExamIIHistoryEntry {
   total: number;
 }
 
+export interface SnapshotEntry {
+  id: string;
+  date: string;
+  label?: string;
+  version?: number;
+  data: {
+    student: Student;
+    examI: ExamI;
+    examII: ExamII;
+    history: {
+      examI: ExamIHistoryEntry[];
+      examII: ExamIIHistoryEntry[];
+    };
+  };
+}
+
 export interface History {
   examI: ExamIHistoryEntry[];
   examII: ExamIIHistoryEntry[];
+  // Full application snapshots (autosave / manual restore points)
+  snapshots?: SnapshotEntry[];
 }
 
 // User profile data

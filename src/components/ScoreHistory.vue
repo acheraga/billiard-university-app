@@ -277,7 +277,41 @@
           </div>
         </div>
       </div>
-    </div>
+
+      <!-- Snapshots Tab -->
+      <div v-show="activeTab === 'snapshots'" class="tab-content">
+        <div class="table-container">
+          <table v-if="snapshots.length > 0" class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Label</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="snap in snapshots" :key="snap.id">
+                <td>{{ formatDate(snap.date) }}</td>
+                <td>{{ snap.label }}</td>
+                <td class="action-cell">
+                  <button class="action-btn view-btn" title="Restore" @click="restoreSnapshot(snap.id)">
+                    <i class="fas fa-undo"></i>
+                  </button>
+                  <button class="action-btn delete-btn" title="Delete" @click="deleteSnapshot(snap.id)">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div v-else class="empty-state">
+            <i class="fas fa-save"></i>
+            <h3>No Snapshots</h3>
+            <p>Create a snapshot or enable realtime autosave to keep restore points here.</p>
+          </div>
+        </div>
+      </div>
 
     <div class="history-actions">
       <button class="btn btn-primary" @click="exportHistory">
@@ -288,6 +322,13 @@
       </button>
       <button class="btn btn-info" @click="printHistory">
         <i class="fas fa-print"></i> Print Report
+      </button>
+      <button class="btn btn-success" @click="saveSnapshot">
+        <i class="fas fa-save"></i> Save Snapshot
+      </button>
+      <button class="btn btn-warning" @click="toggleAutosave">
+        <i class="fas" :class="isAutosaveActive ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+        {{ isAutosaveActive ? 'Disable Autosave' : 'Enable Autosave' }}
       </button>
     </div>
   </div>
@@ -307,6 +348,7 @@ export default {
       { id: "exam1", label: "Exam I", icon: "fas fa-list-ol" },
       { id: "exam2", label: "Exam II", icon: "fas fa-chart-line" },
       { id: "combined", label: "Combined", icon: "fas fa-star" },
+      { id: "snapshots", label: "Snapshots", icon: "fas fa-save" },
     ];
 
     const examIHistory = computed(() => store.history.examI);
@@ -338,6 +380,10 @@ export default {
       const drills = store.examI && store.examI.drills ? store.examI.drills : [];
       return drills.map((d) => (d && d.maxScore ? d.maxScore : 0));
     });
+
+    // Snapshots (autosave/manual save) list
+    const snapshots = computed(() => store.history.snapshots || []);
+    const isAutosaveActive = ref(false);
 
     // Statistics
     const totalExams = computed(() => examIHistory.value.length + examIIHistory.value.length);
@@ -592,6 +638,35 @@ export default {
       window.print();
     };
 
+    // Snapshot actions
+    const saveSnapshot = () => {
+      const s = store.manualSaveSnapshot();
+      alert(`Snapshot saved: ${s.label}`);
+    };
+
+    const toggleAutosave = () => {
+      if (isAutosaveActive.value) {
+        store.stopRealtimeAutosave();
+        isAutosaveActive.value = false;
+      } else {
+        store.startRealtimeAutosave();
+        isAutosaveActive.value = true;
+        alert("Realtime autosave enabled. Snapshots will be created automatically.");
+      }
+    };
+
+    const restoreSnapshot = (id: string) => {
+      if (!confirm("Restore this snapshot? This will replace current data.")) return;
+      const ok = store.restoreSnapshot(id);
+      if (ok) alert("Snapshot restored.");
+      else alert("Failed to restore snapshot.");
+    };
+
+    const deleteSnapshot = (id: string) => {
+      if (!confirm("Delete this snapshot?")) return;
+      store.deleteSnapshot(id);
+    };
+
     return {
       activeTab,
       tabs,
@@ -626,6 +701,13 @@ export default {
       exportHistory,
       clearHistory,
       printHistory,
+      // snapshots
+      snapshots,
+      saveSnapshot,
+      restoreSnapshot,
+      deleteSnapshot,
+      toggleAutosave,
+      isAutosaveActive,
     };
   },
 };

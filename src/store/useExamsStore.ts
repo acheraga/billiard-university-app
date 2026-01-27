@@ -182,6 +182,7 @@ export const useExamsStore = defineStore("exams", {
     history: {
       examI: [],
       examII: [],
+      snapshots: [],
     },
     // Multi-user persistence (stored in localStorage under 'billiardUniversityUsers')
     users: {}, // { userId: { student, examI, examII, history, lastSaved } }
@@ -843,6 +844,12 @@ export const useExamsStore = defineStore("exams", {
 
           this.calculateExamIScore();
           this.calculateExamIIScore();
+          // start realtime autosave by default when loading saved data
+          try {
+            this.startRealtimeAutosave();
+          } catch (e) {
+            /* ignore */
+          }
         } catch (e) {
           console.error("Error loading saved users data:", e);
         }
@@ -865,6 +872,12 @@ export const useExamsStore = defineStore("exams", {
           Object.assign(this.history, data.history || {});
           this.calculateExamIScore();
           this.calculateExamIIScore();
+          // enable autosave by default for legacy loads as well
+          try {
+            this.startRealtimeAutosave();
+          } catch (e) {
+            /* ignore */
+          }
         } catch (e) {
           console.error("Error loading saved data:", e);
         }
@@ -987,6 +1000,106 @@ export const useExamsStore = defineStore("exams", {
       }
 
       return true;
+    },
+
+    /**
+     * Create a full snapshot of the current app state and add it to history.snapshots
+     * @param label - Optional label for the snapshot
+     */
+    createSnapshot(label?: string) {
+      const id = Date.now().toString();
+      const snapshot = {
+        id,
+        date: new Date().toISOString(),
+        label: label || `Snapshot ${new Date().toLocaleString()}`,
+        version: 1,
+        data: {
+          student: JSON.parse(JSON.stringify(this.student)),
+          examI: JSON.parse(JSON.stringify(this.examI)),
+          examII: JSON.parse(JSON.stringify(this.examII)),
+          history: {
+            examI: JSON.parse(JSON.stringify(this.history.examI || [])),
+            examII: JSON.parse(JSON.stringify(this.history.examII || [])),
+          },
+        },
+      };
+
+      this.history.snapshots = this.history.snapshots || [];
+      // keep most recent first
+      this.history.snapshots.unshift(snapshot);
+      // cap snapshots to 100 entries to bound storage
+      if (this.history.snapshots.length > 100) this.history.snapshots.splice(100);
+      this.saveToLocalStorage();
+      return snapshot;
+    },
+
+    /**
+     * Restore the application state from a snapshot id
+     * @param id - Snapshot id to restore
+     */
+    restoreSnapshot(id: string): boolean {
+      if (!this.history.snapshots || this.history.snapshots.length === 0) return false;
+      const snap = this.history.snapshots.find((s: any) => s.id === id);
+      if (!snap) return false;
+
+      // Replace core state with snapshot data
+      Object.assign(this.student, JSON.parse(JSON.stringify(snap.data.student || {})));
+      Object.assign(this.examI, JSON.parse(JSON.stringify(snap.data.examI || {})));
+      Object.assign(this.examII, JSON.parse(JSON.stringify(snap.data.examII || {})));
+
+      // Replace history entries but preserve snapshots themselves
+      this.history.examI = JSON.parse(JSON.stringify(snap.data.history.examI || []));
+      this.history.examII = JSON.parse(JSON.stringify(snap.data.history.examII || []));
+
+      // Recalculate derived scores/placements
+      this.calculateExamIScore();
+      this.calculateExamIIScore();
+
+      this.saveToLocalStorage();
+      return true;
+    },
+
+    deleteSnapshot(id: string): boolean {
+      if (!this.history.snapshots) return false;
+      const idx = this.history.snapshots.findIndex((s: any) => s.id === id);
+      if (idx === -1) return false;
+      this.history.snapshots.splice(idx, 1);
+      this.saveToLocalStorage();
+      return true;
+    },
+
+    // Realtime autosave: uses Pinia $subscribe to capture state mutations and create debounced snapshots
+    startRealtimeAutosave(debounceMs = 500) {
+      // store unsub in a module-scoped variable so multiple calls are idempotent
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      if ((this as any)._realtimeAutosaveUnsub) return;
+
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      (this as any)._realtimeAutosaveUnsub = this.$subscribe(() => {
+        if (timer) clearTimeout(timer);
+        timer = setTimeout(() => {
+          this.createSnapshot("Auto save");
+        }, debounceMs);
+      });
+    },
+
+    stopRealtimeAutosave() {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      const unsub = (this as any)._realtimeAutosaveUnsub;
+      if (typeof unsub === "function") {
+        unsub();
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        (this as any)._realtimeAutosaveUnsub = null;
+      }
+    },
+
+    manualSaveSnapshot(label?: string) {
+      return this.createSnapshot(label);
     },
 
     exportToExcel() {
