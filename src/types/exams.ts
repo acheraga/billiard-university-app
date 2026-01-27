@@ -109,9 +109,49 @@ export interface ExamIIHistoryEntry {
   total: number;
 }
 
+export interface SnapshotEntry {
+  id: string;
+  date: string;
+  label?: string;
+  version?: number;
+  data: {
+    student: Student;
+    examI: ExamI;
+    examII: ExamII;
+    history: {
+      examI: ExamIHistoryEntry[];
+      examII: ExamIIHistoryEntry[];
+    };
+  };
+}
+
 export interface History {
   examI: ExamIHistoryEntry[];
   examII: ExamIIHistoryEntry[];
+  // Full application snapshots (autosave / manual restore points)
+  snapshots?: SnapshotEntry[];
+}
+
+export interface UIExamIState {
+  currentDrillIndex?: number;
+  showHotspots?: boolean;
+}
+
+export interface UIExamIIState {
+  currentSkillIndex?: number;
+  showPdfPreview?: boolean;
+  currentLevel?: ExamIILevel;
+}
+
+export interface UIHistoryState {
+  activeTab?: "exam1" | "exam2" | "combined" | "snapshots";
+  isAutosaveActive?: boolean;
+}
+
+export interface UIState {
+  examI?: UIExamIState;
+  examII?: UIExamIIState;
+  history?: UIHistoryState;
 }
 
 // User profile data
@@ -121,6 +161,7 @@ export interface UserProfile {
   examII: ExamII;
   history: History;
   lastSaved: string;
+  ui?: UIState;
 }
 
 // Store state
@@ -131,6 +172,8 @@ export interface ExamsState {
   history: History;
   users: Record<string, UserProfile>;
   currentUserId: string | null;
+  // UI preferences and ephemeral UI state persisted per user/legacy storage
+  ui?: UIState;
 }
 
 // User list item

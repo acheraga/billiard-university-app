@@ -318,10 +318,29 @@ export default {
     // PDF preview helpers
     const pdfFilename = computed(() => `BU_Exam-II_Skills-${currentLevel.value}_BW.pdf`);
     const pdfUrl = computed(() => `${basePrefix}/${pdfFilename.value}`);
-    const showPdfPreview = ref(false);
+    // Persisted UI state for Exam II: showPdfPreview and currentSkillIndex
+    const showPdfPreview = computed({
+      get: () => !!(store.ui && store.ui.examII && store.ui.examII.showPdfPreview),
+      set: (v: boolean) => {
+        store.ui = store.ui || {};
+        store.ui.examII = store.ui.examII || {};
+        store.ui.examII.showPdfPreview = !!v;
+        store.saveToLocalStorage();
+      },
+    });
     const togglePdfPreview = () => {
       showPdfPreview.value = !showPdfPreview.value;
     };
+
+    const currentSkillIndex = computed({
+      get: () => Number((store.ui && store.ui.examII && store.ui.examII.currentSkillIndex) || 0),
+      set: (v: number) => {
+        store.ui = store.ui || {};
+        store.ui.examII = store.ui.examII || {};
+        store.ui.examII.currentSkillIndex = Number(v) || 0;
+        store.saveToLocalStorage();
+      },
+    });
 
     const getSkillExplanation = (code: string) => {
       const level = store.examII.currentLevel || "Bachelors";
@@ -339,7 +358,6 @@ export default {
       return store.examII.skills[currentLevel.value] || [];
     });
 
-    const currentSkillIndex = ref(0);
     const currentSkill = computed(() => skills.value[currentSkillIndex.value]);
 
     const currentScore = computed(() => store.examII.currentScore);
@@ -347,7 +365,7 @@ export default {
     // navigation (wrap-around)
     const prevSkill = () => {
       if (currentSkillIndex.value > 0) {
-        currentSkillIndex.value -= 1;
+        currentSkillIndex.value = currentSkillIndex.value - 1;
       } else {
         // wrap-around to last
         currentSkillIndex.value = Math.max(0, skills.value.length - 1);
@@ -355,7 +373,7 @@ export default {
     };
     const nextSkill = () => {
       if (currentSkillIndex.value < skills.value.length - 1) {
-        currentSkillIndex.value += 1;
+        currentSkillIndex.value = currentSkillIndex.value + 1;
       } else {
         // wrap-around to first
         currentSkillIndex.value = 0;

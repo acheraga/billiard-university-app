@@ -257,4 +257,23 @@ describe("ExamI F6 potting overlay", () => {
     expect(headerDisplay.exists()).toBe(true);
     expect(headerDisplay.text()).toContain("/");
   });
+
+  it("legacy currentDrillIndex set does not recurse and persists", async () => {
+    const wrapper = mount(ExamI);
+    const store = useExamsStore();
+
+    // Set using legacy component property to simulate older callers
+    (wrapper.vm as any).currentDrillIndex = 3;
+    await nextTick();
+
+    // Should persist into store.ui without causing recursion or errors
+    expect(store.ui).toBeTruthy();
+    expect(store.ui!.examI).toBeTruthy();
+    expect(Number(store.ui!.examI!.currentDrillIndex)).toBe(3);
+
+    // The UI should reflect the selected drill (index 3 -> Drill 4)
+    const pos = wrapper.find(".drill-position");
+    expect(pos.exists()).toBe(true);
+    expect(pos.text()).toContain("4 /");
+  });
 });

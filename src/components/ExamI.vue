@@ -17,15 +17,19 @@
     <div class="drills-grid">
       <div class="carousel-controls">
         <button class="btn btn-secondary prev-btn" @click="prevDrill">← Previous</button>
-        <div class="drill-position">Drill {{ currentDrillIndex + 1 }} / {{ drills.length }}</div>
+        <div class="drill-position">
+          Drill {{ currentDrillIndexLocal + 1 }} / {{ drills.length }}
+        </div>
         <button class="btn btn-secondary next-btn" @click="nextDrill">Next →</button>
       </div>
 
-      <div v-if="drills.length" :key="currentDrillIndex" class="drill-card">
+      <div v-if="drills.length" :key="currentDrillIndexLocal" class="drill-card">
         <div class="drill-header">
           <h3>{{ currentDrill.code }} - {{ currentDrill.name }}</h3>
           <div class="drill-center">
-            <button class="reset-drill-btn" @click="resetDrill(currentDrillIndex)">Reset</button>
+            <button class="reset-drill-btn" @click="resetDrill(currentDrillIndexLocal)">
+              Reset
+            </button>
           </div>
           <span class="drill-score">{{ currentDrill.score }}/{{ currentDrill.maxScore }}</span>
         </div>
@@ -61,8 +65,8 @@
                           success: isAttemptSuccess(currentDrill, t, aIdx - 1),
                           attemptedMiss: isAttemptAttemptedMiss(currentDrill, t, aIdx - 1),
                         }"
-                        :style="hotspotStyle(currentDrillIndex, t, c, aIdx - 1)"
-                        @click="overlayToggle(currentDrillIndex, t, aIdx - 1)"
+                        :style="hotspotStyle(currentDrillIndexLocal, t, c, aIdx - 1)"
+                        @click="overlayToggle(currentDrillIndexLocal, t, aIdx - 1)"
                         :aria-pressed="
                           isAttemptSuccess(currentDrill, t, aIdx - 1) ? 'true' : 'false'
                         "
@@ -70,8 +74,10 @@
                         tabindex="0"
                       >
                         <span class="hotspot-symbol">
-                          <span v-if="isAttemptSuccess(drill, t, aIdx - 1)">✓</span>
-                          <span v-else-if="isAttemptAttemptedMiss(drill, t, aIdx - 1)">✗</span>
+                          <span v-if="isAttemptSuccess(currentDrill, t, aIdx - 1)">✓</span>
+                          <span v-else-if="isAttemptAttemptedMiss(currentDrill, t, aIdx - 1)"
+                            >✗</span
+                          >
                           <span v-else class="hotspot-label">{{ t + 1 }}</span>
                         </span>
                       </button>
@@ -124,9 +130,13 @@
                             currentDrill.attempts &&
                             currentDrill.attempts[t - 1]?.[a - 1] === false,
                         }"
-                        @click="toggleCounting(currentDrillIndex, t - 1, a - 1)"
-                        @keydown.space.prevent="toggleCounting(currentDrillIndex, t - 1, a - 1)"
-                        @keydown.enter.prevent="toggleCounting(currentDrillIndex, t - 1, a - 1)"
+                        @click="toggleCounting(currentDrillIndexLocal, t - 1, a - 1)"
+                        @keydown.space.prevent="
+                          toggleCounting(currentDrillIndexLocal, t - 1, a - 1)
+                        "
+                        @keydown.enter.prevent="
+                          toggleCounting(currentDrillIndexLocal, t - 1, a - 1)
+                        "
                         :aria-pressed="
                           currentDrill.attempts && currentDrill.attempts[t - 1]?.[a - 1] === true
                             ? 'true'
@@ -169,15 +179,21 @@
               </div>
 
               <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
-                <button class="btn btn-secondary" @click="toggleHotspotTuner(currentDrillIndex)">
+                <button
+                  class="btn btn-secondary"
+                  @click="toggleHotspotTuner(currentDrillIndexLocal)"
+                >
                   {{
-                    hotspotTuner.activeIndex === currentDrillIndex
+                    hotspotTuner.activeIndex === currentDrillIndexLocal
                       ? "Close Hotspot Tuner"
                       : "Edit Hotspots (dev)"
                   }}
                 </button>
 
-                <div v-if="hotspotTuner.activeIndex === index" class="hotspot-tuner">
+                <div
+                  v-if="hotspotTuner.activeIndex === currentDrillIndexLocal"
+                  class="hotspot-tuner"
+                >
                   <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords || []" :key="i">
                     <div class="tuner-label">Shot {{ i + 1 }}</div>
                     <div class="tuner-controls">
@@ -202,7 +218,10 @@
                   </div>
 
                   <div class="tuner-actions">
-                    <button class="btn btn-success" @click="saveHotspotTuner(currentDrillIndex)">
+                    <button
+                      class="btn btn-success"
+                      @click="saveHotspotTuner(currentDrillIndexLocal)"
+                    >
                       Save
                     </button>
                     <button class="btn btn-secondary" @click="cancelHotspotTuner">Cancel</button>
@@ -242,7 +261,7 @@
                         (currentDrill.locked && currentDrill.locked[i - 1]) ||
                         (i > 1 && !(currentDrill.successes[i - 2] || currentDrill.loses[i - 2]))
                       "
-                      @change="toggleShotSuccess(currentDrillIndex, i - 1)"
+                      @change="toggleShotSuccess(currentDrillIndexLocal, i - 1)"
                     />
                     <span class="check-letter">S</span>
                   </label>
@@ -256,7 +275,7 @@
                         (currentDrill.locked && currentDrill.locked[i - 1]) ||
                         (i > 1 && !(currentDrill.successes[i - 2] || currentDrill.loses[i - 2]))
                       "
-                      @change="toggleShotLose(currentDrillIndex, i - 1)"
+                      @change="toggleShotLose(currentDrillIndexLocal, i - 1)"
                     />
                     <span class="check-letter">L</span>
                   </label>
@@ -529,7 +548,6 @@ export default {
         dragging: null,
       },
       showAllHotspots: false,
-      currentDrillIndex: 0,
     };
   },
   computed: {
@@ -538,8 +556,25 @@ export default {
       return store.examI.drills;
     },
     currentDrill() {
-      const idx = Number(this.currentDrillIndex) || 0;
+      const idx = Number(this.currentDrillIndexLocal) || 0;
       return this.drills && this.drills[idx] ? this.drills[idx] : this.drills[0];
+    },
+
+    // Local computed wrapper that persists and reads the drill index from store.ui
+    currentDrillIndexLocal: {
+      get() {
+        const store = useExamsStore();
+        return Number((store.ui && store.ui.examI && store.ui.examI.currentDrillIndex) ?? 0);
+      },
+      set(v: number) {
+        const store = useExamsStore();
+        const nv = Number(v) || 0;
+        store.ui = store.ui || {};
+        store.ui.examI = store.ui.examI || {};
+        store.ui.examI.currentDrillIndex = nv;
+        // do not write back to the legacy property here - that would cause recursion
+        store.saveToLocalStorage();
+      },
     },
     totalScore() {
       const store = useExamsStore();
@@ -620,6 +655,20 @@ export default {
         else this.showAllHotspots = !!v;
         return this.showAllHotspots;
       };
+    }
+
+    // Backwards compatibility: expose a proxy `currentDrillIndex` property on the
+    // component instance so tests and legacy code can continue to set it directly.
+    try {
+      Object.defineProperty(this, "currentDrillIndex", {
+        get: () => (this as any).currentDrillIndexLocal,
+        set: (v: number) => {
+          (this as any).currentDrillIndexLocal = Number(v) || 0;
+        },
+        configurable: true,
+      });
+    } catch (e) {
+      /* ignore */
     }
   },
 
@@ -1037,18 +1086,18 @@ export default {
     },
 
     prevDrill() {
-      if (this.currentDrillIndex > 0) {
-        this.currentDrillIndex -= 1;
+      if (this.currentDrillIndexLocal > 0) {
+        this.currentDrillIndexLocal = this.currentDrillIndexLocal - 1;
       } else {
-        this.currentDrillIndex = Math.max(0, this.drills.length - 1);
+        this.currentDrillIndexLocal = Math.max(0, this.drills.length - 1);
       }
     },
 
     nextDrill() {
-      if (this.currentDrillIndex < this.drills.length - 1) {
-        this.currentDrillIndex += 1;
+      if (this.currentDrillIndexLocal < this.drills.length - 1) {
+        this.currentDrillIndexLocal = this.currentDrillIndexLocal + 1;
       } else {
-        this.currentDrillIndex = 0;
+        this.currentDrillIndexLocal = 0;
       }
     },
 

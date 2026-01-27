@@ -277,6 +277,49 @@
           </div>
         </div>
       </div>
+
+      <!-- Snapshots Tab -->
+      <div v-show="activeTab === 'snapshots'" class="tab-content">
+        <div class="table-container">
+          <table v-if="snapshots.length > 0" class="history-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Label</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="snap in snapshots" :key="snap.id">
+                <td>{{ formatDate(snap.date) }}</td>
+                <td>{{ snap.label }}</td>
+                <td class="action-cell">
+                  <button
+                    class="action-btn view-btn"
+                    title="Restore"
+                    @click="restoreSnapshot(snap.id)"
+                  >
+                    <i class="fas fa-undo"></i>
+                  </button>
+                  <button
+                    class="action-btn delete-btn"
+                    title="Delete"
+                    @click="deleteSnapshot(snap.id)"
+                  >
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div v-else class="empty-state">
+            <i class="fas fa-save"></i>
+            <h3>No Snapshots</h3>
+            <p>Create a snapshot or enable realtime autosave to keep restore points here.</p>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="history-actions">
@@ -289,24 +332,34 @@
       <button class="btn btn-info" @click="printHistory">
         <i class="fas fa-print"></i> Print Report
       </button>
+      <button class="btn btn-success" @click="saveSnapshot">
+        <i class="fas fa-save"></i> Save Snapshot
+      </button>
+      <button class="btn btn-warning" @click="toggleAutosave">
+        <i class="fas" :class="isAutosaveActive ? 'fa-toggle-on' : 'fa-toggle-off'"></i>
+        {{ isAutosaveActive ? "Disable Autosave" : "Enable Autosave" }}
+      </button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
 import { useExamsStore } from "../store/useExamsStore";
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 
 export default {
   name: "ScoreHistory",
   setup() {
     const store = useExamsStore();
-    const activeTab = ref("exam1");
+    const activeTab = ref<string>(
+      (store.ui && store.ui.history && store.ui.history.activeTab) || "exam1"
+    );
 
     const tabs = [
       { id: "exam1", label: "Exam I", icon: "fas fa-list-ol" },
       { id: "exam2", label: "Exam II", icon: "fas fa-chart-line" },
       { id: "combined", label: "Combined", icon: "fas fa-star" },
+      { id: "snapshots", label: "Snapshots", icon: "fas fa-save" },
     ];
 
     const examIHistory = computed(() => store.history.examI);
@@ -338,6 +391,32 @@ export default {
       const drills = store.examI && store.examI.drills ? store.examI.drills : [];
       return drills.map((d) => (d && d.maxScore ? d.maxScore : 0));
     });
+
+    // Snapshots (autosave/manual save) list
+    const snapshots = computed(() => store.history.snapshots || []);
+    const isAutosaveActive = ref(
+      !!(store.ui && store.ui.history && store.ui.history.isAutosaveActive)
+    );
+
+    // Keep activeTab persisted
+    watch(activeTab, (v) => {
+      store.ui = store.ui || {};
+      store.ui.history = store.ui.history || {};
+      // cast to any to avoid narrow literal type issues when assigning from general strings
+      store.ui.history.activeTab = String(v) as any;
+      store.saveToLocalStorage();
+    });
+
+    // Keep autosave flag persisted
+    watch(isAutosaveActive, (v) => {
+      store.ui = store.ui || {};
+      store.ui.history = store.ui.history || {};
+      store.ui.history.isAutosaveActive = !!v;
+      store.saveToLocalStorage();
+    });
+
+    // If autosave is active in saved config, ensure it runs
+    if (isAutosaveActive.value) store.startRealtimeAutosave();
 
     // Statistics
     const totalExams = computed(() => examIHistory.value.length + examIIHistory.value.length);
@@ -372,10 +451,12 @@ export default {
     const maxExamII = computed(() => {
       if (examIIHistory.value.length === 0) return 0;
       const lastEntry = examIIHistory.value[examIIHistory.value.length - 1];
-      return examIIMaxScores[lastEntry.level]?.reduce((a, b) => a + b, 0) || 0;
+      const arr = examIIMaxScores[lastEntry.level];
+      const sum = Array.isArray(arr) ? arr.reduce((a, b) => a + b, 0) : 0;
+      return sum || 0;
     });
 
-    const levelBreakdown = computed((): Array<{ name: string; count: number; color: string }> => {
+    const levelBreakdown = computed(() => {
       const levels: Record<string, number> = {};
       examIIHistory.value.forEach((entry) => {
         levels[entry.level] = (levels[entry.level] || 0) + 1;
@@ -592,6 +673,35 @@ export default {
       window.print();
     };
 
+    // Snapshot actions
+    const saveSnapshot = () => {
+      const s = store.manualSaveSnapshot();
+      alert(`Snapshot saved: ${s.label}`);
+    };
+
+    const toggleAutosave = () => {
+      if (isAutosaveActive.value) {
+        store.stopRealtimeAutosave();
+        isAutosaveActive.value = false;
+      } else {
+        store.startRealtimeAutosave();
+        isAutosaveActive.value = true;
+        alert("Realtime autosave enabled. Snapshots will be created automatically.");
+      }
+    };
+
+    const restoreSnapshot = (id: string) => {
+      if (!confirm("Restore this snapshot? This will replace current data.")) return;
+      const ok = store.restoreSnapshot(id);
+      if (ok) alert("Snapshot restored.");
+      else alert("Failed to restore snapshot.");
+    };
+
+    const deleteSnapshot = (id: string) => {
+      if (!confirm("Delete this snapshot?")) return;
+      store.deleteSnapshot(id);
+    };
+
     return {
       activeTab,
       tabs,
@@ -626,6 +736,13 @@ export default {
       exportHistory,
       clearHistory,
       printHistory,
+      // snapshots
+      snapshots,
+      saveSnapshot,
+      restoreSnapshot,
+      deleteSnapshot,
+      toggleAutosave,
+      isAutosaveActive,
     };
   },
 };
