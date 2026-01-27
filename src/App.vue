@@ -8,35 +8,39 @@
 
     <main class="app-main">
       <div class="container">
-        <div class="app-content">
-          <StudentInfo />
+        <div class="layout-shell">
+          <!-- Sidebar removed — navigation is handled by the tab buttons above -->
 
-          <div class="tabs">
-            <button
-              v-for="tab in tabs"
-              :key="tab.id"
-              :class="['tab-button', { active: activeTab === tab.id }]"
-              @click="activeTab = tab.id"
-            >
-              <i :class="tab.icon"></i> {{ tab.label }}
-            </button>
-          </div>
+          <div class="app-content">
+            <StudentInfo />
 
-          <div class="tab-content">
-            <div v-show="activeTab === 'exam1'" class="tab-pane active">
-              <ExamI />
+            <div class="tabs">
+              <button
+                v-for="tab in tabs"
+                :key="tab.id"
+                :class="['tab-button', { active: activeTab === tab.id }]"
+                @click="activeTab = tab.id"
+              >
+                <i :class="tab.icon"></i> {{ tab.label }}
+              </button>
             </div>
 
-            <div v-show="activeTab === 'exam2'" class="tab-pane">
-              <ExamII />
-            </div>
+            <div class="tab-content">
+              <div v-show="activeTab === 'exam1'" class="tab-pane active">
+                <ExamI />
+              </div>
 
-            <div v-show="activeTab === 'history'" class="tab-pane">
-              <ScoreHistory />
-            </div>
+              <div v-show="activeTab === 'exam2'" class="tab-pane">
+                <ExamII />
+              </div>
 
-            <div v-show="activeTab === 'reports'" class="tab-pane">
-              <Reports />
+              <div v-show="activeTab === 'history'" class="tab-pane">
+                <ScoreHistory />
+              </div>
+
+              <div v-show="activeTab === 'reports'" class="tab-pane">
+                <Reports />
+              </div>
             </div>
           </div>
         </div>
@@ -57,7 +61,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import StudentInfo from "./components/StudentInfo.vue";
 import ExamI from "./components/ExamI.vue";
 import ExamII from "./components/ExamII.vue";
@@ -93,6 +97,10 @@ const resetAll = () => {
   if (confirm("Reset all data? This cannot be undone.")) {
     store.resetAll();
   }
+};
+
+const selectTab = (id: string) => {
+  activeTab.value = id;
 };
 </script>
 
@@ -218,8 +226,22 @@ const resetAll = () => {
     padding: 1rem;
   }
 
-  .app-header h1 {
-    font-size: 1.8rem;
+  /* Sidebar removed — navigation via tab buttons above */
+  .layout-shell {
+    display: flex;
+    gap: 1.5rem;
   }
+
+  .app-content {
+    flex: 1 1 auto;
+  }
+}
+
+.app-content {
+  flex: 1 1 auto;
+}
+
+.app-header h1 {
+  font-size: 1.8rem;
 }
 </style>

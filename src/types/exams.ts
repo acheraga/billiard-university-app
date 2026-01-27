@@ -2,7 +2,7 @@
 export interface PositionDrill {
   code: string;
   name: string;
-  type: 'position';
+  type: "position";
   shots: number[];
   successes: boolean[];
   loses: boolean[];
@@ -15,13 +15,16 @@ export interface PositionDrill {
 export interface CountingDrill {
   code: string;
   name: string;
-  type: 'counting';
+  type: "counting";
   score: number;
   maxScore: number;
   instructions: string;
   // attempts[targetIndex][attemptIndex] = true (success) | false (miss) | null (not attempted yet)
   attempts?: (boolean | null)[][];
-} 
+  // Backward-compatible legacy fields used by some UI helpers and tests (F6)
+  shots?: (number | boolean)[];
+  attempted?: boolean[];
+}
 
 export type ExamIDrill = PositionDrill | CountingDrill;
 
@@ -29,7 +32,7 @@ export type ExamIDrill = PositionDrill | CountingDrill;
 export interface BestOfTwoSkill {
   code: string;
   name: string;
-  type: 'bestOfTwo';
+  type: "bestOfTwo";
   attempt1: number;
   attempt2: number;
   maxScore: number;
@@ -38,7 +41,7 @@ export interface BestOfTwoSkill {
 export interface LowestTwoOfThreeSkill {
   code: string;
   name: string;
-  type: 'lowestTwoOfThree';
+  type: "lowestTwoOfThree";
   scores: number[];
   maxScore: number;
 }
@@ -46,7 +49,7 @@ export interface LowestTwoOfThreeSkill {
 export interface SumSkill {
   code: string;
   name: string;
-  type: 'sum';
+  type: "sum";
   scores: number[];
   maxScore: number;
 }
@@ -54,14 +57,14 @@ export interface SumSkill {
 export interface MedianSkill {
   code: string;
   name: string;
-  type: 'median';
+  type: "median";
   breakScores: number[][];
   maxScore: number;
 }
 
 export type ExamIISkill = BestOfTwoSkill | LowestTwoOfThreeSkill | SumSkill | MedianSkill;
 
-export type ExamIILevel = 'Bachelors' | 'Masters' | 'Doctorate';
+export type ExamIILevel = "Bachelors" | "Masters" | "Doctorate";
 
 // Student info
 export interface Student {
@@ -134,4 +137,29 @@ export interface ExamsState {
 export interface UserListItem {
   id: string;
   name: string;
+}
+
+// Type guards
+export function isPositionDrill(drill: ExamIDrill): drill is PositionDrill {
+  return (drill as ExamIDrill).type === "position";
+}
+
+export function isCountingDrill(drill: ExamIDrill): drill is CountingDrill {
+  return (drill as ExamIDrill).type === "counting";
+}
+
+export function isBestOfTwoSkill(skill: ExamIISkill): skill is BestOfTwoSkill {
+  return (skill as ExamIISkill).type === "bestOfTwo";
+}
+
+export function isLowestTwoOfThreeSkill(skill: ExamIISkill): skill is LowestTwoOfThreeSkill {
+  return (skill as ExamIISkill).type === "lowestTwoOfThree";
+}
+
+export function isSumSkill(skill: ExamIISkill): skill is SumSkill {
+  return (skill as ExamIISkill).type === "sum";
+}
+
+export function isMedianSkill(skill: ExamIISkill): skill is MedianSkill {
+  return (skill as ExamIISkill).type === "median";
 }

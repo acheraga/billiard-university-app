@@ -450,7 +450,13 @@ export default {
 
     // Timeline
     const timeline = computed(() => {
-      const events = [];
+      const events: Array<{
+        date: string;
+        type: string;
+        title: string;
+        details: string;
+        score?: string;
+      }> = [];
 
       // Add Exam I events
       store.history.examI.forEach((entry) => {
@@ -469,13 +475,15 @@ export default {
           date: formatDate(entry.date),
           type: "exam2",
           title: `Exam II - ${entry.level}`,
-          details: `${entry.skills.length} skills assessed`,
+          details: `${entry.scores.length} skills assessed`,
           score: `${entry.total} points`,
         });
       });
 
       // Sort by date (newest first)
-      return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+      return events
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 5);
     });
 
     // Quick Stats

@@ -50,40 +50,79 @@
         </div>
       </div>
 
-      <div class="skills-grid">
-        <div v-for="(skill, index) in skills" :key="index" class="skill-card">
+      <div class="skills-carousel">
+        <div class="carousel-controls">
+          <button class="btn btn-secondary prev-btn" @click="prevSkill">← Précédent</button>
+          <div class="skill-position">Skill {{ currentSkillIndex + 1 }} / {{ skills.length }}</div>
+          <button class="btn btn-secondary next-btn" @click="nextSkill">Suivant →</button>
+        </div>
+
+        <div class="skill-card">
           <div class="skill-header">
-            <h3>{{ skill.code }} - {{ skill.name }}</h3>
+            <h3>{{ currentSkill.code }} - {{ currentSkill.name }}</h3>
             <div class="skill-score">
-              <span class="current-score">{{ calculateSkillScore(skill) }}</span>
-              <span class="max-score">/{{ skill.maxScore }}</span>
+              <span class="current-score">{{ calculateSkillScore(currentSkill) }}</span>
+              <span class="max-score">/{{ currentSkill.maxScore }}</span>
             </div>
           </div>
 
           <div class="skill-figure">
-            <img :src="getSkillFigure(skill.code)" :alt="`Figure ${skill.code}`" />
+            <div class="layout-images">
+              <template v-for="(src, i) in getSkillFigures(currentSkill.code)" :key="i">
+                <div class="layout-card">
+                  <img
+                    :src="src"
+                    :alt="`Figure ${currentSkill.code} Layout ${i + 1}`"
+                    class="clickable-layout"
+                    @click="openModal(src, `${currentSkill.code} Layout ${i + 1}`)"
+                  />
+                  <div class="layout-label">Layout {{ i + 1 }}</div>
+                </div>
+              </template>
+            </div>
+          </div>
+
+          <!-- Modal for enlarged figure -->
+          <div v-if="showFigureModal" class="figure-modal" role="dialog" aria-modal="true">
+            <div class="modal-overlay" @click="closeModal"></div>
+            <div
+              class="modal-content"
+              :class="{ dragging: dragging }"
+              :style="{ transform: dragging ? `translateY(${touchCurrentY}px)` : '' }"
+              @touchstart.prevent="onTouchStart"
+              @touchmove.prevent="onTouchMove"
+              @touchend.prevent="onTouchEnd"
+            >
+              <div class="modal-drag-handle" aria-hidden="true"></div>
+              <button class="modal-close" @click="closeModal" aria-label="Close">✕</button>
+              <h4 class="modal-title">{{ modalTitle }}</h4>
+              <img :src="modalSrc" :alt="modalTitle" class="modal-image" />
+              <p class="modal-description">{{ modalDescription }}</p>
+            </div>
           </div>
 
           <div class="skill-content">
+            <p class="skill-explanation">{{ getSkillExplanation(currentSkill.code) }}</p>
+
             <!-- Best of Two -->
-            <div v-if="skill.type === 'bestOfTwo'" class="skill-inputs">
+            <div v-if="currentSkill.type === 'bestOfTwo'" class="skill-inputs">
               <div class="input-group">
                 <label>Attempt 1:</label>
                 <input
-                  v-model.number="skill.attempt1"
+                  v-model.number="currentSkill.attempt1"
                   type="number"
                   min="0"
-                  :max="skill.maxScore"
+                  :max="currentSkill.maxScore"
                   @input="updateSkillScore"
                 />
               </div>
               <div class="input-group">
                 <label>Attempt 2:</label>
                 <input
-                  v-model.number="skill.attempt2"
+                  v-model.number="currentSkill.attempt2"
                   type="number"
                   min="0"
-                  :max="skill.maxScore"
+                  :max="currentSkill.maxScore"
                   @input="updateSkillScore"
                 />
               </div>
@@ -91,14 +130,14 @@
             </div>
 
             <!-- Lowest Two of Three -->
-            <div v-if="skill.type === 'lowestTwoOfThree'" class="skill-inputs">
+            <div v-if="currentSkill.type === 'lowestTwoOfThree'" class="skill-inputs">
               <div v-for="i in 3" :key="i" class="input-group">
                 <label>Attempt {{ i }}:</label>
                 <input
-                  v-model.number="skill.scores[i - 1]"
+                  v-model.number="currentSkill.scores[i - 1]"
                   type="number"
                   min="0"
-                  :max="skill.maxScore"
+                  :max="currentSkill.maxScore"
                   @input="updateSkillScore"
                 />
               </div>
@@ -106,11 +145,11 @@
             </div>
 
             <!-- Sum (Checkbox style) -->
-            <div v-if="skill.type === 'sum'" class="skill-inputs checkboxes">
-              <div v-for="i in skill.scores.length" :key="i" class="checkbox-group">
+            <div v-if="currentSkill.type === 'sum'" class="skill-inputs checkboxes">
+              <div v-for="i in currentSkill.scores.length" :key="i" class="checkbox-group">
                 <label class="checkbox-label">
                   <input
-                    v-model="skill.scores[i - 1]"
+                    v-model="currentSkill.scores[i - 1]"
                     type="checkbox"
                     true-value="1"
                     false-value="0"
@@ -124,14 +163,14 @@
             </div>
 
             <!-- Median (Break shots) -->
-            <div v-if="skill.type === 'median'" class="skill-inputs break-shots">
+            <div v-if="currentSkill.type === 'median'" class="skill-inputs break-shots">
               <div v-for="attempt in 3" :key="attempt" class="break-attempt">
                 <h4>Break {{ attempt }}</h4>
                 <div class="break-points">
                   <div v-for="point in 5" :key="point" class="point-input">
                     <label>Point {{ String.fromCharCode(96 + point) }}:</label>
                     <select
-                      v-model="skill.breakScores[attempt - 1][point - 1]"
+                      v-model="currentSkill.breakScores[attempt - 1][point - 1]"
                       @change="updateSkillScore"
                     >
                       <option value="0">0 (Miss)</option>
@@ -140,7 +179,7 @@
                   </div>
                 </div>
                 <div class="attempt-score">
-                  Score: {{ calculateBreakScore(skill.breakScores[attempt - 1]) }}
+                  Score: {{ calculateBreakScore(currentSkill.breakScores[attempt - 1]) }}
                 </div>
               </div>
               <div class="skill-note">Median of three break scores</div>
@@ -210,8 +249,9 @@
 </template>
 
 <script lang="ts">
+import { computed, ref, watch, onUnmounted } from "vue";
 import { useExamsStore } from "../store/useExamsStore";
-import { computed, ref } from "vue";
+import exam2Explanations from "../data/exam2_explanations";
 
 export default {
   name: "ExamII",
@@ -252,18 +292,144 @@ export default {
       return `level-${currentLevel.value.toLowerCase()}`;
     });
 
-    // Use public/exam2_images/<Level>/S{n}.png extracted from the official PDFs
-    function getSkillFigure(code: string) {
-      // skill code like 'S1' maps to /exam2_images/<Level>/S1.png
-      return `/exam2_images/${currentLevel.value}/${code}.png`;
-    }
+    const baseUrl = import.meta.env.BASE_URL || "/";
+    const basePrefix = baseUrl === "/" ? "" : baseUrl.replace(/\/$/, "");
+
+    const getSkillFigures = (code: string) => {
+      // Skills S3 and S4 have 3 layout images each (Layout 1..3). Return array of paths.
+      const multi: Record<string, number[]> = {
+        S3: [3, 4, 5],
+        S4: [6, 7, 8],
+      };
+
+      if (multi[code]) {
+        return multi[code].map(
+          (n) =>
+            `${basePrefix}/exam2_images/${store.examII.currentLevel}/image-${String(n).padStart(3, "0")}.jpg`
+        );
+      }
+
+      const singleNum = Number(code.slice(1));
+      return [
+        `${basePrefix}/exam2_images/${store.examII.currentLevel}/image-${String(singleNum).padStart(3, "0")}.jpg`,
+      ];
+    };
+
+    // PDF preview helpers
+    const pdfFilename = computed(() => `BU_Exam-II_Skills-${currentLevel.value}_BW.pdf`);
+    const pdfUrl = computed(() => `${basePrefix}/${pdfFilename.value}`);
+    const showPdfPreview = ref(false);
+    const togglePdfPreview = () => {
+      showPdfPreview.value = !showPdfPreview.value;
+    };
+
+    const getSkillExplanation = (code: string) => {
+      const level = store.examII.currentLevel || "Bachelors";
+      return exam2Explanations[level] && exam2Explanations[level][code]
+        ? exam2Explanations[level][code]
+        : "No explanation available.";
+    };
+
+    // Backwards-compatible single figure getter (returns the first image)
+    const getSkillFigure = (code: string) => {
+      return getSkillFigures(code)[0];
+    };
 
     const skills = computed(() => {
       return store.examII.skills[currentLevel.value] || [];
     });
 
+    const currentSkillIndex = ref(0);
+    const currentSkill = computed(() => skills.value[currentSkillIndex.value]);
+
     const currentScore = computed(() => store.examII.currentScore);
 
+    // navigation (wrap-around)
+    const prevSkill = () => {
+      if (currentSkillIndex.value > 0) {
+        currentSkillIndex.value -= 1;
+      } else {
+        // wrap-around to last
+        currentSkillIndex.value = Math.max(0, skills.value.length - 1);
+      }
+    };
+    const nextSkill = () => {
+      if (currentSkillIndex.value < skills.value.length - 1) {
+        currentSkillIndex.value += 1;
+      } else {
+        // wrap-around to first
+        currentSkillIndex.value = 0;
+      }
+    };
+
+    // reset index when level changes
+    watch(currentLevel, () => (currentSkillIndex.value = 0));
+
+    // Modal state for enlarged figures
+    const showFigureModal = ref(false);
+    const modalSrc = ref("");
+    const modalTitle = ref("");
+    const modalDescription = ref("");
+
+    const openModal = (src: string, title: string) => {
+      modalSrc.value = src;
+      modalTitle.value = title;
+      modalDescription.value = getSkillExplanation(title.split(" ")[0]);
+      showFigureModal.value = true;
+    };
+
+    const closeModal = () => {
+      showFigureModal.value = false;
+      modalSrc.value = "";
+      modalTitle.value = "";
+      modalDescription.value = "";
+    };
+
+    // Close modal on Escape key for better UX
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeModal();
+    };
+
+    // Touch / swipe-to-close state (mobile)
+    const touchStartY = ref<number | null>(null);
+    const touchCurrentY = ref<number>(0);
+    const dragging = ref<boolean>(false);
+    const SWIPE_CLOSE_THRESHOLD = 100; // pixels
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (!e.touches || e.touches.length === 0) return;
+      touchStartY.value = e.touches[0].clientY;
+      touchCurrentY.value = 0;
+      dragging.value = true;
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!dragging.value || touchStartY.value === null) return;
+      const y = e.touches && e.touches.length ? e.touches[0].clientY : 0;
+      touchCurrentY.value = Math.max(0, y - touchStartY.value);
+    };
+
+    const onTouchEnd = () => {
+      dragging.value = false;
+      if ((touchCurrentY.value || 0) > SWIPE_CLOSE_THRESHOLD) {
+        closeModal();
+      } else {
+        touchCurrentY.value = 0;
+      }
+      touchStartY.value = null;
+    };
+
+    watch(showFigureModal, (val) => {
+      if (val) {
+        window.addEventListener("keydown", onKeyDown);
+      } else {
+        window.removeEventListener("keydown", onKeyDown);
+      }
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener("keydown", onKeyDown);
+    });
     const totalScore = computed(() => {
       return (store.student.examIScore || 0) + store.examII.currentScore;
     });
@@ -342,19 +508,43 @@ export default {
       currentLevelInfo,
       currentLevelClass,
       skills,
+      currentSkillIndex,
+      currentSkill,
       currentScore,
       totalScore,
       buRating,
       ratingClass,
       buDiploma,
       setLevel,
+      prevSkill,
+      nextSkill,
       getSkillFigure,
+      getSkillFigures,
+      getSkillExplanation,
       calculateSkillScore,
       calculateBreakScore,
       updateSkillScore,
       saveExamII,
       resetExamII,
       autoFill,
+      // PDF preview helpers
+      pdfFilename,
+      pdfUrl,
+      showPdfPreview,
+      togglePdfPreview,
+      // modal
+      showFigureModal,
+      modalSrc,
+      modalTitle,
+      modalDescription,
+      openModal,
+      closeModal,
+      // touch/swipe handlers
+      onTouchStart,
+      onTouchMove,
+      onTouchEnd,
+      touchCurrentY,
+      dragging,
     };
   },
 };
@@ -435,6 +625,70 @@ export default {
   box-shadow: 0 2px 6px rgba(20, 30, 42, 0.04);
 }
 
+.layout-images {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: nowrap; /* keep items in a horizontal scroller on small screens */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* smooth scrolling on iOS */
+  scroll-snap-type: x proximity;
+  padding: 0 0.5rem;
+}
+
+.layout-card {
+  width: 420px; /* match Exam I drill figure width on desktop */
+  flex: 0 0 auto;
+  text-align: center;
+  scroll-snap-align: center;
+}
+
+.layout-card img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid #e8eaef;
+  max-height: 420px; /* allow larger layouts to display like Exam I */
+  object-fit: contain;
+}
+
+/* Tablet breakpoint */
+@media (max-width: 1024px) {
+  .layout-card {
+    width: 320px;
+  }
+  .layout-card img {
+    max-height: 320px;
+  }
+}
+
+/* Mobile breakpoint */
+@media (max-width: 640px) {
+  .layout-images {
+    gap: 0.5rem;
+    padding: 0 0.5rem;
+  }
+
+  .layout-card {
+    width: 80%; /* show one big card per view */
+    max-width: 360px;
+  }
+
+  .layout-card img {
+    max-height: 260px;
+  }
+
+  .skill-figure {
+    padding: 0 0.5rem;
+  }
+}
+
+.layout-label {
+  font-size: 0.85rem;
+  color: #6c757d;
+  margin-top: 0.35rem;
+}
+
 .level-info {
   background: linear-gradient(135deg, #f8f9fa, #e9ecef);
   border-radius: 10px;
@@ -484,6 +738,27 @@ export default {
   margin-bottom: 2rem;
 }
 
+.skills-carousel {
+  margin-bottom: 2rem;
+}
+
+.carousel-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.skill-position {
+  font-weight: 700;
+  color: #495057;
+}
+
+.prev-btn,
+.next-btn {
+  min-width: 140px;
+}
 .skill-card {
   background: white;
   border: 1px solid #e0e0e0;
@@ -532,6 +807,12 @@ export default {
 
 .skill-content {
   padding: 1rem 0;
+}
+
+.skill-explanation {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin-top: 0.5rem;
 }
 
 .skill-inputs {
@@ -675,6 +956,94 @@ export default {
   margin-top: 1rem;
   padding-top: 1rem;
   border-top: 1px solid #e9ecef;
+}
+
+.figure-modal {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.figure-modal .modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.figure-modal .modal-content {
+  position: relative;
+  z-index: 1001;
+  background: white;
+  padding: 1.25rem;
+  border-radius: 8px;
+  max-width: 900px;
+  width: 95%;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+  transition:
+    transform 180ms ease,
+    opacity 180ms ease;
+}
+
+.modal-drag-handle {
+  width: 36px;
+  height: 5px;
+  background: #e9ecef;
+  border-radius: 4px;
+  margin: 0 auto 0.75rem auto;
+}
+
+.figure-modal {
+  animation: fadeIn 180ms ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.figure-modal .modal-content.dragging {
+  transition: none; /* disable transition while dragging */
+}
+
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.modal-title {
+  margin: 0 0 1rem 0;
+}
+
+.modal-image {
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid #e8eaef;
+}
+
+.figure-modal .modal-content {
+  /* ensure content doesn't overflow the viewport and keeps close button visible */
+  max-height: 90vh;
+  overflow: auto;
+}
+
+.modal-description {
+  color: #495057;
+  margin-top: 0.75rem;
 }
 
 .exam-summary {

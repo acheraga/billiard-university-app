@@ -15,53 +15,58 @@
     </div>
 
     <div class="drills-grid">
-      <div v-for="(drill, index) in drills" :key="index" class="drill-card">
+      <div class="carousel-controls">
+        <button class="btn btn-secondary prev-btn" @click="prevDrill">← Précédent</button>
+        <div class="drill-position">Drill {{ currentDrillIndex + 1 }} / {{ drills.length }}</div>
+        <button class="btn btn-secondary next-btn" @click="nextDrill">Suivant →</button>
+      </div>
+
+      <div v-if="drills.length" :key="currentDrillIndex" class="drill-card">
         <div class="drill-header">
-          <h3>{{ drill.code }} - {{ drill.name }}</h3>
+          <h3>{{ currentDrill.code }} - {{ currentDrill.name }}</h3>
           <div class="drill-center">
-            <button class="reset-drill-btn" @click="resetDrill(index)">Reset</button>
+            <button class="reset-drill-btn" @click="resetDrill(currentDrillIndex)">Reset</button>
           </div>
-          <span class="drill-score">{{ drill.score }}/{{ drill.maxScore }}</span>
+          <span class="drill-score">{{ currentDrill.score }}/{{ currentDrill.maxScore }}</span>
         </div>
         <!-- Figure with special overlay for F6 (Potting) -->
-        <div v-if="getFigure(drill.code)" class="drill-figure-wrap">
-          <template v-if="drill.type === 'counting'">
+        <div v-if="getFigure(currentDrill.code)" class="drill-figure-wrap">
+          <template v-if="currentDrill.type === 'counting'">
             <div class="f6-potting-section">
               <div class="f6-figure-display">
                 <div class="figure-image-wrap">
                   <img
-                    :src="getFigure(drill.code)?.src"
-                    :alt="drill.code + ' figure'"
+                    :src="getFigure(currentDrill.code)?.src"
+                    :alt="currentDrill.code + ' figure'"
                     class="drill-figure f6-figure"
                   />
 
                   <!-- Overlayed potting hotspots (per-attempt). Shown for counting drills or F6-F8 explicitly -->
-                  <div
-                    class="potting-overlay"
-                    v-if="
-                      drill.type === 'counting' ||
-                      ['F6', 'F7', 'F8'].includes(drill.code) ||
-                      showAllHotspots
-                    "
-                  >
+                  <div class="potting-overlay" v-if="isHotspotVisible(currentDrill)">
                     <template
-                      v-for="(c, t) in drill.code === 'F8'
+                      v-for="(c, t) in currentDrill.code === 'F8'
                         ? pottingCoords.slice(0, 5)
                         : pottingCoords.slice(0, 10)"
                       :key="'t' + t"
                     >
                       <button
-                        v-for="aIdx in drill.code === 'F7' ? 2 : drill.code === 'F8' ? 4 : 1"
+                        v-for="aIdx in currentDrill.code === 'F7'
+                          ? 2
+                          : currentDrill.code === 'F8'
+                            ? 4
+                            : 1"
                         :key="t + '-' + (aIdx - 1)"
                         class="potting-hotspot"
                         :class="{
-                          success: isAttemptSuccess(drill, t, aIdx - 1),
-                          attemptedMiss: isAttemptAttemptedMiss(drill, t, aIdx - 1),
+                          success: isAttemptSuccess(currentDrill, t, aIdx - 1),
+                          attemptedMiss: isAttemptAttemptedMiss(currentDrill, t, aIdx - 1),
                         }"
-                        :style="hotspotStyle(index, t, c, aIdx - 1)"
-                        @click="overlayToggle(index, t, aIdx - 1)"
-                        :aria-pressed="isAttemptSuccess(drill, t, aIdx - 1) ? 'true' : 'false'"
-                        :aria-label="drill.code + ' target ' + (t + 1) + ' attempt ' + aIdx"
+                        :style="hotspotStyle(currentDrillIndex, t, c, aIdx - 1)"
+                        @click="overlayToggle(currentDrillIndex, t, aIdx - 1)"
+                        :aria-pressed="
+                          isAttemptSuccess(currentDrill, t, aIdx - 1) ? 'true' : 'false'
+                        "
+                        :aria-label="currentDrill.code + ' target ' + (t + 1) + ' attempt ' + aIdx"
                         tabindex="0"
                       >
                         <span class="hotspot-symbol">
@@ -76,32 +81,36 @@
               </div>
 
               <div class="potting-info-header">
-                <h4>{{ getFigure(drill.code)?.caption }}</h4>
-                <div class="potting-score-badge">{{ drill.score }} / {{ drill.maxScore }}</div>
+                <h4>{{ getFigure(currentDrill.code)?.caption }}</h4>
+                <div class="potting-score-badge">
+                  {{ currentDrill.score }} / {{ currentDrill.maxScore }}
+                </div>
               </div>
 
               <div class="potting-grid-container">
                 <div
                   class="potting-grid"
                   role="group"
-                  :aria-label="drill.code + ' attempts grid for ' + (student.name || 'student')"
+                  :aria-label="
+                    currentDrill.code + ' attempts grid for ' + (student.name || 'student')
+                  "
                 >
                   <div
                     class="target"
-                    v-for="t in drill.attempts
-                      ? drill.attempts.length
-                      : drill.code === 'F8'
+                    v-for="t in currentDrill.attempts
+                      ? currentDrill.attempts.length
+                      : currentDrill.code === 'F8'
                         ? 5
                         : 10"
                     :key="t"
                   >
                     <div
                       class="attempts"
-                      v-for="a in drill.attempts && drill.attempts[t - 1]
-                        ? drill.attempts[t - 1].length
-                        : drill.code === 'F7'
+                      v-for="a in currentDrill.attempts && currentDrill.attempts[t - 1]
+                        ? currentDrill.attempts[t - 1].length
+                        : currentDrill.code === 'F7'
                           ? 2
-                          : drill.code === 'F8'
+                          : currentDrill.code === 'F8'
                             ? 4
                             : 1"
                       :key="a"
@@ -109,14 +118,17 @@
                       <button
                         class="potting-shot-btn"
                         :class="{
-                          success: drill.attempts && drill.attempts[t - 1]?.[a - 1] === true,
-                          miss: drill.attempts && drill.attempts[t - 1]?.[a - 1] === false,
+                          success:
+                            currentDrill.attempts && currentDrill.attempts[t - 1]?.[a - 1] === true,
+                          miss:
+                            currentDrill.attempts &&
+                            currentDrill.attempts[t - 1]?.[a - 1] === false,
                         }"
-                        @click="toggleCounting(index, t - 1, a - 1)"
-                        @keydown.space.prevent="toggleCounting(index, t - 1, a - 1)"
-                        @keydown.enter.prevent="toggleCounting(index, t - 1, a - 1)"
+                        @click="toggleCounting(currentDrillIndex, t - 1, a - 1)"
+                        @keydown.space.prevent="toggleCounting(currentDrillIndex, t - 1, a - 1)"
+                        @keydown.enter.prevent="toggleCounting(currentDrillIndex, t - 1, a - 1)"
                         :aria-pressed="
-                          drill.attempts && drill.attempts[t - 1]?.[a - 1] === true
+                          currentDrill.attempts && currentDrill.attempts[t - 1]?.[a - 1] === true
                             ? 'true'
                             : 'false'
                         "
@@ -125,18 +137,18 @@
                       >
                         <span
                           v-if="
-                            drill.attempts &&
-                            drill.attempts[t - 1] &&
-                            drill.attempts[t - 1][a - 1] === null
+                            currentDrill.attempts &&
+                            currentDrill.attempts[t - 1] &&
+                            currentDrill.attempts[t - 1][a - 1] === null
                           "
                           class="shot-number"
                           >{{ t }}</span
                         >
                         <span
                           v-else-if="
-                            drill.attempts &&
-                            drill.attempts[t - 1] &&
-                            drill.attempts[t - 1][a - 1] === true
+                            currentDrill.attempts &&
+                            currentDrill.attempts[t - 1] &&
+                            currentDrill.attempts[t - 1][a - 1] === true
                           "
                           class="shot-icon"
                           >✓</span
@@ -157,9 +169,9 @@
               </div>
 
               <div v-if="hotspotTuner.available" class="hotspot-tuner-wrap">
-                <button class="btn btn-secondary" @click="toggleHotspotTuner(index)">
+                <button class="btn btn-secondary" @click="toggleHotspotTuner(currentDrillIndex)">
                   {{
-                    hotspotTuner.activeIndex === index
+                    hotspotTuner.activeIndex === currentDrillIndex
                       ? "Close Hotspot Tuner"
                       : "Edit Hotspots (dev)"
                   }}
@@ -190,7 +202,9 @@
                   </div>
 
                   <div class="tuner-actions">
-                    <button class="btn btn-success" @click="saveHotspotTuner(index)">Save</button>
+                    <button class="btn btn-success" @click="saveHotspotTuner(currentDrillIndex)">
+                      Save
+                    </button>
                     <button class="btn btn-secondary" @click="cancelHotspotTuner">Cancel</button>
                   </div>
                 </div>
@@ -200,49 +214,49 @@
 
           <template v-else>
             <img
-              :src="getFigure(drill.code)?.src"
-              :alt="drill.code + ' figure'"
+              :src="getFigure(currentDrill.code)?.src"
+              :alt="currentDrill.code + ' figure'"
               class="drill-figure"
             />
-            <div class="drill-figure-caption">{{ getFigure(drill.code)?.caption }}</div>
+            <div class="drill-figure-caption">{{ getFigure(currentDrill.code)?.caption }}</div>
           </template>
         </div>
 
-        <div v-if="drill.type === 'position'" class="drill-content">
-          <div class="shots-grid" :class="{ horizontal: isHorizontal(drill) }">
+        <div v-if="currentDrill.type === 'position'" class="drill-content">
+          <div class="shots-grid" :class="{ horizontal: isHorizontal(currentDrill) }">
             <div v-for="i in 10" :key="i" class="shot-cell">
               <label class="shot-label">Shot {{ i }}</label>
               <div class="shot-controls">
                 <div class="target-display">
                   <span class="shot-input readonly" aria-readonly="true">{{
-                    Number(drill.shots[i - 1]) || 4
+                    Number(currentDrill.shots[i - 1]) || 4
                   }}</span>
                 </div>
                 <div class="checkbox-column">
                   <label class="success-label" title="Success">
                     <input
-                      v-model="drill.successes[i - 1]"
+                      v-model="currentDrill.successes[i - 1]"
                       type="checkbox"
                       class="small-checkbox"
                       :disabled="
-                        (drill.locked && drill.locked[i - 1]) ||
-                        (i > 1 && !(drill.successes[i - 2] || drill.loses[i - 2]))
+                        (currentDrill.locked && currentDrill.locked[i - 1]) ||
+                        (i > 1 && !(currentDrill.successes[i - 2] || currentDrill.loses[i - 2]))
                       "
-                      @change="toggleShotSuccess(index, i - 1)"
+                      @change="toggleShotSuccess(currentDrillIndex, i - 1)"
                     />
                     <span class="check-letter">S</span>
                   </label>
 
                   <label class="lose-label" title="Lose">
                     <input
-                      v-model="drill.loses[i - 1]"
+                      v-model="currentDrill.loses[i - 1]"
                       type="checkbox"
                       class="small-checkbox"
                       :disabled="
-                        (drill.locked && drill.locked[i - 1]) ||
-                        (i > 1 && !(drill.successes[i - 2] || drill.loses[i - 2]))
+                        (currentDrill.locked && currentDrill.locked[i - 1]) ||
+                        (i > 1 && !(currentDrill.successes[i - 2] || currentDrill.loses[i - 2]))
                       "
-                      @change="toggleShotLose(index, i - 1)"
+                      @change="toggleShotLose(currentDrillIndex, i - 1)"
                     />
                     <span class="check-letter">L</span>
                   </label>
@@ -251,13 +265,13 @@
             </div>
           </div>
           <div class="bonus-info">
-            <i class="fas fa-star"></i> Bonus: {{ drill.bonus }} successes at 7
+            <i class="fas fa-star"></i> Bonus: {{ currentDrill.bonus }} successes at 7
           </div>
           <div class="calc-note">Score will be calculated after the last shot.</div>
         </div>
 
         <div v-else class="drill-content">
-          <p class="instructions">{{ drill.instructions }}</p>
+          <p class="instructions">{{ currentDrill.instructions }}</p>
         </div>
       </div>
     </div>
@@ -302,30 +316,13 @@
       </button>
     </div>
 
-    <div class="figures-section">
-      <h3><i class="fas fa-image"></i> Figures & Explanations</h3>
-      <p class="fig-note">
-        Images embedded from <strong>BU_Exam-I_Fundamentals_BW.pdf</strong>. Captions paraphrased;
-        source attributed to the author.
-      </p>
-      <div class="figures-grid">
-        <div v-for="(f, i) in figures" :key="i" class="figure-card">
-          <img :src="f.src" :alt="`Figure ${i + 1}`" />
-          <div class="figure-caption">
-            <strong>{{ f.caption }}</strong>
-            <div class="figure-attrib">
-              Source: BU_Exam-I_Fundamentals_BW.pdf — David Alciatore (2018)
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Figures & Explanations section removed per user request -->
   </div>
 </template>
 
 <script lang="ts">
 import { useExamsStore } from "../store/useExamsStore";
-import type { PositionDrill } from "@/types/exams";
+import type { PositionDrill, ExamIDrill } from "@/types/exams";
 
 interface Figure {
   src: string;
@@ -532,12 +529,17 @@ export default {
         dragging: null,
       },
       showAllHotspots: false,
+      currentDrillIndex: 0,
     };
   },
   computed: {
-    drills() {
+    drills(): ExamIDrill[] {
       const store = useExamsStore();
       return store.examI.drills;
+    },
+    currentDrill() {
+      const idx = Number(this.currentDrillIndex) || 0;
+      return this.drills && this.drills[idx] ? this.drills[idx] : this.drills[0];
     },
     totalScore() {
       const store = useExamsStore();
@@ -620,6 +622,7 @@ export default {
       };
     }
   },
+
   beforeUnmount() {
     // Cleanup any event listeners used by the hotspot tuner
     window.removeEventListener("mousemove", this.onWindowMove);
@@ -646,6 +649,16 @@ export default {
     // helper to cast a drill to any (useful for potting fields and dynamic flags)
     pot(drill: any): any {
       return drill as any;
+    },
+
+    // helper to decide whether to show potting hotspots (or force via url / dev toggle)
+    isHotspotVisible(drill: any): boolean {
+      return (
+        drill &&
+        (drill.type === "counting" ||
+          ["F6", "F7", "F8"].includes(drill.code) ||
+          this.showAllHotspots)
+      );
     },
 
     updateDrillScore(index, shotIndex) {
@@ -1021,6 +1034,22 @@ export default {
     overlayToggle(drillIndex, targetIndex, attemptIndex) {
       // forward to existing toggleCounting handler
       return this.toggleCounting(drillIndex, targetIndex, attemptIndex);
+    },
+
+    prevDrill() {
+      if (this.currentDrillIndex > 0) {
+        this.currentDrillIndex -= 1;
+      } else {
+        this.currentDrillIndex = Math.max(0, this.drills.length - 1);
+      }
+    },
+
+    nextDrill() {
+      if (this.currentDrillIndex < this.drills.length - 1) {
+        this.currentDrillIndex += 1;
+      } else {
+        this.currentDrillIndex = 0;
+      }
     },
 
     isAttemptSuccess(drill, targetIndex, attemptIndex) {

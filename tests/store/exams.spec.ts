@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { setActivePinia, createPinia } from "pinia";
+import { createPinia, setActivePinia } from "pinia";
+import { beforeEach, describe, expect, it } from "vitest";
 import { useExamsStore } from "../../src/store/useExamsStore";
+import { isPositionDrill } from "../../src/types/exams";
 
 beforeEach(() => {
   setActivePinia(createPinia());
@@ -9,7 +10,7 @@ beforeEach(() => {
 describe("Exam I scoring", () => {
   it("sets final position to 7 when last shot at 6 is success", () => {
     const store = useExamsStore();
-    const drill = store.examI.drills[0];
+    const drill = store.examI.drills[0] as any;
     drill.shots = Array(10).fill(4);
     drill.successes = Array(10).fill(false);
     drill.loses = Array(10).fill(false);
@@ -24,7 +25,7 @@ describe("Exam I scoring", () => {
 
   it("sets final position to 5 when last shot at 6 is miss", () => {
     const store = useExamsStore();
-    const drill = store.examI.drills[0];
+    const drill = store.examI.drills[0] as any;
     drill.shots = Array(10).fill(4);
     drill.successes = Array(10).fill(false);
     drill.loses = Array(10).fill(false);
@@ -39,7 +40,7 @@ describe("Exam I scoring", () => {
 
   it("counts successes at position 7 for bonus", () => {
     const store = useExamsStore();
-    const drill = store.examI.drills[0];
+    const drill = store.examI.drills[0] as any;
     drill.shots = [7, 7, 7, 4, 4, 4, 4, 4, 4, 4];
     drill.successes = [true, true, true, false, false, false, false, false, false, false];
     drill.loses = Array(10).fill(false);
@@ -53,6 +54,9 @@ describe("Exam I scoring", () => {
   it("sets final position to 7 when last shot at 7 is success (numeric)", () => {
     const store = useExamsStore();
     const drill = store.examI.drills[1];
+    // ensure position drill
+    if (!isPositionDrill(drill)) throw new Error("Expected position drill");
+
     drill.shots = Array(10).fill(4);
     drill.successes = Array(10).fill(false);
     drill.loses = Array(10).fill(false);
@@ -70,6 +74,23 @@ describe("Exam I scoring", () => {
   it("sets final position to 7 when last shot at '7' (string) is success", () => {
     const store = useExamsStore();
     const drill = store.examI.drills[2];
+    if (!isPositionDrill(drill)) throw new Error("Expected position drill");
+
+    drill.shots = Array(10).fill(4);
+    drill.successes = Array(10).fill(false);
+    drill.loses = Array(10).fill(false);
+    drill.shots[9] = 7; // previously string, use numeric 7 for typing
+    drill.successes[9] = true;
+
+    store.updateExamIDrill(2);
+
+    expect(drill.bonus).toBe(1);
+    expect(drill.score).toBe(8);
+  });
+
+  it("sets final position to 7 when last shot at '7' (string) is success", () => {
+    const store = useExamsStore();
+    const drill = store.examI.drills[2] as any;
     drill.shots = Array(10).fill(4);
     drill.successes = Array(10).fill(false);
     drill.loses = Array(10).fill(false);
@@ -91,7 +112,7 @@ describe("Exam I scoring", () => {
 
     // position drills constraints
     for (let i = 0; i < 5; i++) {
-      const d = store.examI.drills[i];
+      const d = store.examI.drills[i] as any;
       expect(d.shots.length).toBe(10);
       expect(d.successes.length).toBe(10);
       expect(d.loses.length).toBe(10);
@@ -180,8 +201,8 @@ describe("Exam I scoring", () => {
     expect(store.listUsers().some((u) => u.id === id)).toBe(true);
     expect(store.deleteUser(id)).toBe(true);
     // immediate in-memory check (debug)
-    console.log('users after delete:', Object.keys(store.users || {}));
-    console.log('users[id]:', store.users[id]);
+    console.log("users after delete:", Object.keys(store.users || {}));
+    console.log("users[id]:", store.users[id]);
     expect(store.users[id]).toBeUndefined();
     expect(store.listUsers().some((u) => u.id === id)).toBe(false);
   });

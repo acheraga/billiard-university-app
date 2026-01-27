@@ -375,15 +375,15 @@ export default {
       return examIIMaxScores[lastEntry.level]?.reduce((a, b) => a + b, 0) || 0;
     });
 
-    const levelBreakdown = computed(() => {
-      const levels = {};
+    const levelBreakdown = computed((): Array<{ name: string; count: number; color: string }> => {
+      const levels: Record<string, number> = {};
       examIIHistory.value.forEach((entry) => {
         levels[entry.level] = (levels[entry.level] || 0) + 1;
       });
 
       return Object.entries(levels).map(([name, count]) => ({
         name,
-        count,
+        count: count as number,
         color: getLevelColor(name),
       }));
     });
@@ -460,7 +460,7 @@ export default {
     });
 
     const timelineEvents = computed(() => {
-      const events = [];
+      const events: Array<{ date: string; title: string; description: string }> = [];
 
       // Add Exam I events
       examIHistory.value.forEach((entry) => {
@@ -481,7 +481,9 @@ export default {
       });
 
       // Sort by date
-      return events.sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 10);
+      return events
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 10);
     });
 
     // Methods
@@ -598,6 +600,7 @@ export default {
       examIDrills,
       examIISkills,
       examIMaxScores,
+      examIIMaxScores,
       totalExams,
       bestExamI,
       worstExamI,

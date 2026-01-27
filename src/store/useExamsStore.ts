@@ -11,7 +11,7 @@ import type {
   Student,
   SumSkill,
   UserListItem,
-  UserProfile
+  UserProfile,
 } from "@/types/exams";
 import { defineStore } from "pinia";
 
@@ -250,8 +250,6 @@ export const useExamsStore = defineStore("exams", {
       this.calculateExamIScore();
     },
 
-
-
     calculateExamIScore() {
       let total = 0;
 
@@ -328,7 +326,6 @@ export const useExamsStore = defineStore("exams", {
       return "Doctorate";
     },
 
-
     updateExamIISkill(skillIndex: number, data: Partial<ExamIISkill>) {
       const skills = this.examII.skills[this.examII.currentLevel];
       Object.assign(skills[skillIndex], data);
@@ -339,11 +336,11 @@ export const useExamsStore = defineStore("exams", {
       const skills = this.examII.skills[this.examII.currentLevel];
       let total = 0;
 
-    /**
-     * Calculate the score for an individual skill according to its type
-     * @param skill - The skill to calculate (BestOfTwo, LowestTwoOfThree, Sum, or Median)
-     * @returns Calculated score, clamped to the skill's maxScore
-     */
+      /**
+       * Calculate the score for an individual skill according to its type
+       * @param skill - The skill to calculate (BestOfTwo, LowestTwoOfThree, Sum, or Median)
+       * @returns Calculated score, clamped to the skill's maxScore
+       */
       skills.forEach((skill) => {
         const score = this.calculateSkillScore(skill);
         total += score;
@@ -377,19 +374,19 @@ export const useExamsStore = defineStore("exams", {
           const breakSums = (skill.breakScores || [[], [], []]).map((arr) =>
             arr.reduce((total, score) => total + (score || 0), 0)
           );
-    /**
-     * Change le niveau actif de l'Exam II
-     * @param level - Nouveau niveau: Bachelors, Masters, ou Doctorate
-     */
+          /**
+           * Change le niveau actif de l'Exam II
+           * @param level - Nouveau niveau: Bachelors, Masters, ou Doctorate
+           */
           breakSums.sort((a, b) => a - b);
           return Math.min(5, breakSums[1] || 0);
         }
 
         default:
-    /**
-     * Save current Exam I state to history
-     * @returns The history entry created
-     */
+          /**
+           * Save current Exam I state to history
+           * @returns The history entry created
+           */
           return 0;
       }
     },
@@ -401,10 +398,10 @@ export const useExamsStore = defineStore("exams", {
 
     saveExamI(): ExamIHistoryEntry {
       const entry: ExamIHistoryEntry = {
-    /**
-     * Save the current Exam I state to history
-     * @returns The history entry created
-     */
+        /**
+         * Save the current Exam I state to history
+         * @returns The history entry created
+         */
         date: this.student.date || new Date().toISOString().split("T")[0],
         studentName: this.student.name,
         scores: this.examI.drills.map((d) => d.score),
@@ -450,7 +447,9 @@ export const useExamsStore = defineStore("exams", {
         const d: any = drill;
         const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
         const targetsCount = d.code === "F8" ? 5 : 10;
-        d.attempts = Array.from({ length: targetsCount }, () => Array(attemptsPerTarget).fill(null));
+        d.attempts = Array.from({ length: targetsCount }, () =>
+          Array(attemptsPerTarget).fill(null)
+        );
         d.score = 0;
         // keep F6 compat fields reset when using drill-level reset
         if (d.code === "F6") {
@@ -458,13 +457,11 @@ export const useExamsStore = defineStore("exams", {
           d.attempted = Array(10).fill(false);
         }
       } else {
-        drill.score = 0;
+        (drill as any).score = 0;
       }
 
       this.calculateExamIScore();
     },
-
-
 
     // Reset potting shots (F6) and attempted flags
     resetPottingShots(drillIndex: number): boolean {
@@ -499,11 +496,18 @@ export const useExamsStore = defineStore("exams", {
       if (!Array.isArray(d.attempts)) {
         const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
         const targetsCount = d.code === "F8" ? 5 : 10;
-        d.attempts = Array.from({ length: targetsCount }, () => Array(attemptsPerTarget).fill(null));
+        d.attempts = Array.from({ length: targetsCount }, () =>
+          Array(attemptsPerTarget).fill(null)
+        );
       }
 
       const attempts: (boolean | null)[][] = d.attempts;
-      if (!attempts[targetIndex] || attemptIndex < 0 || attemptIndex >= attempts[targetIndex].length) return false;
+      if (
+        !attempts[targetIndex] ||
+        attemptIndex < 0 ||
+        attemptIndex >= attempts[targetIndex].length
+      )
+        return false;
 
       // determine previous attempt (flattened sequential enforcement)
       const prev = (t: number, a: number) => {
@@ -544,8 +548,6 @@ export const useExamsStore = defineStore("exams", {
       this.saveToLocalStorage();
       return true;
     },
-
-
 
     saveStudentInfo(studentData: Partial<Student>) {
       Object.assign(this.student, studentData);
@@ -778,7 +780,11 @@ export const useExamsStore = defineStore("exams", {
       (doctorate[6] as SumSkill).scores = Array(7).fill(1);
       (doctorate[7] as SumSkill).scores = Array(7).fill(1);
       (doctorate[8] as SumSkill).scores = Array(7).fill(1);
-      (doctorate[9] as MedianSkill).breakScores = [Array(5).fill(1), Array(5).fill(1), Array(5).fill(1)];
+      (doctorate[9] as MedianSkill).breakScores = [
+        Array(5).fill(1),
+        Array(5).fill(1),
+        Array(5).fill(1),
+      ];
 
       // Default to Masters (existing behaviour) but all levels are populated
       this.setExamIILevel("Masters");
@@ -849,11 +855,11 @@ export const useExamsStore = defineStore("exams", {
         try {
           const data = JSON.parse(saved);
           Object.assign(this.student, data.student || {});
-    /**
-     * Crée un nouveau profil utilisateur avec les données actuelles
-     * @param name - Nom de l'utilisateur (optionnel)
-     * @returns ID du nouvel utilisateur créé
-     */
+          /**
+           * Crée un nouveau profil utilisateur avec les données actuelles
+           * @param name - Nom de l'utilisateur (optionnel)
+           * @returns ID du nouvel utilisateur créé
+           */
           Object.assign(this.examI, data.examI || {});
           Object.assign(this.examII, data.examII || {});
           Object.assign(this.history, data.history || {});
@@ -871,19 +877,19 @@ export const useExamsStore = defineStore("exams", {
       const profile = {
         student: { ...this.student, name: name || this.student.name || `User ${id}` },
         examI: JSON.parse(JSON.stringify(this.examI)),
-    /**
-     * Liste tous les utilisateurs enregistrés
-     * @returns Tableau d'objets contenant id et name de chaque utilisateur
-     */
+        /**
+         * Liste tous les utilisateurs enregistrés
+         * @returns Tableau d'objets contenant id et name de chaque utilisateur
+         */
         examII: JSON.parse(JSON.stringify(this.examII)),
         history: JSON.parse(JSON.stringify(this.history)),
         lastSaved: new Date().toISOString(),
       };
-    /**
-     * Change l'utilisateur actif et charge ses données
-     * @param id - ID de l'utilisateur à charger
-     * @returns true si succès, false si utilisateur non trouvé
-     */
+      /**
+       * Change l'utilisateur actif et charge ses données
+       * @param id - ID de l'utilisateur à charger
+       * @returns true si succès, false si utilisateur non trouvé
+       */
       this.users = this.users || {};
       this.users[id] = profile;
       this.currentUserId = id;
@@ -894,7 +900,10 @@ export const useExamsStore = defineStore("exams", {
     },
 
     listUsers(): UserListItem[] {
-      return Object.keys(this.users || {}).map((id) => ({ id, name: this.users[id].student?.name || `User ${id}` }));
+      return Object.keys(this.users || {}).map((id) => ({
+        id,
+        name: this.users[id].student?.name || `User ${id}`,
+      }));
     },
 
     /**
@@ -912,12 +921,12 @@ export const useExamsStore = defineStore("exams", {
       localStorage.setItem("billiardUniversityLastActive", this.currentUserId);
       this.calculateExamIScore();
       this.calculateExamIIScore();
-    /**
-     * Supprime définitivement un utilisateur
-     * Si l'utilisateur supprimé est actif, bascule vers un autre utilisateur ou réinitialise
-     * @param id - ID de l'utilisateur à supprimer
-     * @returns true si succès, false si utilisateur non trouvé
-     */
+      /**
+       * Supprime définitivement un utilisateur
+       * Si l'utilisateur supprimé est actif, bascule vers un autre utilisateur ou réinitialise
+       * @param id - ID de l'utilisateur à supprimer
+       * @returns true si succès, false si utilisateur non trouvé
+       */
       return true;
     },
 
