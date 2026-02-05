@@ -204,6 +204,13 @@
                       : "Edit Hotspots (dev)"
                   }}
                 </button>
+                <button
+                  class="btn btn-secondary"
+                  @click="clearHotspotCoords()"
+                  title="Clear all saved hotspot coordinates from cache"
+                >
+                  Clear Cache
+                </button>
 
                 <div
                   v-if="hotspotTuner.activeIndex === currentDrillIndexLocal"
@@ -1169,6 +1176,15 @@ export default {
       } catch (e) {
         console.warn("Invalid per-attempt coords:", e instanceof Error ? e.message : String(e));
         return false;
+      }
+    },
+
+    clearHotspotCoords() {
+      if (confirm("Reset hotspot coordinates to default values?")) {
+        // Restore default coordinates from code
+        this.perAttemptCoords = JSON.parse(JSON.stringify(this.defaultPerAttemptCoords));
+        localStorage.setItem("billiardPerAttemptCoords", JSON.stringify(this.perAttemptCoords));
+        alert("Hotspot coordinates reset to defaults!");
       }
     },
 
