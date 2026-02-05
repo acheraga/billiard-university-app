@@ -49,8 +49,8 @@
                   <div class="potting-overlay" v-if="isHotspotVisible(currentDrill)">
                     <template
                       v-for="(c, t) in currentDrill.code === 'F8'
-                        ? pottingCoords.slice(0, 5)
-                        : pottingCoords.slice(0, 10)"
+                        ? currentDrillCoords.slice(0, 5)
+                        : currentDrillCoords.slice(0, 10)"
                       :key="'t' + t"
                     >
                       <button
@@ -64,9 +64,24 @@
                         :class="{
                           success: isAttemptSuccess(currentDrill, t, aIdx - 1),
                           attemptedMiss: isAttemptAttemptedMiss(currentDrill, t, aIdx - 1),
+                          editing: hotspotTuner.activeIndex === currentDrillIndexLocal,
                         }"
                         :style="hotspotStyle(currentDrillIndexLocal, t, c, aIdx - 1)"
-                        @click="overlayToggle(currentDrillIndexLocal, t, aIdx - 1)"
+                        @click="
+                          hotspotTuner.activeIndex === currentDrillIndexLocal
+                            ? null
+                            : overlayToggle(currentDrillIndexLocal, t, aIdx - 1)
+                        "
+                        @mousedown="
+                          hotspotTuner.activeIndex === currentDrillIndexLocal
+                            ? startDrag($event, currentDrillIndexLocal, t)
+                            : null
+                        "
+                        @touchstart="
+                          hotspotTuner.activeIndex === currentDrillIndexLocal
+                            ? startDrag($event, currentDrillIndexLocal, t)
+                            : null
+                        "
                         :aria-pressed="
                           isAttemptSuccess(currentDrill, t, aIdx - 1) ? 'true' : 'false'
                         "
@@ -462,76 +477,76 @@ export default {
         ],
         F7: [
           [
-            { left: "56%", top: "2%" },
-            { left: "48%", top: "2%" },
-          ],
-          [
-            { left: "68%", top: "2%" },
+            { left: "55%", top: "2%" },
             { left: "60%", top: "2%" },
           ],
           [
-            { left: "75%", top: "2%" },
-            { left: "79%", top: "2%" },
+            { left: "67%", top: "2%" },
+            { left: "72%", top: "2%" },
           ],
           [
-            { left: "88%", top: "2%" },
-            { left: "80%", top: "2%" },
+            { left: "79%", top: "2%" },
+            { left: "84%", top: "2%" },
+          ],
+          [
+            { left: "91%", top: "2%" },
+            { left: "96%", top: "2%" },
           ],
           [
             { left: "89%", top: "20%" },
-            { left: "93%", top: "20%" },
+            { left: "94%", top: "20%" },
           ],
           [
             { left: "89%", top: "40%" },
-            { left: "93%", top: "40%" },
+            { left: "94%", top: "40%" },
           ],
           [
             { left: "89%", top: "60%" },
-            { left: "93%", top: "60%" },
+            { left: "94%", top: "60%" },
           ],
           [
             { left: "89%", top: "80%" },
-            { left: "93%", top: "80%" },
+            { left: "94%", top: "80%" },
           ],
           [
-            { left: "89%", top: "92%" },
-            { left: "93%", top: "92%" },
+            { left: "80%", top: "96%" },
+            { left: "85%", top: "96%" },
           ],
           [
-            { left: "77%", top: "92%" },
-            { left: "72%", top: "92%" },
+            { left: "65%", top: "96%" },
+            { left: "70%", top: "96%" },
           ],
         ],
         F8: [
           [
-            { left: "39%", top: "12%" },
-            { left: "43%", top: "10%" },
-            { left: "47%", top: "14%" },
-            { left: "51%", top: "16%" },
+            { left: "20%", top: "2%" },
+            { left: "25%", top: "2%" },
+            { left: "30%", top: "2%" },
+            { left: "35%", top: "2%" },
           ],
           [
-            { left: "54%", top: "24%" },
-            { left: "58%", top: "22%" },
-            { left: "62%", top: "26%" },
-            { left: "66%", top: "28%" },
+            { left: "65%", top: "2%" },
+            { left: "70%", top: "2%" },
+            { left: "75%", top: "2%" },
+            { left: "80%", top: "2%" },
           ],
           [
-            { left: "76%", top: "72%" },
-            { left: "80%", top: "70%" },
-            { left: "84%", top: "74%" },
-            { left: "88%", top: "76%" },
+            { left: "65%", top: "98%" },
+            { left: "70%", top: "98%" },
+            { left: "75%", top: "98%" },
+            { left: "80%", top: "98%" },
           ],
           [
-            { left: "46%", top: "78%" },
-            { left: "50%", top: "76%" },
-            { left: "54%", top: "80%" },
-            { left: "58%", top: "82%" },
+            { left: "45%", top: "60%" },
+            { left: "50%", top: "60%" },
+            { left: "55%", top: "60%" },
+            { left: "60%", top: "60%" },
           ],
           [
-            { left: "62%", top: "28%" },
-            { left: "66%", top: "26%" },
-            { left: "70%", top: "30%" },
-            { left: "74%", top: "32%" },
+            { left: "20%", top: "98%" },
+            { left: "25%", top: "98%" },
+            { left: "30%", top: "98%" },
+            { left: "35%", top: "98%" },
           ],
         ],
       },
@@ -594,6 +609,29 @@ export default {
         "level-masters-text": this.placement === "Masters",
         "level-doctorate-text": this.placement === "Doctorate",
       };
+    },
+    // Get coordinates for the current drill (F6, F7, or F8)
+    currentDrillCoords() {
+      const drill = this.currentDrill;
+      if (!drill || !drill.code) return this.pottingCoords;
+
+      const drillCode = drill.code;
+
+      // If we have per-attempt coords for this drill, flatten them to base coords
+      if (this.perAttemptCoords && this.perAttemptCoords[drillCode]) {
+        const perAttempt = this.perAttemptCoords[drillCode];
+        if (Array.isArray(perAttempt)) {
+          return perAttempt.map((targetAttempts) => {
+            // Take the first attempt coord as the base
+            return Array.isArray(targetAttempts) && targetAttempts[0]
+              ? targetAttempts[0]
+              : { left: "50%", top: "50%" };
+          });
+        }
+      }
+
+      // Fallback to pottingCoords (F6 default coords)
+      return this.pottingCoords;
     },
   },
   mounted() {
@@ -900,8 +938,29 @@ export default {
         return;
       }
       this.hotspotTuner.activeIndex = drillIndex;
+
+      // Get the drill code to determine which coords to edit
+      const store = useExamsStore();
+      const drill = store.examI.drills[drillIndex];
+      const drillCode = drill?.code;
+
+      // Get coords specific to the current drill
+      let sourceCoords = this.pottingCoords || [];
+      if (drillCode && this.perAttemptCoords && this.perAttemptCoords[drillCode]) {
+        // If per-attempt coords exist, flatten them to base coords for tuning
+        const perAttempt = this.perAttemptCoords[drillCode];
+        if (Array.isArray(perAttempt)) {
+          sourceCoords = perAttempt.map((targetAttempts) => {
+            // Take the first attempt coord as the base
+            return Array.isArray(targetAttempts) && targetAttempts[0]
+              ? targetAttempts[0]
+              : { left: "50%", top: "50%" };
+          });
+        }
+      }
+
       // deep copy coords for editing
-      this.hotspotTuner.tempCoords = (this.pottingCoords || []).map((c) => ({
+      this.hotspotTuner.tempCoords = (sourceCoords || []).map((c) => ({
         left: String(c.left),
         top: String(c.top),
       }));
@@ -917,8 +976,14 @@ export default {
         !Array.isArray(this.hotspotTuner.tempCoords)
       )
         return;
-      // sanitize and commit to pottingCoords
-      this.pottingCoords = this.hotspotTuner.tempCoords.map((c) => {
+
+      // Get the drill code to save to the correct location
+      const store = useExamsStore();
+      const drill = store.examI.drills[drillIndex];
+      const drillCode = drill?.code;
+
+      // sanitize coords
+      const sanitized = this.hotspotTuner.tempCoords.map((c) => {
         let l = String(c.left).trim();
         let t = String(c.top).trim();
         const tryNum = (s) => {
@@ -931,6 +996,33 @@ export default {
         };
         return { left: tryNum(l), top: tryNum(t) };
       });
+
+      // Determine how many attempts per target for this drill
+      let attemptsPerTarget = 1;
+      if (drillCode === "F7") attemptsPerTarget = 2;
+      else if (drillCode === "F8") attemptsPerTarget = 4;
+
+      // Build per-attempt coords from the base coords
+      const perAttemptData = sanitized.map((baseCoord) => {
+        const attempts = [];
+        for (let a = 0; a < attemptsPerTarget; a++) {
+          attempts.push({ ...baseCoord });
+        }
+        return attempts;
+      });
+
+      // Save to perAttemptCoords for the specific drill
+      if (drillCode) {
+        this.perAttemptCoords = this.perAttemptCoords || {};
+        this.perAttemptCoords[drillCode] = perAttemptData;
+        localStorage.setItem("billiardPerAttemptCoords", JSON.stringify(this.perAttemptCoords));
+      }
+
+      // Also update pottingCoords if this is F6 (backward compatibility)
+      if (drillCode === "F6") {
+        this.pottingCoords = sanitized;
+      }
+
       this.cancelHotspotTuner();
     },
     adjustHotspotTemp(i, deltaLeft = 0, deltaTop = 0) {
