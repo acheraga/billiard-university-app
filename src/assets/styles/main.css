@@ -465,3 +465,8 @@ a:hover {
     padding: 1rem;
   }
 }
+@media (min-width: 1200px) {
+  .drill-figure[data-v-5cbd5a57] {
+    max-width: 760px;
+  }
+}

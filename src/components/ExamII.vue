@@ -137,11 +137,14 @@
                   v-model.number="currentSkill.scores[i - 1]"
                   type="number"
                   min="0"
-                  :max="currentSkill.maxScore"
-                  @input="updateSkillScore"
+                  :max="getMaxPerAttempt(currentSkill.code)"
+                  @input="validateAttemptScore(i - 1)"
                 />
               </div>
-              <div class="skill-note">Sum of lowest two attempts</div>
+              <div class="skill-note">
+                Sum of lowest two attempts (max {{ getMaxPerAttempt(currentSkill.code) }} per
+                attempt)
+              </div>
             </div>
 
             <!-- Sum (Checkbox style) -->
@@ -296,23 +299,26 @@ export default {
     const basePrefix = baseUrl === "/" ? "" : baseUrl.replace(/\/$/, "");
 
     const getSkillFigures = (code: string) => {
-      // Skills S3 and S4 have 3 layout images each (Layout 1..3). Return array of paths.
-      const multi: Record<string, number[]> = {
-        S3: [3, 4, 5],
-        S4: [6, 7, 8],
+      // Map skills to their correct image numbers
+      // S3 and S4 have 3 layout images each (Layout 1..3)
+      const skillToImageMap: Record<string, number[]> = {
+        S1: [1],
+        S2: [2],
+        S3: [3, 4, 5], // 3 layouts for 9-ball
+        S4: [6, 7, 8], // 3 layouts for 8-ball
+        S5: [9], // Hide-Behind-Target Safety
+        S6: [10], // Kick
+        S7: [11], // Bank
+        S8: [12], // Elevated
+        S9: [13], // Jump/Masse
+        S10: [14], // Break
       };
 
-      if (multi[code]) {
-        return multi[code].map(
-          (n) =>
-            `${basePrefix}/exam2_images/${store.examII.currentLevel}/image-${String(n).padStart(3, "0")}.jpg`
-        );
-      }
-
-      const singleNum = Number(code.slice(1));
-      return [
-        `${basePrefix}/exam2_images/${store.examII.currentLevel}/image-${String(singleNum).padStart(3, "0")}.jpg`,
-      ];
+      const imageNumbers = skillToImageMap[code] || [1];
+      return imageNumbers.map(
+        (n) =>
+          `${basePrefix}/exam2_images/${store.examII.currentLevel}/image-${String(n).padStart(3, "0")}.jpg`
+      );
     };
 
     // PDF preview helpers
@@ -520,6 +526,38 @@ export default {
       }
     };
 
+    // Get max per attempt for S3 and S4 based on level
+    const getMaxPerAttempt = (skillCode: string) => {
+      if (skillCode !== "S3" && skillCode !== "S4") {
+        return currentSkill.value?.maxScore || 0;
+      }
+
+      const level = currentLevel.value;
+      if (level === "Bachelors") return 5;
+      if (level === "Masters") return 6;
+      if (level === "Doctorate") return 7;
+      return 0;
+    };
+
+    // Validate and clamp attempt scores for S3 and S4
+    const validateAttemptScore = (attemptIndex: number) => {
+      if (!currentSkill.value || currentSkill.value.type !== "lowestTwoOfThree") return;
+
+      const maxPerAttempt = getMaxPerAttempt(currentSkill.value.code);
+      const skill = currentSkill.value as any;
+
+      if (skill.scores && skill.scores[attemptIndex] !== undefined) {
+        const value = Number(skill.scores[attemptIndex]) || 0;
+        if (value > maxPerAttempt) {
+          skill.scores[attemptIndex] = maxPerAttempt;
+        } else if (value < 0) {
+          skill.scores[attemptIndex] = 0;
+        }
+      }
+
+      updateSkillScore();
+    };
+
     return {
       levels,
       currentLevel,
@@ -539,6 +577,8 @@ export default {
       getSkillFigure,
       getSkillFigures,
       getSkillExplanation,
+      getMaxPerAttempt,
+      validateAttemptScore,
       calculateSkillScore,
       calculateBreakScore,
       updateSkillScore,
@@ -668,6 +708,16 @@ export default {
   border: 1px solid #e8eaef;
   max-height: 420px; /* allow larger layouts to display like Exam I */
   object-fit: contain;
+}
+
+/* Medium desktop breakpoint (1200px) */
+@media (max-width: 1200px) {
+  .layout-card {
+    width: 360px;
+  }
+  .layout-card img {
+    max-height: 360px;
+  }
 }
 
 /* Tablet breakpoint */
