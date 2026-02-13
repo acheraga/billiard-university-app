@@ -9,7 +9,16 @@ const exam2Explanations: Record<string, Record<string, string>> = {
     S7: `With CB in hand for each shot, bank each ball cross side; 1 point for each bank pocketed legally (no scratch).`,
     S8: `Pocket each OB from the indicated CB position without scratching; 1 point for each successful shot.`,
     S9: `Jump or massé: 3 attempts; 1 point for each successful shot (OB pocketed, no obstacle‑ball contact). You are allowed to scratch.`,
-    S10: `Break three times and score each break (points for no scratch; CB not driven to a cushion; CB stays within center target; 1+ balls pocketed; 3+ OBs pocketed or driven above head string). Throw out best and worst; score = median (middle value).`,
+    S10: `S10 – Break Drill
+Instructions:
+• Break three times and score each break, awarding 1 point for each of the following:
+  a.) no scratch.
+  b.) no scratch, and the CB not driven to a cushion.
+  c.) no scratch, and the center of the CB remains within the center 4-diamond target zone during the entire break.
+  d.) no scratch and 1 or more balls pocketed.
+  e.) no scratch and 3 or more OBs either pocketed and/or driven above the head string.
+• Throw out the best and worst scores of the three breaks.
+Score = median # of points (middle value) of the three individual rack scores (5 max)`,
   },
   Masters: {
     S1: `Pocket the balls in numerical order. No scratching or contacting remaining balls. Shoot twice and use the higher score.`,
@@ -21,7 +30,16 @@ const exam2Explanations: Record<string, Record<string, string>> = {
     S7: `Bank the OB cross side from each CB position; 1 point per successful bank.`,
     S8: `Pocket each OB from the indicated CB position without scratching.`,
     S9: `5 attempts; 1 point for each successful shot (ball pocketed, no obstacle‑ball contact).`,
-    S10: `Break three times; score points for a set of break criteria (no scratch; CB not driven to a cushion; CB remains within center target; 1+ balls pocketed; 3+ OBs pocketed/driven above head string). Throw out best and worst; score = median.`,
+    S10: `S10 – Break Drill
+Instructions:
+• Break three times and score each break, awarding 1 point for each of the following:
+  a.) no scratch.
+  b.) no scratch, and the CB not driven to a cushion.
+  c.) no scratch, and the center of the CB remains within the center 4-diamond target zone during the entire break.
+  d.) no scratch and 1 or more balls pocketed.
+  e.) no scratch and 3 or more OBs either pocketed and/or driven above the head string.
+• Throw out the best and worst scores of the three breaks.
+Score = median # of points (middle value) of the three individual rack scores (5 max)`,
   },
   Doctorate: {
     S1: `Pocket the balls in rotation in numerical order. No scratch or contact allowed. Shoot twice and use the higher score.`,
@@ -33,7 +51,16 @@ const exam2Explanations: Record<string, Record<string, string>> = {
     S7: `Bank the OB cross corner from each of the CB positions; 1 point for each bank pocketed legally.`,
     S8: `Pocket each OB from the indicated CB position without scratching.`,
     S9: `7 attempts; 1 point for each successful shot (ball pocketed, no obstacle‑ball contact).`,
-    S10: `Break three times and score each break using the detailed criteria (a–e). Throw out best and worst; score = median.`,
+    S10: `S10 – Break Drill
+Instructions:
+• Break three times and score each break, awarding 1 point for each of the following:
+  a.) no scratch.
+  b.) no scratch, and the CB not driven to a cushion.
+  c.) no scratch, and the center of the CB remains within the center 4-diamond target zone during the entire break.
+  d.) no scratch and 1 or more balls pocketed.
+  e.) no scratch and 3 or more OBs either pocketed and/or driven above the head string.
+• Throw out the best and worst scores of the three breaks.
+Score = median # of points (middle value) of the three individual rack scores (5 max)`,
   },
 };
 

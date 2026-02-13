@@ -147,42 +147,55 @@
               </div>
             </div>
 
-            <!-- Sum (Checkbox style) -->
-            <div v-if="currentSkill.type === 'sum'" class="skill-inputs checkboxes">
-              <div v-for="i in currentSkill.scores.length" :key="i" class="checkbox-group">
-                <label class="checkbox-label">
-                  <input
-                    v-model="currentSkill.scores[i - 1]"
-                    type="checkbox"
-                    true-value="1"
-                    false-value="0"
-                    @change="updateSkillScore"
-                  />
-                  <span class="checkmark"></span>
-                  <span class="checkbox-text">Attempt {{ i }}</span>
-                </label>
+            <!-- Sum (Click-based: Success/Missed/Empty) -->
+            <div v-if="currentSkill.type === 'sum'" class="skill-inputs sum-attempts">
+              <div v-for="i in currentSkill.scores.length" :key="i" class="sum-button-group">
+                <button
+                  class="sum-attempt-btn"
+                  :class="getSumAttemptClass(currentSkill.scores[i - 1])"
+                  @click="toggleSumAttempt(currentSkill, i - 1)"
+                  :title="`Attempt ${i}: ${getSumAttemptStatus(currentSkill.scores[i - 1])}`"
+                >
+                  <span class="attempt-number">{{ i }}</span>
+                  <span v-if="currentSkill.scores[i - 1] === 1" class="attempt-icon">✓</span>
+                  <span v-else-if="currentSkill.scores[i - 1] === 0" class="attempt-icon">✗</span>
+                </button>
               </div>
-              <div class="skill-note">Check successful attempts (1 point each)</div>
+              <div class="skill-note">
+                Click to toggle: Empty → Success (1pt) → Missed (0pt) → Empty
+              </div>
             </div>
 
-            <!-- Median (Break shots) -->
+            <!-- Median (Break shots with buttons) -->
             <div v-if="currentSkill.type === 'median'" class="skill-inputs break-shots">
               <div v-for="attempt in 3" :key="attempt" class="break-attempt">
-                <h4>Break {{ attempt }}</h4>
-                <div class="break-points">
-                  <div v-for="point in 5" :key="point" class="point-input">
-                    <label>Point {{ String.fromCharCode(96 + point) }}:</label>
-                    <select
-                      v-model="currentSkill.breakScores[attempt - 1][point - 1]"
-                      @change="updateSkillScore"
+                <h4>
+                  Break {{ attempt }} -
+                  <span class="break-score-label"
+                    >Score: {{ calculateBreakScore(currentSkill.breakScores[attempt - 1]) }}</span
+                  >
+                </h4>
+                <div class="break-points-buttons">
+                  <div v-for="point in 5" :key="point" class="point-button-group">
+                    <button
+                      class="break-point-btn"
+                      :class="getSumAttemptClass(currentSkill.breakScores[attempt - 1][point - 1])"
+                      @click="toggleBreakPoint(currentSkill, attempt - 1, point - 1)"
+                      :title="`Point ${String.fromCharCode(96 + point)}: ${getSumAttemptStatus(currentSkill.breakScores[attempt - 1][point - 1])}`"
                     >
-                      <option value="0">0 (Miss)</option>
-                      <option value="1">1 (Success)</option>
-                    </select>
+                      <span class="point-letter">{{ String.fromCharCode(96 + point) }}</span>
+                      <span
+                        v-if="currentSkill.breakScores[attempt - 1][point - 1] === 1"
+                        class="point-icon"
+                        >✓</span
+                      >
+                      <span
+                        v-else-if="currentSkill.breakScores[attempt - 1][point - 1] === 0"
+                        class="point-icon"
+                        >✗</span
+                      >
+                    </button>
                   </div>
-                </div>
-                <div class="attempt-score">
-                  Score: {{ calculateBreakScore(currentSkill.breakScores[attempt - 1]) }}
                 </div>
               </div>
               <div class="skill-note">Median of three break scores</div>
@@ -558,6 +571,58 @@ export default {
       updateSkillScore();
     };
 
+    // Get CSS class for sum attempt button based on state
+    const getSumAttemptClass = (score: any) => {
+      if (score === 1) return "sum-success";
+      if (score === 0) return "sum-missed";
+      return "sum-empty";
+    };
+
+    // Get status text for sum attempt
+    const getSumAttemptStatus = (score: any) => {
+      if (score === 1) return "Success (1 point)";
+      if (score === 0) return "Missed (0 points)";
+      return "Not attempted";
+    };
+
+    // Toggle sum attempt between states: empty -> success -> missed -> empty
+    const toggleSumAttempt = (skill: any, index: number) => {
+      if (!skill || !skill.scores) return;
+
+      const currentValue = skill.scores[index];
+      if (currentValue === 1 || currentValue === "1") {
+        // success -> missed
+        skill.scores[index] = 0;
+      } else if (currentValue === 0 || currentValue === "0") {
+        // missed -> empty
+        skill.scores[index] = null;
+      } else {
+        // empty -> success
+        skill.scores[index] = 1;
+      }
+
+      updateSkillScore();
+    };
+
+    // Toggle break point between states: empty -> success -> missed -> empty
+    const toggleBreakPoint = (skill: any, breakIndex: number, pointIndex: number) => {
+      if (!skill || !skill.breakScores || !skill.breakScores[breakIndex]) return;
+
+      const currentValue = skill.breakScores[breakIndex][pointIndex];
+      if (currentValue === 1 || currentValue === "1") {
+        // success -> missed
+        skill.breakScores[breakIndex][pointIndex] = 0;
+      } else if (currentValue === 0 || currentValue === "0") {
+        // missed -> empty
+        skill.breakScores[breakIndex][pointIndex] = null;
+      } else {
+        // empty -> success
+        skill.breakScores[breakIndex][pointIndex] = 1;
+      }
+
+      updateSkillScore();
+    };
+
     return {
       levels,
       currentLevel,
@@ -579,6 +644,10 @@ export default {
       getSkillExplanation,
       getMaxPerAttempt,
       validateAttemptScore,
+      getSumAttemptClass,
+      getSumAttemptStatus,
+      toggleSumAttempt,
+      toggleBreakPoint,
       calculateSkillScore,
       calculateBreakScore,
       updateSkillScore,
@@ -967,6 +1036,107 @@ export default {
   color: #495057;
 }
 
+/* Sum Attempts - Click-based buttons */
+.sum-attempts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+  gap: 0.75rem;
+}
+
+.sum-button-group {
+  display: flex;
+  justify-content: center;
+}
+
+.sum-attempt-btn {
+  width: 70px;
+  height: 70px;
+  border: 2px solid #dee2e6;
+  border-radius: 8px;
+  background: white;
+  color: #495057;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.sum-attempt-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.sum-attempt-btn:active {
+  transform: translateY(0);
+}
+
+/* Empty state */
+.sum-attempt-btn.sum-empty {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #6c757d;
+}
+
+.sum-attempt-btn.sum-empty:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Success state (1 point) */
+.sum-attempt-btn.sum-success {
+  background: #d4edda;
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+.sum-attempt-btn.sum-success:hover {
+  background: #c3e6cb;
+  border-color: #1e8449;
+  color: #1e8449;
+}
+
+.sum-attempt-btn.sum-success .attempt-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+/* Missed state (0 points) */
+.sum-attempt-btn.sum-missed {
+  background: #f8d7da;
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.sum-attempt-btn.sum-missed:hover {
+  background: #f5c6cb;
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.sum-attempt-btn.sum-missed .attempt-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.attempt-number {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.attempt-icon {
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
 .break-shots {
   gap: 1.5rem;
 }
@@ -1006,6 +1176,113 @@ export default {
   border: 1px solid #dee2e6;
   border-radius: 4px;
   font-size: 0.9rem;
+}
+
+/* Break Points with Buttons */
+.break-points-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.point-button-group {
+  display: flex;
+  justify-content: center;
+}
+
+.break-point-btn {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  background: white;
+  color: #495057;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.break-point-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.12);
+}
+
+.break-point-btn:active {
+  transform: translateY(0);
+}
+
+/* Empty state */
+.break-point-btn.sum-empty {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+  color: #6c757d;
+}
+
+.break-point-btn.sum-empty:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* Success state (1 point) */
+.break-point-btn.sum-success {
+  background: #d4edda;
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+.break-point-btn.sum-success:hover {
+  background: #c3e6cb;
+  border-color: #1e8449;
+  color: #1e8449;
+}
+
+.break-point-btn.sum-success .point-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+/* Missed state (0 points) */
+.break-point-btn.sum-missed {
+  background: #f8d7da;
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.break-point-btn.sum-missed:hover {
+  background: #f5c6cb;
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.break-point-btn.sum-missed .point-icon {
+  font-size: 1.4rem;
+  line-height: 1;
+}
+
+.point-letter {
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.point-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.break-score-label {
+  color: #27ae60;
+  font-weight: bold;
 }
 
 .attempt-score {
