@@ -80,9 +80,19 @@ This project is optimized for GitHub Copilot:
 
 See [COPILOT_SETUP.md](COPILOT_SETUP.md) for complete setup guide.
 
-## License
+## 📄 License
 
-MIT
+This software is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+### 📋 Exam Content Rights
+
+All exam content, images, and assessment materials are © **BilliardUniversity.org**:
+
+- Exam I & II specifications and scoring criteria
+- All images in `public/exam2_images/` and `src/assets/exam1_figs/`
+- Layout diagrams and skill descriptions
+
+These materials are provided for use with this software only. Use outside this application requires permission from [BilliardUniversity.org](https://billiarduniversity.org/).
 
 ## 🙏 Acknowledgments
 
