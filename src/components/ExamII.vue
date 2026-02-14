@@ -1225,7 +1225,8 @@ export default {
   margin-bottom: 1rem;
   text-align: center;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
 }
 
 .attempt-layout-top img {
@@ -1243,6 +1244,7 @@ export default {
   font-weight: 600;
   color: #2c3e50;
   font-size: 0.9rem;
+  text-align: center;
 }
 
 .break-attempt-column h4 {
