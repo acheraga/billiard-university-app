@@ -66,7 +66,7 @@
             </div>
           </div>
 
-          <div class="skill-figure">
+          <div class="skill-figure" v-if="currentSkill.code !== 'S3' && currentSkill.code !== 'S4'">
             <div class="layout-images">
               <template v-for="(src, i) in getSkillFigures(currentSkill.code)" :key="i">
                 <div class="layout-card">
@@ -129,24 +129,6 @@
               <div class="skill-note">Best of two attempts (2nd optional if perfect)</div>
             </div>
 
-            <!-- Lowest Two of Three -->
-            <div v-if="currentSkill.type === 'lowestTwoOfThree'" class="skill-inputs">
-              <div v-for="i in 3" :key="i" class="input-group">
-                <label>Attempt {{ i }}:</label>
-                <input
-                  v-model.number="currentSkill.scores[i - 1]"
-                  type="number"
-                  min="0"
-                  :max="getMaxPerAttempt(currentSkill.code)"
-                  @input="validateAttemptScore(i - 1)"
-                />
-              </div>
-              <div class="skill-note">
-                Sum of lowest two attempts (max {{ getMaxPerAttempt(currentSkill.code) }} per
-                attempt)
-              </div>
-            </div>
-
             <!-- Sum (Click-based: Success/Missed/Empty) -->
             <div v-if="currentSkill.type === 'sum'" class="skill-inputs sum-attempts">
               <div v-for="i in currentSkill.scores.length" :key="i" class="sum-button-group">
@@ -166,8 +148,78 @@
               </div>
             </div>
 
-            <!-- Median (Break shots with buttons) -->
-            <div v-if="currentSkill.type === 'median'" class="skill-inputs break-shots">
+            <!-- Lowest Two of Three for S3 and S4 with horizontal layout -->
+            <div
+              v-if="
+                currentSkill.type === 'lowestTwoOfThree' &&
+                (currentSkill.code === 'S3' || currentSkill.code === 'S4')
+              "
+              class="skill-inputs break-shots-horizontal"
+            >
+              <div v-for="attempt in 3" :key="attempt" class="break-attempt-column">
+                <!-- Layout image -->
+                <div class="attempt-layout-top">
+                  <img
+                    :src="getSkillFigures(currentSkill.code)[attempt - 1]"
+                    :alt="`${currentSkill.code} Layout ${attempt}`"
+                    class="clickable-layout"
+                    @click="
+                      openModal(
+                        getSkillFigures(currentSkill.code)[attempt - 1],
+                        `${currentSkill.code} Layout ${attempt}`
+                      )
+                    "
+                  />
+                  <div class="layout-label">Layout {{ attempt }}</div>
+                </div>
+
+                <div class="input-group">
+                  <label>Attempt {{ attempt }}:</label>
+                  <input
+                    v-model.number="currentSkill.scores[attempt - 1]"
+                    type="number"
+                    min="0"
+                    :max="getMaxPerAttempt(currentSkill.code)"
+                    @input="validateAttemptScore(attempt - 1)"
+                  />
+                </div>
+              </div>
+              <div class="skill-note">
+                Sum of lowest two attempts (max {{ getMaxPerAttempt(currentSkill.code) }} per
+                attempt)
+              </div>
+            </div>
+
+            <!-- Original Lowest Two of Three for other skills -->
+            <div
+              v-if="
+                currentSkill.type === 'lowestTwoOfThree' &&
+                currentSkill.code !== 'S3' &&
+                currentSkill.code !== 'S4'
+              "
+              class="skill-inputs"
+            >
+              <div v-for="i in 3" :key="i" class="input-group">
+                <label>Attempt {{ i }}:</label>
+                <input
+                  v-model.number="currentSkill.scores[i - 1]"
+                  type="number"
+                  min="0"
+                  :max="getMaxPerAttempt(currentSkill.code)"
+                  @input="validateAttemptScore(i - 1)"
+                />
+              </div>
+              <div class="skill-note">
+                Sum of lowest two attempts (max {{ getMaxPerAttempt(currentSkill.code) }} per
+                attempt)
+              </div>
+            </div>
+
+            <!-- Median for S10 (original) -->
+            <div
+              v-if="currentSkill.type === 'median' && currentSkill.code === 'S10'"
+              class="skill-inputs break-shots"
+            >
               <div v-for="attempt in 3" :key="attempt" class="break-attempt">
                 <h4>
                   Break {{ attempt }} -
@@ -1151,6 +1203,81 @@ export default {
   margin: 0 0 1rem 0;
   color: #495057;
   font-size: 1rem;
+}
+
+/* Horizontal layout for S3 and S4 */
+.break-shots-horizontal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.break-attempt-column {
+  background: white;
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.attempt-layout-top {
+  margin-bottom: 1rem;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+}
+
+.attempt-layout-top img {
+  max-width: 420px;
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  border: 1px solid #e8eaef;
+}
+
+.attempt-layout-top .layout-label {
+  margin-top: 0.5rem;
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 0.9rem;
+}
+
+.break-attempt-column h4 {
+  margin: 0 0 0.75rem 0;
+  color: #2c3e50;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.break-attempt-column .input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.break-attempt-column .input-group label {
+  font-weight: 600;
+  color: #495057;
+  font-size: 0.9rem;
+}
+
+.break-attempt-column .input-group input {
+  padding: 0.5rem;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-align: center;
+}
+
+.break-attempt-column .break-points-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .break-points {
