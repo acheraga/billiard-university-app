@@ -42,10 +42,29 @@
   },
   "keywords": [
     "billiard",
+    "pool",
     "scoring",
-    "vue",
-    "exam"
+    "exam",
+    "tracking",
+    "vue3",
+    "typescript",
+    "pinia",
+    "vite",
+    "sports",
+    "education",
+    "billiard-university",
+    "8-ball",
+    "9-ball",
+    "skills-assessment"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acheraga/billiard-university-app.git"
+  },
+  "homepage": "https://billiarduniversity.org/testing/exams/",
+  "bugs": {
+    "url": "https://github.com/acheraga/billiard-university-app/issues"
+  },
   "author": "BilliardUniversity.org",
   "license": "MIT"
 }
