@@ -466,7 +466,7 @@ export default {
         { left: "68%", top: "28%" },
       ],
       // per-attempt coords (dev / optional). If set, used to position overlay buttons precisely.
-      perAttemptCoords: {},
+      perAttemptCoords: this.getInitialPerAttemptCoords(),
       // embed default per-attempt coords when localStorage is empty. Set to false to disable.
       embedDefaultPerAttemptCoords: true,
       defaultPerAttemptCoords: {
@@ -666,13 +666,21 @@ export default {
 
     // load per-attempt coords from localStorage if present (dev-friendly)
     try {
-      const raw = localStorage.getItem("billiardPerAttemptCoords");
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object") this.perAttemptCoords = parsed;
-      } else if (this.embedDefaultPerAttemptCoords) {
-        this.perAttemptCoords = this.defaultPerAttemptCoords;
-        localStorage.setItem("billiardPerAttemptCoords", JSON.stringify(this.perAttemptCoords));
+      // If perAttemptCoords is still empty (wasn't found at init time), try loading again
+      if (!this.perAttemptCoords || !Object.keys(this.perAttemptCoords as any).length) {
+        const raw = localStorage.getItem("billiardPerAttemptCoords");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") this.perAttemptCoords = parsed;
+        }
+      }
+
+      // If still empty and embedDefaultPerAttemptCoords is true, use defaults
+      if (!this.perAttemptCoords || !Object.keys(this.perAttemptCoords as any).length) {
+        if (this.embedDefaultPerAttemptCoords) {
+          this.perAttemptCoords = JSON.parse(JSON.stringify(this.defaultPerAttemptCoords));
+          localStorage.setItem("billiardPerAttemptCoords", JSON.stringify(this.perAttemptCoords));
+        }
       }
     } catch (e) {
       /* ignore parse errors */
@@ -725,6 +733,26 @@ export default {
     window.removeEventListener("touchend", this.onWindowUp);
   },
   methods: {
+    getInitialPerAttemptCoords(): Record<string, unknown> {
+      /**
+       * Load per-attempt hotspot coordinates from localStorage during component initialization.
+       * This ensures hotspots are positioned correctly even on first load.
+       */
+      try {
+        const raw = localStorage.getItem("billiardPerAttemptCoords");
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            return parsed;
+          }
+        }
+      } catch (e) {
+        /* ignore parse errors */
+      }
+      // Return empty object - will be populated with default coords in mounted()
+      return {};
+    },
+
     getFigure(code: string): Figure | null {
       if (!code) return null;
       const m = String(code).match(/^F(\d+)/i);
