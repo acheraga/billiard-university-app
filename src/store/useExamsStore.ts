@@ -603,6 +603,19 @@ export const useExamsStore = defineStore("exams", {
       localStorage.removeItem("billiardUniversityData");
     },
 
+    clearAllLocalStorage() {
+      /**
+       * Completely clear all localStorage data for this application.
+       * This will remove all user profiles, exam data, and settings.
+       * The page will need to be refreshed to reinitialize.
+       */
+      localStorage.removeItem("billiardUniversityUsers");
+      localStorage.removeItem("billiardUniversityLastActive");
+      localStorage.removeItem("billiardUniversityData");
+      // Clear all state
+      this.resetAll();
+    },
+
     loadSampleExamI() {
       // basic student info
       this.student.name = "Sample Student";

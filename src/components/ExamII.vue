@@ -108,23 +108,59 @@
             <div v-if="currentSkill.type === 'bestOfTwo'" class="skill-inputs">
               <div class="input-group">
                 <label>Attempt 1:</label>
-                <input
-                  v-model.number="currentSkill.attempt1"
-                  type="number"
-                  min="0"
-                  :max="currentSkill.maxScore"
-                  @input="updateSkillScore"
-                />
+                <div class="spinner-input">
+                  <button
+                    class="spinner-btn spinner-minus"
+                    @click="decrementBestOfTwo(1, 'attempt1')"
+                    :disabled="currentSkill.attempt1 <= 0"
+                    aria-label="Decrease attempt 1"
+                  >
+                    −
+                  </button>
+                  <input
+                    v-model.number="currentSkill.attempt1"
+                    type="text"
+                    readonly
+                    class="spinner-display"
+                    @keydown.prevent
+                  />
+                  <button
+                    class="spinner-btn spinner-plus"
+                    @click="incrementBestOfTwo(1, 'attempt1')"
+                    :disabled="currentSkill.attempt1 >= currentSkill.maxScore"
+                    aria-label="Increase attempt 1"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <div class="input-group">
                 <label>Attempt 2:</label>
-                <input
-                  v-model.number="currentSkill.attempt2"
-                  type="number"
-                  min="0"
-                  :max="currentSkill.maxScore"
-                  @input="updateSkillScore"
-                />
+                <div class="spinner-input">
+                  <button
+                    class="spinner-btn spinner-minus"
+                    @click="decrementBestOfTwo(2, 'attempt2')"
+                    :disabled="currentSkill.attempt2 <= 0"
+                    aria-label="Decrease attempt 2"
+                  >
+                    −
+                  </button>
+                  <input
+                    v-model.number="currentSkill.attempt2"
+                    type="text"
+                    readonly
+                    class="spinner-display"
+                    @keydown.prevent
+                  />
+                  <button
+                    class="spinner-btn spinner-plus"
+                    @click="incrementBestOfTwo(2, 'attempt2')"
+                    :disabled="currentSkill.attempt2 >= currentSkill.maxScore"
+                    aria-label="Increase attempt 2"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <div class="skill-note">Best of two attempts (2nd optional if perfect)</div>
             </div>
@@ -175,13 +211,33 @@
 
                 <div class="input-group">
                   <label>Attempt {{ attempt }}:</label>
-                  <input
-                    v-model.number="currentSkill.scores[attempt - 1]"
-                    type="number"
-                    min="0"
-                    :max="getMaxPerAttempt(currentSkill.code)"
-                    @input="validateAttemptScore(attempt - 1)"
-                  />
+                  <div class="spinner-input">
+                    <button
+                      class="spinner-btn spinner-minus"
+                      @click="decrementLowestTwoOfThree(attempt - 1)"
+                      :disabled="currentSkill.scores[attempt - 1] <= 0"
+                      :aria-label="`Decrease attempt ${attempt}`"
+                    >
+                      −
+                    </button>
+                    <input
+                      v-model.number="currentSkill.scores[attempt - 1]"
+                      type="text"
+                      readonly
+                      class="spinner-display"
+                      @keydown.prevent
+                    />
+                    <button
+                      class="spinner-btn spinner-plus"
+                      @click="incrementLowestTwoOfThree(attempt - 1)"
+                      :disabled="
+                        currentSkill.scores[attempt - 1] >= getMaxPerAttempt(currentSkill.code)
+                      "
+                      :aria-label="`Increase attempt ${attempt}`"
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               </div>
               <div class="skill-note">
@@ -201,13 +257,31 @@
             >
               <div v-for="i in 3" :key="i" class="input-group">
                 <label>Attempt {{ i }}:</label>
-                <input
-                  v-model.number="currentSkill.scores[i - 1]"
-                  type="number"
-                  min="0"
-                  :max="getMaxPerAttempt(currentSkill.code)"
-                  @input="validateAttemptScore(i - 1)"
-                />
+                <div class="spinner-input">
+                  <button
+                    class="spinner-btn spinner-minus"
+                    @click="decrementLowestTwoOfThree(i - 1)"
+                    :disabled="currentSkill.scores[i - 1] <= 0"
+                    :aria-label="`Decrease attempt ${i}`"
+                  >
+                    −
+                  </button>
+                  <input
+                    v-model.number="currentSkill.scores[i - 1]"
+                    type="text"
+                    readonly
+                    class="spinner-display"
+                    @keydown.prevent
+                  />
+                  <button
+                    class="spinner-btn spinner-plus"
+                    @click="incrementLowestTwoOfThree(i - 1)"
+                    :disabled="currentSkill.scores[i - 1] >= getMaxPerAttempt(currentSkill.code)"
+                    :aria-label="`Increase attempt ${i}`"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
               <div class="skill-note">
                 Sum of lowest two attempts (max {{ getMaxPerAttempt(currentSkill.code) }} per
@@ -623,6 +697,58 @@ export default {
       updateSkillScore();
     };
 
+    // Increment/Decrement for bestOfTwo skills (S1, S2)
+    const incrementBestOfTwo = (attemptNum: number, field: string) => {
+      if (!currentSkill.value || currentSkill.value.type !== "bestOfTwo") return;
+      const skill = currentSkill.value as any;
+      const currentValue = skill[field] || 0;
+      const maxScore = skill.maxScore || 0;
+
+      if (currentValue < maxScore) {
+        skill[field] = currentValue + 1;
+        updateSkillScore();
+      }
+    };
+
+    const decrementBestOfTwo = (attemptNum: number, field: string) => {
+      if (!currentSkill.value || currentSkill.value.type !== "bestOfTwo") return;
+      const skill = currentSkill.value as any;
+      const currentValue = skill[field] || 0;
+
+      if (currentValue > 0) {
+        skill[field] = currentValue - 1;
+        updateSkillScore();
+      }
+    };
+
+    // Increment/Decrement for lowestTwoOfThree skills (S3, S4, S5-S9)
+    const incrementLowestTwoOfThree = (attemptIndex: number) => {
+      if (!currentSkill.value || currentSkill.value.type !== "lowestTwoOfThree") return;
+      const skill = currentSkill.value as any;
+      const maxPerAttempt = getMaxPerAttempt(currentSkill.value.code);
+
+      if (skill.scores && skill.scores[attemptIndex] !== undefined) {
+        const currentValue = Number(skill.scores[attemptIndex]) || 0;
+        if (currentValue < maxPerAttempt) {
+          skill.scores[attemptIndex] = currentValue + 1;
+          updateSkillScore();
+        }
+      }
+    };
+
+    const decrementLowestTwoOfThree = (attemptIndex: number) => {
+      if (!currentSkill.value || currentSkill.value.type !== "lowestTwoOfThree") return;
+      const skill = currentSkill.value as any;
+
+      if (skill.scores && skill.scores[attemptIndex] !== undefined) {
+        const currentValue = Number(skill.scores[attemptIndex]) || 0;
+        if (currentValue > 0) {
+          skill.scores[attemptIndex] = currentValue - 1;
+          updateSkillScore();
+        }
+      }
+    };
+
     // Get CSS class for sum attempt button based on state
     const getSumAttemptClass = (score: any) => {
       if (score === 1) return "sum-success";
@@ -706,6 +832,10 @@ export default {
       saveExamII,
       resetExamII,
       autoFill,
+      incrementBestOfTwo,
+      decrementBestOfTwo,
+      incrementLowestTwoOfThree,
+      decrementLowestTwoOfThree,
       // PDF preview helpers
       pdfFilename,
       pdfUrl,
@@ -1037,6 +1167,84 @@ export default {
   box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
 }
 
+/* Spinner Input Controls */
+.spinner-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.spinner-display {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-align: center;
+  font-weight: 600;
+  background-color: #f8f9fa;
+  cursor: default;
+  user-select: none;
+}
+
+.spinner-display:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.spinner-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-width: 2.5rem;
+  padding: 0;
+  border: 2px solid #3498db;
+  border-radius: 6px;
+  background-color: white;
+  color: #3498db;
+  font-size: 1.5rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spinner-minus {
+  border-color: #e74c3c;
+  color: #e74c3c;
+}
+
+.spinner-btn:hover:not(:disabled) {
+  background-color: #ecf0f1;
+  transform: scale(1.05);
+}
+
+.spinner-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.spinner-minus:hover:not(:disabled) {
+  background-color: #ffebee;
+}
+
+.spinner-plus:hover:not(:disabled) {
+  background-color: #e3f2fd;
+}
+
+.spinner-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  border-color: #bdc3c7;
+  color: #bdc3c7;
+}
+
 .checkboxes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -1274,6 +1482,27 @@ export default {
   border-radius: 6px;
   font-size: 1rem;
   text-align: center;
+}
+
+.break-attempt-column .spinner-input {
+  flex-direction: row;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.break-attempt-column .spinner-display {
+  width: auto;
+  min-width: 60px;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+}
+
+.break-attempt-column .spinner-btn {
+  width: 2.2rem;
+  height: 2.2rem;
+  min-width: 2.2rem;
+  font-size: 1.3rem;
 }
 
 .break-attempt-column .break-points-buttons {
@@ -1678,6 +1907,10 @@ export default {
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
   transition: all 0.3s;
   display: flex;
   align-items: center;
@@ -1738,6 +1971,25 @@ export default {
 
   .input-group input {
     width: 100%;
+  }
+
+  .spinner-input {
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .spinner-display {
+    flex: 1;
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+
+  .spinner-btn {
+    width: 3rem;
+    height: 3rem;
+    min-width: 3rem;
+    font-size: 1.8rem;
+    flex-shrink: 0;
   }
 
   .break-points {

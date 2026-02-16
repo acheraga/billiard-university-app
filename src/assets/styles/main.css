@@ -82,6 +82,10 @@ a:hover {
   transition: var(--transition);
   text-align: center;
   white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn:hover {
@@ -133,6 +137,10 @@ a:hover {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
+}
+
+.btn i {
+  pointer-events: none;
 }
 
 .btn-sm {

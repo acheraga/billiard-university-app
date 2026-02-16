@@ -1725,6 +1725,10 @@ input[type="number"].no-spin {
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .btn-success {

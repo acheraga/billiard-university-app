@@ -50,11 +50,20 @@
     <footer class="app-footer">
       <div class="container">
         <p>BilliardUniversity.org • Vue.js Scoring System v1.0</p>
-        <p class="footer-links">
-          <a href="#" @click.prevent="exportData"><i class="fas fa-download"></i> Export Data</a>
-          <a href="#" @click.prevent="printReport"><i class="fas fa-print"></i> Print</a>
-          <a href="#" @click.prevent="resetAll"><i class="fas fa-redo"></i> Reset All</a>
-        </p>
+        <div class="footer-links">
+          <button type="button" class="footer-btn" @click="exportData">
+            <i class="fas fa-download"></i> Export Data
+          </button>
+          <button type="button" class="footer-btn" @click="printReport">
+            <i class="fas fa-print"></i> Print
+          </button>
+          <button type="button" class="footer-btn" @click="resetAll">
+            <i class="fas fa-redo"></i> Reset All
+          </button>
+          <button type="button" class="footer-btn footer-btn-danger" @click="clearLocalStorage">
+            <i class="fas fa-trash"></i> Clear Storage
+          </button>
+        </div>
       </div>
     </footer>
   </div>
@@ -96,6 +105,17 @@ const printReport = () => {
 const resetAll = () => {
   if (confirm("Reset all data? This cannot be undone.")) {
     store.resetAll();
+  }
+};
+
+const clearLocalStorage = () => {
+  if (
+    confirm(
+      "Clear all local storage data? This will remove all saved profiles and data. The page will refresh."
+    )
+  ) {
+    store.clearAllLocalStorage();
+    window.location.reload();
   }
 };
 
@@ -195,14 +215,42 @@ const selectTab = (id: string) => {
   gap: 2rem;
 }
 
-.footer-links a {
+.footer-btn {
+  background: transparent;
   color: #bdc3c7;
-  text-decoration: none;
+  border: none;
+  cursor: pointer;
   transition: color 0.3s;
+  font-size: 0.95rem;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
-.footer-links a:hover {
+.footer-btn:hover {
   color: white;
+}
+
+.footer-btn:active,
+.footer-btn:focus {
+  color: white;
+  outline: none;
+}
+
+.footer-btn-danger {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.footer-btn-danger:hover {
+  background-color: #ffebee;
 }
 
 @keyframes fadeIn {
