@@ -442,6 +442,10 @@ export const useExamsStore = defineStore("exams", {
       const drill = this.examI.drills[index];
       if (!drill) return;
 
+      // Increment reset version to force Vue re-render
+      const d: any = drill;
+      d._resetVersion = (d._resetVersion || 0) + 1;
+
       if (drill.type === "position") {
         drill.shots = Array(10).fill(4);
         drill.successes = Array(10).fill(false);
@@ -450,12 +454,15 @@ export const useExamsStore = defineStore("exams", {
         drill.score = 0;
         drill.bonus = 0;
       } else if (drill.type === "counting") {
-        const d: any = drill;
         const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
         const targetsCount = d.code === "F8" ? 5 : 10;
-        d.attempts = Array.from({ length: targetsCount }, () =>
+        
+        // Create new attempts array - ensure Vue reactivity by rebuilding from scratch
+        const newAttempts = Array.from({ length: targetsCount }, () =>
           Array(attemptsPerTarget).fill(null)
         );
+        d.attempts = newAttempts;
+        
         d.score = 0;
         // keep F6 compat fields reset when using drill-level reset
         if (d.code === "F6") {
@@ -467,6 +474,7 @@ export const useExamsStore = defineStore("exams", {
       }
 
       this.calculateExamIScore();
+      this.saveToLocalStorage();
     },
 
     // Reset potting shots (F6) and attempted flags
@@ -562,16 +570,33 @@ export const useExamsStore = defineStore("exams", {
 
     resetExamI() {
       this.examI.drills.forEach((drill) => {
+        // Increment reset version to force Vue re-render
+        const d: any = drill;
+        d._resetVersion = (d._resetVersion || 0) + 1;
+
         if (drill.type === "position") {
           drill.shots = Array(10).fill(4);
           drill.successes = Array(10).fill(false);
           drill.loses = Array(10).fill(false);
           drill.locked = Array(10).fill(false);
           drill.bonus = 0;
+        } else if (drill.type === "counting") {
+          const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
+          const targetsCount = d.code === "F8" ? 5 : 10;
+          // Reset counting drill attempts with proper reactivity
+          d.attempts = Array.from({ length: targetsCount }, () =>
+            Array(attemptsPerTarget).fill(null)
+          );
+          // Reset F6 compat fields
+          if (d.code === "F6") {
+            d.shots = Array(10).fill(false);
+            d.attempted = Array(10).fill(false);
+          }
         }
         drill.score = 0;
       });
       this.calculateExamIScore();
+      this.saveToLocalStorage();
     },
 
     resetExamII() {

@@ -23,7 +23,7 @@
         <button class="btn btn-secondary next-btn" @click="nextDrill">Next →</button>
       </div>
 
-      <div v-if="drills.length" :key="currentDrillIndexLocal" class="drill-card">
+      <div v-if="drills.length" :key="`drill-${currentDrillIndexLocal}-${currentDrill._resetVersion || 0}`" class="drill-card">
         <div class="drill-header">
           <h3>{{ currentDrill.code }} - {{ currentDrill.name }}</h3>
           <div class="drill-center">
