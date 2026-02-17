@@ -456,13 +456,13 @@ export const useExamsStore = defineStore("exams", {
       } else if (drill.type === "counting") {
         const attemptsPerTarget = d.code === "F7" ? 2 : d.code === "F8" ? 4 : 1;
         const targetsCount = d.code === "F8" ? 5 : 10;
-        
+
         // Create new attempts array - ensure Vue reactivity by rebuilding from scratch
         const newAttempts = Array.from({ length: targetsCount }, () =>
           Array(attemptsPerTarget).fill(null)
         );
         d.attempts = newAttempts;
-        
+
         d.score = 0;
         // keep F6 compat fields reset when using drill-level reset
         if (d.code === "F6") {
@@ -605,10 +605,12 @@ export const useExamsStore = defineStore("exams", {
         if (skill.type === "bestOfTwo") {
           skill.attempt1 = 0;
           skill.attempt2 = 0;
-        } else if (skill.type === "lowestTwoOfThree" || skill.type === "sum") {
+        } else if (skill.type === "lowestTwoOfThree") {
           skill.scores = skill.scores.map(() => 0);
+        } else if (skill.type === "sum") {
+          skill.scores = skill.scores.map(() => null);
         } else if (skill.type === "median") {
-          skill.breakScores = [Array(5).fill(0), Array(5).fill(0), Array(5).fill(0)];
+          skill.breakScores = [Array(5).fill(null), Array(5).fill(null), Array(5).fill(null)];
         }
       });
       this.calculateExamIIScore();
