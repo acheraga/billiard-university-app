@@ -7,13 +7,15 @@ Le projet a été migré de JavaScript vers TypeScript. Voici ce qui a été acc
 ### Fichiers convertis
 
 #### Configuration
+
 - ✅ `tsconfig.json` - Configuration TypeScript principal
-- ✅ `tsconfig.node.json` - Configuration pour les fichiers de configuration Node.js  
+- ✅ `tsconfig.node.json` - Configuration pour les fichiers de configuration Node.js
 - ✅ `vite.config.ts` - Configuration Vite en TypeScript
 - ✅ `vitest.config.ts` - Configuration de test en TypeScript
 - ✅ `src/vite-env.d.ts` - Déclarations de types pour Vite
 
 #### Code source
+
 - ✅ `src/main.ts` - Point d'entrée de l'application
 - ✅ `src/store/useExamsStore.ts` - Store Pinia avec types complets
 - ✅ `src/types/exams.ts` - Définitions de types pour tout le projet
@@ -25,11 +27,13 @@ Le projet a été migré de JavaScript vers TypeScript. Voici ce qui a été acc
 - ✅ `src/components/Reports.vue` - Composant avec TypeScript
 
 #### Tests
+
 - ✅ `tests/setup.ts`
 - ✅ `tests/store/exams.spec.ts`
 - ✅ `tests/components/ExamI.spec.ts`
 
 #### Package.json
+
 - ✅ Ajout de `typescript`, `vue-tsc`, `@types/node`
 - ✅ Scripts mis à jour pour le build TypeScript
 - ✅ Nouveau script `type-check` pour la vérification des types
@@ -37,10 +41,12 @@ Le projet a été migré de JavaScript vers TypeScript. Voici ce qui a été acc
 ### Types created
 
 The file `src/types/exams.ts` contains all project interfaces:
+
 - `PositionDrill` - Position drills (F1-F5)
 - `CountingDrill` - Counting drills (F6-F8)
 
 Note: F8 (Targets) uses 5 targets with 4 attempts each (5×4 = max 20), while F6 and F7 use 10 targets.
+
 - `BestOfTwoSkill` - Compétences avec meilleur de 2 tentatives
 - `LowestTwoOfThreeSkill` - Compétences avec 2 scores les plus bas sur 3
 - `SumSkill` - Compétences avec somme de scores
@@ -89,6 +95,7 @@ npm run lint:fix
 Pour finaliser complètement la migration :
 
 1. **Activer le mode strict progressivement** :
+
    ```json
    {
      "noImplicitAny": true,
@@ -97,9 +104,10 @@ Pour finaliser complètement la migration :
    ```
 
 2. **Corriger les unions de types** dans les composants en ajoutant des type guards :
+
    ```typescript
    function isPositionDrill(drill: ExamIDrill): drill is PositionDrill {
-     return drill.type === 'position';
+     return drill.type === "position";
    }
    ```
 

@@ -33,16 +33,18 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
 ## Conventions de Code
 
 ### TypeScript
+
 - Utiliser les types stricts pour les nouvelles fonctionnalités
 - Préférer les interfaces aux types quand possible
 - Utiliser les type guards pour les unions de types:
   ```typescript
   function isPositionDrill(drill: ExamIDrill): drill is PositionDrill {
-    return drill.type === 'position';
+    return drill.type === "position";
   }
   ```
 
 ### Vue 3
+
 - Toujours utiliser `<script setup lang="ts">`
 - Typer explicitement les refs et reactive:
   ```typescript
@@ -52,6 +54,7 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
 - Utiliser les composables pour la logique réutilisable
 
 ### Pinia Store
+
 - Le store principal est `useExamsStore` dans `src/store/useExamsStore.ts`
 - Actions principales:
 - `updateExamIDrill(index)`: Recalculate the score of a drill
@@ -61,6 +64,7 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
   - Multi-user: `createUser()`, `switchUser()`, `deleteUser()`
 
 ### Composants
+
 - `StudentInfo`: Informations étudiant
 - `ExamI`: Gestion Exam I avec 8 drills (F1-F8)
 - `ExamII`: Gestion Exam II avec 10 skills par niveau
@@ -70,12 +74,14 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
 ## Règles Spécifiques
 
 ### Drill management
+
 - F1-F5 are `PositionDrill` with targets from 1 to 7
 - F6-F8 are `CountingDrill` (count successes by attempts). **Note:** F8 (Targets) uses 5 targets × 4 attempts (max 20)
 - F6 (Potting) has special backward-compatible fields `attempted` and `shots`
 - Always call `updateExamIDrill(index)` after making position changes
 
 ### Gestion des Skills
+
 - Chaque skill a un `type` qui détermine son calcul
 - Utiliser des assertions de type pour accéder aux propriétés spécifiques:
   ```typescript
@@ -83,6 +89,7 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
   ```
 
 ### LocalStorage
+
 - Multi-user supporté via `billiardUniversityUsers`
 - Format: `{ userId: UserProfile }`
 - Toujours appeler `saveToLocalStorage()` après modification
@@ -90,6 +97,7 @@ Le système gère deux types d'examens (Exam I et Exam II) avec différents nive
 ## Patterns à Suivre
 
 ### Reactive Updates
+
 ```typescript
 // ✅ Bon
 const drill = store.examI.drills[index];
@@ -101,9 +109,10 @@ store.examI.drills[index].score = newScore; // Peut casser la réactivité
 ```
 
 ### Type Safety
+
 ```typescript
 // ✅ Bon - Avec type guard
-if (drill.type === 'position') {
+if (drill.type === "position") {
   const positionDrill = drill as PositionDrill;
   positionDrill.shots[0] = 5;
 }
@@ -113,6 +122,7 @@ const drill = store.examI.drills[5] as any; // Pour F6 avec attempted
 ```
 
 ### Computed vs Methods
+
 ```typescript
 // ✅ Utiliser computed pour les valeurs dérivées
 const totalScore = computed(() => store.examI.totalScore);

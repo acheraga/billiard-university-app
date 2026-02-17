@@ -5,7 +5,9 @@ Ce projet est optimisé pour une utilisation optimale avec GitHub Copilot.
 ## 📁 Fichiers de configuration créés
 
 ### 1. `.github/copilot-instructions.md`
+
 Instructions complètes pour Copilot avec :
+
 - Architecture du projet
 - Conventions de code TypeScript/Vue
 - Patterns à suivre
@@ -13,14 +15,18 @@ Instructions complètes pour Copilot avec :
 - Points d'attention spécifiques au projet
 
 ### 2. `.copilotignore`
+
 Exclusion des fichiers inutiles pour le contexte :
+
 - Build outputs (dist/, node_modules/)
 - Assets binaires (images, PDFs)
 - Lock files
 - Fichiers générés
 
 ### 3. `.vscode/settings.json`
+
 Configuration VS Code optimisée :
+
 - Autocomplétion Copilot activée
 - Format automatique à la sauvegarde
 - Type checking TypeScript
@@ -28,7 +34,9 @@ Configuration VS Code optimisée :
 - Import suggestions automatiques
 
 ### 4. `.vscode/extensions.json`
+
 Extensions recommandées :
+
 - GitHub Copilot
 - GitHub Copilot Chat
 - Vue - Official (Volar)
@@ -95,7 +103,7 @@ getExamIILevel(score: number): ExamIILevel
 ✅ **IntelliSense amélioré** : Documentation visible au survol  
 ✅ **Suggestions Copilot plus précises** : Comprend mieux le contexte  
 ✅ **Autocomplétion intelligente** : Types et paramètres suggérés  
-✅ **Moins d'erreurs** : Validation en temps réel  
+✅ **Moins d'erreurs** : Validation en temps réel
 
 ## 🎯 Bonnes pratiques
 
@@ -103,7 +111,7 @@ getExamIILevel(score: number): ExamIILevel
 
 ```typescript
 // ✅ Bon - Copilot comprendra le contexte
-if (drill.type === 'position') {
+if (drill.type === "position") {
   const positionDrill = drill as PositionDrill;
   positionDrill.shots[0] = 5;
 }

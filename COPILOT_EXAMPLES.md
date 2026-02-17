@@ -89,6 +89,7 @@ const handleClick = (event: MouseEvent) => {
 ### 1. Ajouter un nouveau type de drill
 
 **Prompt Copilot Chat**:
+
 ```
 @workspace Je veux ajouter un nouveau type de drill appelé "ComboTest" qui combine position et comptage. Le drill doit avoir:
 - Un tableau de positions cibles (comme PositionDrill)
@@ -105,6 +106,7 @@ Aide-moi à:
 ### 2. Implémenter une nouvelle fonctionnalité d'export
 
 **Prompt Copilot Chat**:
+
 ```
 @workspace Créer une fonction d'export PDF qui génère un rapport complet avec:
 - Informations étudiant
@@ -118,6 +120,7 @@ Utiliser une bibliothèque compatible TypeScript. Ajouter la fonction au store e
 ### 3. Améliorer la validation des données
 
 **Prompt Copilot Chat**:
+
 ```
 @workspace Ajouter une validation stricte pour tous les inputs de scores. Les règles sont:
 - F1-F5: positions 1-7 uniquement
@@ -134,6 +137,7 @@ Créer un composable useValidation.ts avec des fonctions de validation typées.
 Tapez: `// action that saves to localStorage`
 
 Copilot suggérera:
+
 ```typescript
 actionName(param: Type) {
   // Logic here
@@ -147,6 +151,7 @@ actionName(param: Type) {
 Tapez: `// computed from store`
 
 Copilot suggérera:
+
 ```typescript
 const computed = computed(() => store.examI.totalScore);
 ```
@@ -156,6 +161,7 @@ const computed = computed(() => store.examI.totalScore);
 Tapez: `// watch store changes deeply`
 
 Copilot suggérera:
+
 ```typescript
 watch(
   () => store.examI.drills,
@@ -171,7 +177,7 @@ watch(
 ### Analyser une erreur TypeScript
 
 ```
-@workspace J'ai cette erreur TypeScript: "Property 'shots' does not exist on type 'ExamIDrill'". 
+@workspace J'ai cette erreur TypeScript: "Property 'shots' does not exist on type 'ExamIDrill'".
 Contexte: Je veux accéder aux shots d'un drill à l'index 5.
 Comment résoudre ça proprement avec un type guard ?
 ```
@@ -195,7 +201,7 @@ Comment résoudre ça proprement avec un type guard ?
 ```
 @workspace Créer un fichier theme.css avec des variables CSS pour les couleurs utilisées dans l'app:
 - Bachelors: bleu (#1976d2)
-- Masters: orange (#f57c00)  
+- Masters: orange (#f57c00)
 - Doctorate: rose (#c2185b)
 - Success, warning, error states
 
@@ -205,6 +211,7 @@ Utiliser des variables CSS modernes.
 ### Component styling
 
 Tapez dans `<style scoped>`:
+
 ```css
 /* Responsive grid layout for drill cards */
 ```
@@ -257,18 +264,23 @@ Copilot suggérera un grid CSS adapté au projet.
 ## 🎓 Tips & Tricks
 
 ### 1. Contexte @workspace
+
 Toujours utiliser `@workspace` pour que Copilot comprenne le contexte du projet entier.
 
 ### 2. Soyez spécifique
+
 Au lieu de "créer un composant", dire "créer un composant Vue 3 TypeScript avec Composition API et props typées".
 
 ### 3. Références aux fichiers
+
 Mentionnez les fichiers existants: "Dans src/store/useExamsStore.ts, ajouter..."
 
 ### 4. Exemples de code
+
 Donnez des exemples de ce que vous voulez: "Comme dans StudentInfo.vue mais pour..."
 
 ### 5. Itération
+
 N'hésitez pas à affiner: "Modifie le code précédent pour aussi gérer le cas où..."
 
 ---

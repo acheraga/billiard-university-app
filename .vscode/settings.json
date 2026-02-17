@@ -9,7 +9,7 @@
     "authProvider": "github"
   },
   "github.copilot.editor.enableAutoCompletions": true,
-  
+
   // TypeScript/Vue specific
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode",
@@ -26,7 +26,7 @@
       "source.fixAll.eslint": "explicit"
     }
   },
-  
+
   // Copilot suggestions
   "editor.inlineSuggest.enabled": true,
   "editor.quickSuggestions": {
@@ -34,23 +34,23 @@
     "comments": true,
     "strings": true
   },
-  
+
   // Type checking
   "typescript.tsdk": "node_modules/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  
+
   // Vue/Volar
   "volar.takeOverMode.enabled": true,
-  
+
   // Auto import
   "typescript.suggest.autoImports": true,
   "javascript.suggest.autoImports": true,
-  
+
   // Path suggestions
   "typescript.preferences.importModuleSpecifierEnding": "auto",
   "javascript.preferences.importModuleSpecifierEnding": "auto",
-  
+
   // Copilot Chat
   "github.copilot.chat.codeGeneration.instructions": [
     {
@@ -72,14 +72,14 @@
       "text": "Documenter les fonctions complexes avec JSDoc/TSDoc"
     }
   ],
-  
+
   // Files
   "files.exclude": {
     "**/.git": true,
     "**/node_modules": true,
     "**/dist": true
   },
-  
+
   // Search
   "search.exclude": {
     "**/node_modules": true,
