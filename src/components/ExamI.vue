@@ -50,7 +50,7 @@
                   />
 
                   <!-- Overlayed potting hotspots (per-attempt). Shown for counting drills or F6-F8 explicitly -->
-                  <div class="potting-overlay" v-if="isHotspotVisible(currentDrill)">
+                  <div v-if="isHotspotVisible(currentDrill)" class="potting-overlay">
                     <template
                       v-for="(c, t) in currentDrill.code === 'F8'
                         ? currentDrillCoords.slice(0, 5)
@@ -71,6 +71,11 @@
                           editing: hotspotTuner.activeIndex === currentDrillIndexLocal,
                         }"
                         :style="hotspotStyle(currentDrillIndexLocal, t, c, aIdx - 1)"
+                        :aria-pressed="
+                          isAttemptSuccess(currentDrill, t, aIdx - 1) ? 'true' : 'false'
+                        "
+                        :aria-label="currentDrill.code + ' target ' + (t + 1) + ' attempt ' + aIdx"
+                        tabindex="0"
                         @click="
                           hotspotTuner.activeIndex === currentDrillIndexLocal
                             ? null
@@ -86,11 +91,6 @@
                             ? startDrag($event, currentDrillIndexLocal, t)
                             : null
                         "
-                        :aria-pressed="
-                          isAttemptSuccess(currentDrill, t, aIdx - 1) ? 'true' : 'false'
-                        "
-                        :aria-label="currentDrill.code + ' target ' + (t + 1) + ' attempt ' + aIdx"
-                        tabindex="0"
                       >
                         <span class="hotspot-symbol">
                           <span v-if="isAttemptSuccess(currentDrill, t, aIdx - 1)">✓</span>
@@ -121,16 +121,15 @@
                   "
                 >
                   <div
-                    class="target"
                     v-for="t in currentDrill.attempts
                       ? currentDrill.attempts.length
                       : currentDrill.code === 'F8'
                         ? 5
                         : 10"
                     :key="t"
+                    class="target"
                   >
                     <div
-                      class="attempts"
                       v-for="a in currentDrill.attempts && currentDrill.attempts[t - 1]
                         ? currentDrill.attempts[t - 1].length
                         : currentDrill.code === 'F7'
@@ -139,6 +138,7 @@
                             ? 4
                             : 1"
                       :key="a"
+                      class="attempts"
                     >
                       <button
                         class="potting-shot-btn"
@@ -149,13 +149,6 @@
                             currentDrill.attempts &&
                             currentDrill.attempts[t - 1]?.[a - 1] === false,
                         }"
-                        @click="toggleCounting(currentDrillIndexLocal, t - 1, a - 1)"
-                        @keydown.space.prevent="
-                          toggleCounting(currentDrillIndexLocal, t - 1, a - 1)
-                        "
-                        @keydown.enter.prevent="
-                          toggleCounting(currentDrillIndexLocal, t - 1, a - 1)
-                        "
                         :aria-pressed="
                           currentDrill.attempts && currentDrill.attempts[t - 1]?.[a - 1] === true
                             ? 'true'
@@ -163,6 +156,13 @@
                         "
                         :aria-label="'Target ' + t + ' attempt ' + a"
                         tabindex="0"
+                        @click="toggleCounting(currentDrillIndexLocal, t - 1, a - 1)"
+                        @keydown.space.prevent="
+                          toggleCounting(currentDrillIndexLocal, t - 1, a - 1)
+                        "
+                        @keydown.enter.prevent="
+                          toggleCounting(currentDrillIndexLocal, t - 1, a - 1)
+                        "
                       >
                         <span
                           v-if="
@@ -210,8 +210,8 @@
                 </button>
                 <button
                   class="btn btn-secondary"
-                  @click="clearHotspotCoords()"
                   title="Clear all saved hotspot coordinates from cache"
+                  @click="clearHotspotCoords()"
                 >
                   Clear Cache
                 </button>
@@ -220,22 +220,22 @@
                   v-if="hotspotTuner.activeIndex === currentDrillIndexLocal"
                   class="hotspot-tuner"
                 >
-                  <div class="tuner-row" v-for="(c, i) in hotspotTuner.tempCoords || []" :key="i">
+                  <div v-for="(c, i) in hotspotTuner.tempCoords || []" :key="i" class="tuner-row">
                     <div class="tuner-label">Shot {{ i + 1 }}</div>
                     <div class="tuner-controls">
-                      <button class="small" @click="adjustHotspotTemp(i, -1, 0)" title="Left -1">
+                      <button class="small" title="Left -1" @click="adjustHotspotTemp(i, -1, 0)">
                         ←
                       </button>
                       <input v-model="c.left" />
-                      <button class="small" @click="adjustHotspotTemp(i, 1, 0)" title="Left +1">
+                      <button class="small" title="Left +1" @click="adjustHotspotTemp(i, 1, 0)">
                         →
                       </button>
 
-                      <button class="small" @click="adjustHotspotTemp(i, 0, -1)" title="Top -1">
+                      <button class="small" title="Top -1" @click="adjustHotspotTemp(i, 0, -1)">
                         ↑
                       </button>
                       <input v-model="c.top" />
-                      <button class="small" @click="adjustHotspotTemp(i, 0, 1)" title="Top +1">
+                      <button class="small" title="Top +1" @click="adjustHotspotTemp(i, 0, 1)">
                         ↓
                       </button>
 

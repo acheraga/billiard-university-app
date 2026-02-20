@@ -1130,12 +1130,10 @@ export const useExamsStore = defineStore("exams", {
     // Realtime autosave: uses Pinia $subscribe to capture state mutations and create debounced snapshots
     startRealtimeAutosave(debounceMs = 500) {
       // store unsub in a module-scoped variable so multiple calls are idempotent
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       if ((this as any)._realtimeAutosaveUnsub) return;
 
       let timer: ReturnType<typeof setTimeout> | null = null;
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       (this as any)._realtimeAutosaveUnsub = this.$subscribe(() => {
         if (timer) clearTimeout(timer);
@@ -1146,12 +1144,10 @@ export const useExamsStore = defineStore("exams", {
     },
 
     stopRealtimeAutosave() {
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       const unsub = (this as any)._realtimeAutosaveUnsub;
       if (typeof unsub === "function") {
         unsub();
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
         (this as any)._realtimeAutosaveUnsub = null;
       }

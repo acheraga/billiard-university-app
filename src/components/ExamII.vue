@@ -32,13 +32,13 @@
             Download, open or preview the official Exam II skill sheet for this level.
           </p>
           <div class="exam-sheet-actions">
-            <a :href="pdfUrl" target="_blank" rel="noopener" class="btn btn-info" v-if="pdfUrl">
+            <a v-if="pdfUrl" :href="pdfUrl" target="_blank" rel="noopener" class="btn btn-info">
               <i class="fas fa-external-link-alt"></i> Open
             </a>
-            <a :href="pdfUrl" :download="pdfFilename" class="btn btn-secondary" v-if="pdfUrl">
+            <a v-if="pdfUrl" :href="pdfUrl" :download="pdfFilename" class="btn btn-secondary">
               <i class="fas fa-download"></i> Download
             </a>
-            <button class="btn btn-success" @click="togglePdfPreview" v-if="pdfUrl">
+            <button v-if="pdfUrl" class="btn btn-success" @click="togglePdfPreview">
               <i class="fas" :class="showPdfPreview ? 'fa-eye-slash' : 'fa-eye'"></i>
               {{ showPdfPreview ? "Hide Preview" : "Preview" }}
             </button>
@@ -66,7 +66,7 @@
             </div>
           </div>
 
-          <div class="skill-figure" v-if="currentSkill.code !== 'S3' && currentSkill.code !== 'S4'">
+          <div v-if="currentSkill.code !== 'S3' && currentSkill.code !== 'S4'" class="skill-figure">
             <div class="layout-images">
               <template v-for="(src, i) in getSkillFigures(currentSkill.code)" :key="i">
                 <div class="layout-card">
@@ -94,7 +94,7 @@
               @touchend.prevent="onTouchEnd"
             >
               <div class="modal-drag-handle" aria-hidden="true"></div>
-              <button class="modal-close" @click="closeModal" aria-label="Close">✕</button>
+              <button class="modal-close" aria-label="Close" @click="closeModal">✕</button>
               <h4 class="modal-title">{{ modalTitle }}</h4>
               <img :src="modalSrc" :alt="modalTitle" class="modal-image" />
               <p class="modal-description">{{ modalDescription }}</p>
@@ -111,9 +111,9 @@
                 <div class="spinner-input">
                   <button
                     class="spinner-btn spinner-minus"
-                    @click="decrementBestOfTwo(1, 'attempt1')"
                     :disabled="currentSkill.attempt1 <= 0"
                     aria-label="Decrease attempt 1"
+                    @click="decrementBestOfTwo(1, 'attempt1')"
                   >
                     −
                   </button>
@@ -126,9 +126,9 @@
                   />
                   <button
                     class="spinner-btn spinner-plus"
-                    @click="incrementBestOfTwo(1, 'attempt1')"
                     :disabled="currentSkill.attempt1 >= currentSkill.maxScore"
                     aria-label="Increase attempt 1"
+                    @click="incrementBestOfTwo(1, 'attempt1')"
                   >
                     +
                   </button>
@@ -139,9 +139,9 @@
                 <div class="spinner-input">
                   <button
                     class="spinner-btn spinner-minus"
-                    @click="decrementBestOfTwo(2, 'attempt2')"
                     :disabled="currentSkill.attempt2 <= 0"
                     aria-label="Decrease attempt 2"
+                    @click="decrementBestOfTwo(2, 'attempt2')"
                   >
                     −
                   </button>
@@ -154,9 +154,9 @@
                   />
                   <button
                     class="spinner-btn spinner-plus"
-                    @click="incrementBestOfTwo(2, 'attempt2')"
                     :disabled="currentSkill.attempt2 >= currentSkill.maxScore"
                     aria-label="Increase attempt 2"
+                    @click="incrementBestOfTwo(2, 'attempt2')"
                   >
                     +
                   </button>
@@ -171,8 +171,8 @@
                 <button
                   class="sum-attempt-btn"
                   :class="getSumAttemptClass(currentSkill.scores[i - 1])"
-                  @click="toggleSumAttempt(currentSkill, i - 1)"
                   :title="`Attempt ${i}: ${getSumAttemptStatus(currentSkill.scores[i - 1])}`"
+                  @click="toggleSumAttempt(currentSkill, i - 1)"
                 >
                   <span class="attempt-number">{{ i }}</span>
                   <span v-if="currentSkill.scores[i - 1] === 1" class="attempt-icon">✓</span>
@@ -214,9 +214,9 @@
                   <div class="spinner-input">
                     <button
                       class="spinner-btn spinner-minus"
-                      @click="decrementLowestTwoOfThree(attempt - 1)"
                       :disabled="currentSkill.scores[attempt - 1] <= 0"
                       :aria-label="`Decrease attempt ${attempt}`"
+                      @click="decrementLowestTwoOfThree(attempt - 1)"
                     >
                       −
                     </button>
@@ -229,11 +229,11 @@
                     />
                     <button
                       class="spinner-btn spinner-plus"
-                      @click="incrementLowestTwoOfThree(attempt - 1)"
                       :disabled="
                         currentSkill.scores[attempt - 1] >= getMaxPerAttempt(currentSkill.code)
                       "
                       :aria-label="`Increase attempt ${attempt}`"
+                      @click="incrementLowestTwoOfThree(attempt - 1)"
                     >
                       +
                     </button>
@@ -260,9 +260,9 @@
                 <div class="spinner-input">
                   <button
                     class="spinner-btn spinner-minus"
-                    @click="decrementLowestTwoOfThree(i - 1)"
                     :disabled="currentSkill.scores[i - 1] <= 0"
                     :aria-label="`Decrease attempt ${i}`"
+                    @click="decrementLowestTwoOfThree(i - 1)"
                   >
                     −
                   </button>
@@ -275,9 +275,9 @@
                   />
                   <button
                     class="spinner-btn spinner-plus"
-                    @click="incrementLowestTwoOfThree(i - 1)"
                     :disabled="currentSkill.scores[i - 1] >= getMaxPerAttempt(currentSkill.code)"
                     :aria-label="`Increase attempt ${i}`"
+                    @click="incrementLowestTwoOfThree(i - 1)"
                   >
                     +
                   </button>
@@ -306,8 +306,8 @@
                     <button
                       class="break-point-btn"
                       :class="getSumAttemptClass(currentSkill.breakScores[attempt - 1][point - 1])"
-                      @click="toggleBreakPoint(currentSkill, attempt - 1, point - 1)"
                       :title="`Point ${String.fromCharCode(96 + point)}: ${getSumAttemptStatus(currentSkill.breakScores[attempt - 1][point - 1])}`"
+                      @click="toggleBreakPoint(currentSkill, attempt - 1, point - 1)"
                     >
                       <span class="point-letter">{{ String.fromCharCode(96 + point) }}</span>
                       <span
