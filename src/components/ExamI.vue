@@ -1179,8 +1179,6 @@ export default {
       left = Math.max(0, Math.min(100, left + offset));
 
       return { left: left + "%", top: top + "%" };
-
-      return { left: left + "%", top: top + "%" };
     },
 
     /* Apply per-attempt coordinates provided by dev (drillCode, nested arrays)
