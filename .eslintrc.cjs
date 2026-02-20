@@ -18,6 +18,6 @@ module.exports = {
     // project-specific rules
     "no-console": "off",
     "vue/html-indent": "off",
-    "prettier/prettier": ["error", { "endOfLine": "auto" }],
+    "prettier/prettier": ["error", { endOfLine: "auto" }],
   },
 };

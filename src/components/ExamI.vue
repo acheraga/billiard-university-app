@@ -1043,7 +1043,7 @@ export default {
 
       // Build per-attempt coords from the base coords
       const perAttemptData = sanitized.map((baseCoord) => {
-        const attempts = [];
+        const attempts: (typeof baseCoord)[] = [];
         for (let a = 0; a < attemptsPerTarget; a++) {
           attempts.push({ ...baseCoord });
         }

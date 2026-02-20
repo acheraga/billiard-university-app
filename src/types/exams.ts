@@ -10,6 +10,7 @@ export interface PositionDrill {
   score: number;
   maxScore: number;
   bonus: number;
+  _resetVersion?: number;
 }
 
 export interface CountingDrill {
@@ -24,6 +25,7 @@ export interface CountingDrill {
   // Backward-compatible legacy fields used by some UI helpers and tests (F6)
   shots?: (number | boolean)[];
   attempted?: boolean[];
+  _resetVersion?: number;
 }
 
 export type ExamIDrill = PositionDrill | CountingDrill;
@@ -58,7 +60,7 @@ export interface MedianSkill {
   code: string;
   name: string;
   type: "median";
-  breakScores: number[][];
+  breakScores: (number | null)[][];
   maxScore: number;
 }
 

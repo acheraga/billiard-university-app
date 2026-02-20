@@ -372,19 +372,22 @@ export const useExamsStore = defineStore("exams", {
         }
 
         case "sum": {
-          const sum = (skill.scores || []).reduce((total, score) => total + (score || 0), 0);
+          const sum = (skill.scores || []).reduce(
+            (total: number, score) => total + (score || 0),
+            0
+          );
           return Math.min(skill.maxScore, sum);
         }
 
         case "median": {
           const breakSums = (skill.breakScores || [[], [], []]).map((arr) =>
-            arr.reduce((total, score) => total + (score || 0), 0)
+            arr.reduce((total: number, score) => total + (score || 0), 0)
           );
           /**
            * Change le niveau actif de l'Exam II
            * @param level - Nouveau niveau: Bachelors, Masters, ou Doctorate
            */
-          breakSums.sort((a, b) => a - b);
+          breakSums.sort((a: number, b: number) => a - b);
           return Math.min(5, breakSums[1] || 0);
         }
 
@@ -608,9 +611,13 @@ export const useExamsStore = defineStore("exams", {
         } else if (skill.type === "lowestTwoOfThree") {
           skill.scores = skill.scores.map(() => 0);
         } else if (skill.type === "sum") {
-          skill.scores = skill.scores.map(() => null);
+          skill.scores = skill.scores.map(() => 0);
         } else if (skill.type === "median") {
-          skill.breakScores = [Array(5).fill(null), Array(5).fill(null), Array(5).fill(null)];
+          skill.breakScores = [
+            Array(5).fill(null) as (number | null)[],
+            Array(5).fill(null) as (number | null)[],
+            Array(5).fill(null) as (number | null)[],
+          ];
         }
       });
       this.calculateExamIIScore();
