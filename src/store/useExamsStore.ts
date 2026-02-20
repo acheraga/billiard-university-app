@@ -290,7 +290,7 @@ export const useExamsStore = defineStore("exams", {
         }
 
         // Bonus: count number of successful shots at position 7
-        bonus = 0;
+
         for (let j = 0; j < (drill.successes || []).length; j++) {
           if (drill.successes[j] && Number(drill.shots[j]) === 7) {
             bonus++;
